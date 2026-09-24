@@ -45,16 +45,19 @@ public sealed class CompanyToolsTests : IDisposable
     private readonly ServiceProvider _provider;
     private readonly CompanyTools _tools;
 
-    public CompanyToolsTests()
-    {
-        var services = new ServiceCollection();
-        services.AddSingleton<TimeProvider>(new FakeTimeProvider(new DateTimeOffset(2026, 9, 24, 8, 0, 0, TimeSpan.Zero)));
-        services.AddPolishOpenDataServices(http => http.ConfigurePrimaryHttpMessageHandler(() => _stub));
-        _provider = services.BuildServiceProvider();
-        _tools = new CompanyTools(_provider.GetRequiredService<CachedRegistries>(), _provider.GetRequiredService<TimeProvider>());
-    }
+    public CompanyToolsTests() =>
+        (_provider, _tools) = Build(new FakeTimeProvider(new DateTimeOffset(2026, 9, 24, 8, 0, 0, TimeSpan.Zero)), _stub);
 
     public void Dispose() => _provider.Dispose();
+
+    private static (ServiceProvider Provider, CompanyTools Tools) Build(TimeProvider clock, StubHttpMessageHandler stub)
+    {
+        var services = new ServiceCollection();
+        services.AddSingleton(clock);
+        services.AddPolishOpenDataServices(http => http.ConfigurePrimaryHttpMessageHandler(() => stub));
+        var provider = services.BuildServiceProvider();
+        return (provider, new CompanyTools(provider.GetRequiredService<CachedRegistries>(), provider.GetRequiredService<TimeProvider>()));
+    }
 
     private static HttpResponseMessage Route(HttpRequestMessage request)
     {
@@ -174,6 +177,34 @@ public sealed class CompanyToolsTests : IDisposable
         Assert.True(result.IsError == true);
         Assert.Contains("is in the future", Text(result), StringComparison.Ordinal);
         Assert.Empty(_stub.RequestUris);
+    }
+
+    [Fact]
+    public async Task Lookup_accepts_today_as_an_explicit_date()
+    {
+        // The fake clock is 2026-09-24 in Warsaw: an explicit "today" is not in the future.
+        var result = await _tools.LookupCompany(nip: "7740001454", date: "2026-09-24", cancellationToken: TestContext.Current.CancellationToken);
+        Assert.True(Json(result).GetProperty("found").GetBoolean());
+        Assert.Contains(_stub.RequestUris, u => u.AbsolutePath == "/api/search/nip/7740001454" && u.Query == "?date=2026-09-24");
+    }
+
+    [Fact]
+    public async Task Future_date_check_uses_the_Warsaw_day()
+    {
+        // 22:30 UTC on 2026-09-24 is 00:30 on 2026-09-25 in Warsaw (CEST): the 25th is today there, the 26th is not.
+        using var stub = new StubHttpMessageHandler(Route);
+        var (provider, tools) = Build(new FakeTimeProvider(new DateTimeOffset(2026, 9, 24, 22, 30, 0, TimeSpan.Zero)), stub);
+        using var disposeProvider = provider;
+
+        var today = await tools.LookupCompany(nip: "7740001454", date: "2026-09-25", cancellationToken: TestContext.Current.CancellationToken);
+        Assert.True(Json(today).GetProperty("found").GetBoolean());
+        Assert.Contains(stub.RequestUris, u => u.AbsolutePath == "/api/search/nip/7740001454" && u.Query == "?date=2026-09-25");
+
+        var requests = stub.RequestUris.Count;
+        var tomorrow = await tools.LookupCompany(nip: "7740001454", date: "2026-09-26", cancellationToken: TestContext.Current.CancellationToken);
+        Assert.True(tomorrow.IsError == true);
+        Assert.Contains("is in the future", Text(tomorrow), StringComparison.Ordinal);
+        Assert.Equal(requests, stub.RequestUris.Count);
     }
 
     [Fact]
