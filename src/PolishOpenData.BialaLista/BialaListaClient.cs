@@ -23,7 +23,12 @@ public sealed class BialaListaClient : IBialaListaClient
     /// <param name="httpClient">Transport.</param>
     /// <param name="options">Options; defaults when null.</param>
     /// <param name="timeProvider">Clock for the default date and quota days; system clock when null.</param>
-    /// <param name="quotaTracker">Shared tracker; a private one is created when null.</param>
+    /// <param name="quotaTracker">
+    /// Shared tracker; a private one is created when null. The upstream limit applies per IP address, not per
+    /// client instance: create the client once (e.g. via <see cref="BialaListaServiceCollectionExtensions.AddBialaListaClient"/>)
+    /// or pass one shared tracker explicitly — a client created without DI and without a shared tracker gets a
+    /// private tracker that never sees requests made by other instances.
+    /// </param>
     public BialaListaClient(HttpClient httpClient, BialaListaClientOptions? options = null, TimeProvider? timeProvider = null, BialaListaQuotaTracker? quotaTracker = null)
     {
         ArgumentNullException.ThrowIfNull(httpClient);

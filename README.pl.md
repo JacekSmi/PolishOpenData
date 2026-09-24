@@ -23,9 +23,11 @@ Biblioteki działają na .NET 10 oraz .NET Framework / starszych .NET (netstanda
 using Microsoft.Extensions.DependencyInjection;
 using PolishOpenData;
 using PolishOpenData.BialaLista;
+using System.Threading.Tasks;
 
 var services = new ServiceCollection();
-services.AddBialaListaClient(o => o.TrackQuota = true).AddStandardResilienceHandler();
+services.AddBialaListaClient(o => o.TrackQuota = true)
+    .AddStandardResilienceHandler(o => o.Retry.ShouldHandle = static _ => ValueTask.FromResult(false));
 using var provider = services.BuildServiceProvider();
 var vat = provider.GetRequiredService<IBialaListaClient>();
 
@@ -33,6 +35,8 @@ var check = await vat.CheckBankAccountAsync(Nip.Parse("774-000-14-54"), Nrb.Pars
 Console.WriteLine(check.Value ? "Rachunek jest na Białej liście" : "Rachunku NIE ma na Białej liście");
 Console.WriteLine("Identyfikator zapytania (zachowaj jako dowód): " + check.RequestId);
 ```
+
+Retry są wyłączone dla Białej Listy: każda próba ponowienia to kolejne zapytanie, którego nie liczy powyższy strażnik limitu, a po wyczerpaniu dziennego limitu Biała Lista blokuje cały adres IP (nie tylko ten proces) do północy. Zarejestruj `AddBialaListaClient` raz na proces i współdziel powstały klient (albo jeden wspólny `BialaListaQuotaTracker`) — klient utworzony bez DI i bez współdzielonego licznika dostaje własny, prywatny licznik, który nie widzi zapytań innych instancji.
 
 ## Serwer MCP
 

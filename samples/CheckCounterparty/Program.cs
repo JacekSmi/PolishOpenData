@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using PolishOpenData;
 using PolishOpenData.BialaLista;
@@ -14,7 +15,12 @@ if (args.Length == 0 || !Nip.TryParse(args[0], out var nip))
 }
 
 var services = new ServiceCollection();
-services.AddBialaListaClient(o => o.TrackQuota = true).AddStandardResilienceHandler();
+services.AddBialaListaClient(o => o.TrackQuota = true).AddStandardResilienceHandler(o =>
+{
+    // A retry is another upstream request the quota guard below does not count, and Biała Lista blocks the whole
+    // IP address (not just this process) until midnight once the daily limit is reached: never retry it.
+    o.Retry.ShouldHandle = static _ => ValueTask.FromResult(false);
+});
 services.AddKrsClient().AddStandardResilienceHandler();
 await using var provider = services.BuildServiceProvider();
 var vat = provider.GetRequiredService<IBialaListaClient>();

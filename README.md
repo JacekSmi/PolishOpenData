@@ -26,9 +26,11 @@ using Microsoft.Extensions.DependencyInjection;
 using PolishOpenData;
 using PolishOpenData.BialaLista;
 using PolishOpenData.Krs;
+using System.Threading.Tasks;
 
 var services = new ServiceCollection();
-services.AddBialaListaClient(o => o.TrackQuota = true).AddStandardResilienceHandler();
+services.AddBialaListaClient(o => o.TrackQuota = true)
+    .AddStandardResilienceHandler(o => o.Retry.ShouldHandle = static _ => ValueTask.FromResult(false));
 services.AddKrsClient().AddStandardResilienceHandler();
 using var provider = services.BuildServiceProvider();
 
@@ -45,6 +47,8 @@ var krs = provider.GetRequiredService<IKrsClient>();
 var extract = await krs.GetCurrentExtractAsync(result.Value!.Krs!.Value);
 Console.WriteLine(extract.Extract?.ToSummary().ShareCapital);
 ```
+
+Retries are off for Biała Lista: every retry the resilience handler would make is another upstream request that the quota guard above cannot count, and once the daily limit is reached Biała Lista blocks the whole IP address — not just this process — until midnight. Register `AddBialaListaClient` once per process and reuse the resulting client (or pass one shared `BialaListaQuotaTracker` explicitly); a client created without DI and without a shared tracker gets its own private tracker that does not see requests made by other instances.
 
 A runnable version is in [`samples/CheckCounterparty`](samples/CheckCounterparty).
 
