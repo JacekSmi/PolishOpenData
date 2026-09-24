@@ -1,0 +1,58 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - run: dotnet build -c Release
+      - run: dotnet test -c Release --no-build --report-xunit-trx --results-directory artifacts/test-results
+      - name: Pack
+        if: matrix.os == 'ubuntu-latest'
+        run: dotnet pack -c Release -o artifacts/packages
+      - name: Upload packages
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v7
+        with:
+          name: packages
+          path: artifacts/packages
+
+  aot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - name: Install the native toolchain
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+      - name: Publish the MCP server with Native AOT (warnings are errors)
+        run: dotnet publish src/PolishOpenData.Mcp/PolishOpenData.Mcp.csproj -c Release -r linux-x64 -p:AotGate=true -o artifacts/aot
+      - name: Drive the AOT binary over stdio
+        run: >
+          python3 build/mcp-stdio-check.py
+          --expect-tools lookup_company,check_vat_bank_account,get_krs_extract,validate_identifier
+          -- artifacts/aot/PolishOpenData.Mcp
