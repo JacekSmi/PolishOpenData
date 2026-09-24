@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>
     <RootNamespace>PolishOpenData.BialaLista</RootNamespace>
-    <Description>Typed .NET client for the Polish VAT taxpayer whitelist (Biała Lista, wl-api.mf.gov.pl): VAT status, bank-account verification with request IDs as due-diligence evidence, batch lookups and a guard against the daily request limit. Unofficial; not affiliated with the Polish government.</Description>
+    <Description>Typed .NET client for the Polish VAT taxpayer whitelist (Biała Lista, wl-api.mf.gov.pl): VAT status, bank-account verification with request IDs for your payment records, batch lookups and a guard against the daily request limit. Unofficial; not affiliated with the Polish government.</Description>
     <PackageTags>$(PackageTags);wykaz-podatnikow;whitelist;split-payment;due-diligence</PackageTags>
   </PropertyGroup>
   <ItemGroup>

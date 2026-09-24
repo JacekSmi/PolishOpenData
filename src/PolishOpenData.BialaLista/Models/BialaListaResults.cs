@@ -40,8 +40,9 @@ public sealed class VatBatchEntry
 }
 
 /// <summary>
-/// A whitelist answer with the request identifier. Keep <see cref="RequestId"/>: it is the evidence that the check was
-/// made (VAT Act art. 96b), and one result always corresponds to exactly one upstream request.
+/// A whitelist answer with the request identifier. Keep <see cref="RequestId"/> and <see cref="RequestDateTime"/>: they
+/// document when the whitelist was checked and what it answered, and one result always corresponds to exactly one upstream
+/// request.
 /// </summary>
 /// <typeparam name="T">The answer type.</typeparam>
 public sealed class BialaListaResult<T>

@@ -164,7 +164,7 @@ internal sealed partial class CompanyTools(CachedRegistries registries, TimeProv
     }
 
     [McpServerTool(Name = "check_vat_bank_account", Title = "Check a bank account on the VAT whitelist", ReadOnly = true, OpenWorld = true, Idempotent = true, Destructive = false, UseStructuredContent = true, OutputSchemaType = typeof(VatAccountCheck))]
-    [Description("Checks whether a bank account is on the Polish VAT whitelist (Biała Lista) for a taxpayer identified by NIP or REGON. Use before paying an invoice over 15,000 PLN; the returned request ID is the legal evidence of the check.")]
+    [Description("Checks whether a bank account is on the Polish VAT whitelist (Biała Lista) for a taxpayer identified by NIP or REGON. Use before paying an invoice over 15,000 PLN; keep the returned request ID and time to document when the whitelist was checked and what it answered.")]
     public async Task<CallToolResult> CheckVatBankAccount(
         [Description("Bank account number: 26-digit NRB or PL IBAN; spaces allowed.")] string bankAccount,
         [Description("NIP of the taxpayer (give nip or regon).")] string? nip = null,
