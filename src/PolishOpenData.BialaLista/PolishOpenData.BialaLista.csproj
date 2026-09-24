@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>
+    <RootNamespace>PolishOpenData.BialaLista</RootNamespace>
+    <Description>Typed .NET client for the Polish VAT taxpayer whitelist (Biała Lista, wl-api.mf.gov.pl): VAT status, bank-account verification with request IDs as due-diligence evidence, batch lookups and a guard against the daily request limit. Unofficial.</Description>
+    <PackageTags>$(PackageTags);wykaz-podatnikow;whitelist;split-payment;due-diligence</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
+    <PackageReference Include="Microsoft.Bcl.TimeProvider" />
+    <PackageReference Include="Portable.System.DateTimeOnly" />
+    <PackageReference Include="Polyfill" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PolishOpenData.Core\PolishOpenData.Core.csproj" />
+    <Compile Include="..\Shared\**\*.cs" LinkBase="Shared" />
+    <InternalsVisibleTo Include="PolishOpenData.BialaLista.Tests" />
+  </ItemGroup>
+</Project>
