@@ -1,0 +1,90 @@
+name: release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # MinVer needs the tags
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - run: dotnet build -c Release
+      - run: dotnet test -c Release --no-build
+      - run: dotnet pack -c Release -o artifacts/packages
+      - name: Check that the package version matches the tag
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          ls artifacts/packages
+          test -f "artifacts/packages/PolishOpenData.Mcp.$v.nupkg"
+      - name: Prepare server.json with the release version
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          jq --arg v "$v" '.version = $v | .packages[0].version = $v' src/PolishOpenData.Mcp/.mcp/server.json > artifacts/packages/server.json
+          cat artifacts/packages/server.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release
+          path: artifacts/packages
+
+  # The only job that can mint OIDC tokens; it runs no build or test code. Re-runnable after a partial failure.
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # gh release create
+      id-token: write   # OIDC for NuGet Trusted Publishing and the MCP Registry
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: release
+          path: artifacts/packages
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - name: NuGet login (Trusted Publishing)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: ${{ secrets.NUGET_USER }}
+      - name: Push to nuget.org
+        run: >
+          dotnet nuget push "artifacts/packages/*.nupkg"
+          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+      - name: Create the GitHub release (skipped when it already exists)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+            gh release create "$GITHUB_REF_NAME" artifacts/packages/*.nupkg --generate-notes --verify-tag
+      - name: Wait until NuGet serves the MCP package README
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          url="https://api.nuget.org/v3-flatcontainer/polishopendata.mcp/${v,,}/readme"
+          for i in $(seq 1 90); do
+            if [ "$(curl -s -o /dev/null -w '%{http_code}' "$url")" = "200" ]; then exit 0; fi
+            sleep 20
+          done
+          echo "NuGet README for $v is not available after 30 minutes; re-run this job later" >&2
+          exit 1
+      - name: Install mcp-publisher (pinned)
+        run: curl -sSL "https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+      - name: Publish to the MCP Registry
+        run: |
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish artifacts/packages/server.json
