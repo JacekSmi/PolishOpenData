@@ -1,0 +1,51 @@
+name: nightly-smoke
+
+on:
+  schedule:
+    - cron: '17 4 * * *'   # daily, 06:17 Warsaw summer time
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      POLISHOPENDATA_SMOKE: '1'
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - name: Run live smoke tests
+        run: >
+          dotnet test --project tests/PolishOpenData.SmokeTests -c Release
+          --report-xunit-markdown --report-xunit-markdown-filename smoke.md
+          --results-directory artifacts/smoke
+      - name: Open or update an issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          {
+            echo "Nightly live smoke tests failed: $RUN_URL"
+            echo
+            echo "An upstream registry may have changed its API. Compare the reported fields with tests/Fixtures, update the models, and capture a new redacted fixture."
+            echo
+            cat artifacts/smoke/smoke.md 2>/dev/null || true
+          } > issue.md
+          gh label create smoke-failure --color B60205 --description "Nightly live API check failed" 2>/dev/null || true
+          existing=$(gh issue list --state open --label smoke-failure --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file issue.md
+          else
+            gh issue create --title "Nightly smoke test failed" --label smoke-failure --body-file issue.md
+          fi

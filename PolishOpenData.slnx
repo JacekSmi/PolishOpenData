@@ -11,5 +11,6 @@
     <Project Path="tests/PolishOpenData.Krs.Tests/PolishOpenData.Krs.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Mcp.Tests/PolishOpenData.Mcp.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Shared.Tests/PolishOpenData.Shared.Tests.csproj" />
+    <Project Path="tests/PolishOpenData.SmokeTests/PolishOpenData.SmokeTests.csproj" />
   </Folder>
 </Solution>
