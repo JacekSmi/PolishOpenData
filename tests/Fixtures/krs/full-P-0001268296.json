@@ -1,0 +1,358 @@
+{
+  "odpis": {
+    "rodzaj": "Pełny",
+    "naglowekP": {
+      "rejestr": "RejP",
+      "numerKRS": "0001268296",
+      "dataCzasOdpisu": "24.09.2026 02:32:49",
+      "stanZDnia": "23.09.2026",
+      "wpis": [
+        {
+          "numerWpisu": 1,
+          "opis": "REJESTRACJA W KRAJOWYM REJESTRZE SĄDOWYM",
+          "dataWpisu": "22.09.2026",
+          "sygnaturaAktSprawyDotyczacejWpisu": "KR.XI NS-REJ.KRS/33550/26/364",
+          "oznaczenieSaduDokonujacegoWpisu": "SĄD REJONOWY DLA KRAKOWA ŚRÓDMIEŚCIA W KRAKOWIE, XI WYDZIAŁ GOSPODARCZY KRAJOWEGO REJESTRU SĄDOWEGO"
+        },
+        {
+          "numerWpisu": 2,
+          "opis": "ZMIANA DANYCH W REJESTRZE",
+          "dataWpisu": "22.09.2026",
+          "sygnaturaAktSprawyDotyczacejWpisu": "KR.XI NS-REJ.KRS/33550/26/364/NIP"
+        },
+        {
+          "numerWpisu": 3,
+          "opis": "ZMIANA DANYCH W REJESTRZE",
+          "dataWpisu": "23.09.2026",
+          "sygnaturaAktSprawyDotyczacejWpisu": "KR.XI NS-REJ.KRS/33550/26/364/REGON"
+        }
+      ],
+      "stanPozycji": 1
+    },
+    "dane": {
+      "dzial1": {
+        "danePodmiotu": {
+          "formaPrawna": [
+            {
+              "formaPrawna": "SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+              "nrWpisuWprow": "1"
+            }
+          ],
+          "identyfikatory": [
+            {
+              "identyfikatory": {
+                "nip": "9452336418"
+              },
+              "nrWpisuWykr": "3",
+              "nrWpisuWprow": "2"
+            },
+            {
+              "identyfikatory": {
+                "regon": "54577292400000",
+                "nip": "9452336418"
+              },
+              "nrWpisuWprow": "3"
+            }
+          ],
+          "nazwa": [
+            {
+              "nazwa": "GYM CENTER 8.0 SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+              "nrWpisuWprow": "1"
+            }
+          ],
+          "czyProwadziDzialalnoscZInnymiPodmiotami": [
+            {
+              "czyProwadziDzialalnoscZInnymiPodmiotami": false,
+              "nrWpisuWprow": "1"
+            }
+          ],
+          "czyPosiadaStatusOPP": [
+            {
+              "czyPosiadaStatusOPP": false,
+              "nrWpisuWprow": "1"
+            }
+          ]
+        },
+        "siedzibaIAdres": {
+          "siedziba": [
+            {
+              "kraj": "POLSKA",
+              "wojewodztwo": "MAŁOPOLSKIE",
+              "powiat": "KRAKÓW",
+              "gmina": "KRAKÓW",
+              "miejscowosc": "KRAKÓW",
+              "nrWpisuWprow": "1"
+            }
+          ],
+          "adres": [
+            {
+              "ulica": "UL. OSTATNIA",
+              "nrDomu": "1D",
+              "miejscowosc": "KRAKÓW",
+              "kodPocztowy": "31-444",
+              "poczta": "KRAKÓW",
+              "kraj": "POLSKA",
+              "nrWpisuWprow": "1"
+            }
+          ],
+          "adresPocztyElektronicznej": [],
+          "adresStronyInternetowej": [],
+          "adresDoDoreczenElektronicznychWpisanyDoBAE": []
+        },
+        "umowaStatut": {
+          "informacjaOZawarciuZmianieUmowyStatutu": [
+            {
+              "pozycja": [
+                {
+                  "zawarcieZmianaUmowyStatutu": "[REDACTED]",
+                  "nrWpisuWprow": "1"
+                }
+              ]
+            }
+          ]
+        },
+        "pozostaleInformacje": {
+          "informacjaOCzasieNaJakiZostalUtworzonyPodmiot": [
+            {
+              "czasNaJakiUtworzonyZostalPodmiot": "NIEOZNACZONY",
+              "nrWpisuWprow": "1"
+            }
+          ],
+          "informacjaOPismieDoOgloszen": [],
+          "informacjaOLiczbieUdzialow": [
+            {
+              "informacjaOLiczbieUdzialow": "WIĘKSZĄ LICZBĘ UDZIAŁÓW",
+              "nrWpisuWprow": "1"
+            }
+          ]
+        },
+        "wspolnicySpzoo": [
+          {
+            "nazwa": [
+              {
+                "nazwa": "MAJKA GROUP SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+                "nrWpisuWprow": "1"
+              }
+            ],
+            "identyfikator": [
+              {
+                "regon": "54397808200000",
+                "nrWpisuWprow": "1"
+              }
+            ],
+            "krs": [
+              {
+                "krs": "0001223769",
+                "nrWpisuWprow": "1"
+              }
+            ],
+            "posiadaneUdzialy": [
+              {
+                "posiadaneUdzialy": "102 UDZIAŁY O WARTOŚCI 5100 ZŁOTYCH",
+                "nrWpisuWprow": "1"
+              }
+            ],
+            "czyPosiadaCaloscUdzialow": [
+              {
+                "czyPosiadaCaloscUdzialow": false,
+                "nrWpisuWprow": "1"
+              }
+            ]
+          },
+          {
+            "nazwisko": [
+              {
+                "nazwisko": {
+                  "nazwiskoICzlon": "C*****"
+                },
+                "nrWpisuWprow": "1"
+              }
+            ],
+            "imiona": [
+              {
+                "imiona": {
+                  "imie": "M******"
+                },
+                "nrWpisuWprow": "1"
+              }
+            ],
+            "identyfikator": [
+              {
+                "pesel": "0**********",
+                "nrWpisuWprow": "1"
+              }
+            ],
+            "posiadaneUdzialy": [
+              {
+                "posiadaneUdzialy": "98 UDZIAŁÓW O WARTOŚCI 4900 ZŁOTYCH",
+                "nrWpisuWprow": "1"
+              }
+            ],
+            "czyPosiadaCaloscUdzialow": [
+              {
+                "czyPosiadaCaloscUdzialow": false,
+                "nrWpisuWprow": "1"
+              }
+            ]
+          }
+        ],
+        "kapital": {
+          "wysokoscKapitaluZakladowego": [
+            {
+              "wartosc": "10000,00",
+              "waluta": "PLN",
+              "nrWpisuWprow": "1"
+            }
+          ]
+        }
+      },
+      "dzial2": {
+        "reprezentacja": [
+          {
+            "nazwaOrganu": [
+              {
+                "nazwaOrganu": "ZARZĄD",
+                "nrWpisuWprow": "1"
+              }
+            ],
+            "sposobReprezentacji": [
+              {
+                "sposobReprezentacji": "W PRZYPADKU ZARZĄDU JEDNOOSOBOWEGO DO SKŁADANIA OŚWIADCZEŃ WOLI W ZAKRESIE PRAW I OBOWIĄZKÓW MAJĄTKOWYCH I NIEMAJĄTKOWYCH SPÓŁKI UPOWAŻNIONY JEST CZŁONEK ZARZĄDU. W PRZYPADKU ZARZĄDU WIELOOSOBOWEGO DO SKŁADANIA OŚWIADCZEŃ WOLI W ZAKRESIE PRAW I OBOWIĄZKÓW MAJĄTKOWYCH SPÓŁKI DO WARTOŚCI 25.000,00 ZŁ ORAZ W ZAKRESIE PRAW I OBOWIĄZKÓW NIEMAJĄTKOWYCH SPÓŁKI UPOWAŻNIONY JEST KAŻDY Z CZŁONKÓW ZARZĄDU SAMODZIELNIE, A W PRZYPADKU SKŁADANIA OŚWIADCZEŃ WOLI W ZAKRESIE PRAW I OBOWIĄZKÓW MAJĄTKOWYCH SPÓŁKI, KTÓRYCH WARTOŚĆ PRZEKRACZA 25.000,00 ZŁ WYMAGANA JEST ŁĄCZNA REPREZENTACJA DWÓCH CZŁONKÓW ZARZĄDU LUB CZŁONKA ZARZĄDU DZIAŁAJĄCEGO Z PROKURENTEM.",
+                "nrWpisuWprow": "1"
+              }
+            ],
+            "sklad": [
+              {
+                "nazwisko": [
+                  {
+                    "nazwisko": {
+                      "nazwiskoICzlon": "M****"
+                    },
+                    "nrWpisuWprow": "1"
+                  }
+                ],
+                "imiona": [
+                  {
+                    "imiona": {
+                      "imie": "D*****",
+                      "imieDrugie": "K********"
+                    },
+                    "nrWpisuWprow": "1"
+                  }
+                ],
+                "identyfikator": [
+                  {
+                    "pesel": "0**********",
+                    "nrWpisuWprow": "1"
+                  }
+                ],
+                "funkcjaWOrganie": [
+                  {
+                    "funkcjaWOrganie": "PREZES ZARZĄDU",
+                    "nrWpisuWprow": "1"
+                  }
+                ],
+                "czyZawieszona": [
+                  {
+                    "czyZawieszona": false,
+                    "nrWpisuWprow": "1"
+                  }
+                ],
+                "dataZawieszeniaDo": []
+              }
+            ]
+          }
+        ]
+      },
+      "dzial3": {
+        "przedmiotDzialalnosci": {
+          "przedmiotPrzewazajacejDzialalnosci": [
+            {
+              "pozycja": [
+                {
+                  "opis": "DZIAŁALNOŚĆ KLUBÓW FITNESS",
+                  "kodDzial": "93",
+                  "kodKlasa": "13",
+                  "kodPodklasa": "Z",
+                  "nrWpisuWprow": "1"
+                }
+              ]
+            }
+          ],
+          "przedmiotPozostalejDzialalnosci": [
+            {
+              "pozycja": [
+                {
+                  "opis": "POZOSTAŁE FORMY EDUKACJI SPORTOWEJ ORAZ ZAJĘĆ SPORTOWYCH I REKREACYJNYCH",
+                  "kodDzial": "85",
+                  "kodKlasa": "51",
+                  "kodPodklasa": "Z",
+                  "nrWpisuWprow": "1"
+                }
+              ]
+            },
+            {
+              "pozycja": [
+                {
+                  "opis": "DZIAŁALNOŚĆ W ZAKRESIE FIZJOTERAPII",
+                  "kodDzial": "86",
+                  "kodKlasa": "95",
+                  "kodPodklasa": "Z",
+                  "nrWpisuWprow": "1"
+                }
+              ]
+            },
+            {
+              "pozycja": [
+                {
+                  "opis": "DZIAŁALNOŚĆ DIETETYCZNA",
+                  "kodDzial": "86",
+                  "kodKlasa": "99",
+                  "kodPodklasa": "B",
+                  "nrWpisuWprow": "1"
+                }
+              ]
+            },
+            {
+              "pozycja": [
+                {
+                  "opis": "DZIAŁALNOŚĆ SPORTOWA, GDZIE INDZIEJ NIESKLASYFIKOWANA",
+                  "kodDzial": "93",
+                  "kodKlasa": "19",
+                  "kodPodklasa": "Z",
+                  "nrWpisuWprow": "1"
+                }
+              ]
+            },
+            {
+              "pozycja": [
+                {
+                  "opis": "SPRZEDAŻ DETALICZNA SPRZĘTU SPORTOWEGO",
+                  "kodDzial": "47",
+                  "kodKlasa": "63",
+                  "kodPodklasa": "Z",
+                  "nrWpisuWprow": "1"
+                }
+              ]
+            }
+          ]
+        },
+        "informacjaODniuKonczacymRokObrotowy": {
+          "dzienKonczacyPierwszyRokObrotowy": [
+            {
+              "dzienKonczacyPierwszyRokObrotowy": "31.12.2026",
+              "nrWpisuWprow": "1"
+            }
+          ]
+        }
+      },
+      "dzial4": {},
+      "dzial5": {},
+      "dzial6": {
+        "rozwiazanieUniewaznienie": {
+          "okreslenieOkolicznosci": []
+        }
+      }
+    }
+  }
+}

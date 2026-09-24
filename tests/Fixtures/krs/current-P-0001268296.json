@@ -1,0 +1,164 @@
+{
+  "odpis": {
+    "rodzaj": "Aktualny",
+    "naglowekA": {
+      "rejestr": "RejP",
+      "numerKRS": "0001268296",
+      "dataCzasOdpisu": "24.09.2026 02:34:18",
+      "stanZDnia": "23.09.2026",
+      "dataRejestracjiWKRS": "22.09.2026",
+      "numerOstatniegoWpisu": 3,
+      "dataOstatniegoWpisu": "23.09.2026",
+      "sygnaturaAktSprawyDotyczacejOstatniegoWpisu": "KR.XI NS-REJ.KRS/33550/26/364/REGON",
+      "stanPozycji": 1
+    },
+    "dane": {
+      "dzial1": {
+        "danePodmiotu": {
+          "formaPrawna": "SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+          "identyfikatory": {
+            "regon": "54577292400000",
+            "nip": "9452336418"
+          },
+          "nazwa": "GYM CENTER 8.0 SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+          "daneOWczesniejszejRejestracji": {},
+          "czyProwadziDzialalnoscZInnymiPodmiotami": false,
+          "czyPosiadaStatusOPP": false
+        },
+        "siedzibaIAdres": {
+          "siedziba": {
+            "kraj": "POLSKA",
+            "wojewodztwo": "MAŁOPOLSKIE",
+            "powiat": "KRAKÓW",
+            "gmina": "KRAKÓW",
+            "miejscowosc": "KRAKÓW"
+          },
+          "adres": {
+            "ulica": "UL. OSTATNIA",
+            "nrDomu": "1D",
+            "miejscowosc": "KRAKÓW",
+            "kodPocztowy": "31-444",
+            "poczta": "KRAKÓW",
+            "kraj": "POLSKA"
+          }
+        },
+        "umowaStatut": {
+          "informacjaOZawarciuZmianieUmowyStatutu": [
+            {
+              "zawarcieZmianaUmowyStatutu": "[REDACTED]"
+            }
+          ]
+        },
+        "pozostaleInformacje": {
+          "czasNaJakiUtworzonyZostalPodmiot": "NIEOZNACZONY",
+          "informacjaOLiczbieUdzialow": "WIĘKSZĄ LICZBĘ UDZIAŁÓW"
+        },
+        "wspolnicySpzoo": [
+          {
+            "nazwa": "MAJKA GROUP SPÓŁKA Z OGRANICZONĄ ODPOWIEDZIALNOŚCIĄ",
+            "identyfikator": {
+              "regon": "54397808200000"
+            },
+            "krs": {
+              "krs": "0001223769"
+            },
+            "posiadaneUdzialy": "102 UDZIAŁY O WARTOŚCI 5100 ZŁOTYCH",
+            "czyPosiadaCaloscUdzialow": false
+          },
+          {
+            "nazwisko": {
+              "nazwiskoICzlon": "C*****"
+            },
+            "imiona": {
+              "imie": "M******"
+            },
+            "identyfikator": {
+              "pesel": "0**********"
+            },
+            "posiadaneUdzialy": "98 UDZIAŁÓW O WARTOŚCI 4900 ZŁOTYCH",
+            "czyPosiadaCaloscUdzialow": false
+          }
+        ],
+        "kapital": {
+          "wysokoscKapitaluZakladowego": {
+            "wartosc": "10000,00",
+            "waluta": "PLN"
+          },
+          "wniesioneAporty": {}
+        }
+      },
+      "dzial2": {
+        "reprezentacja": {
+          "nazwaOrganu": "ZARZĄD",
+          "sposobReprezentacji": "W PRZYPADKU ZARZĄDU JEDNOOSOBOWEGO DO SKŁADANIA OŚWIADCZEŃ WOLI W ZAKRESIE PRAW I OBOWIĄZKÓW MAJĄTKOWYCH I NIEMAJĄTKOWYCH SPÓŁKI UPOWAŻNIONY JEST CZŁONEK ZARZĄDU. W PRZYPADKU ZARZĄDU WIELOOSOBOWEGO DO SKŁADANIA OŚWIADCZEŃ WOLI W ZAKRESIE PRAW I OBOWIĄZKÓW MAJĄTKOWYCH SPÓŁKI DO WARTOŚCI 25.000,00 ZŁ ORAZ W ZAKRESIE PRAW I OBOWIĄZKÓW NIEMAJĄTKOWYCH SPÓŁKI UPOWAŻNIONY JEST KAŻDY Z CZŁONKÓW ZARZĄDU SAMODZIELNIE, A W PRZYPADKU SKŁADANIA OŚWIADCZEŃ WOLI W ZAKRESIE PRAW I OBOWIĄZKÓW MAJĄTKOWYCH SPÓŁKI, KTÓRYCH WARTOŚĆ PRZEKRACZA 25.000,00 ZŁ WYMAGANA JEST ŁĄCZNA REPREZENTACJA DWÓCH CZŁONKÓW ZARZĄDU LUB CZŁONKA ZARZĄDU DZIAŁAJĄCEGO Z PROKURENTEM.",
+          "sklad": [
+            {
+              "nazwisko": {
+                "nazwiskoICzlon": "M****"
+              },
+              "imiona": {
+                "imie": "D*****",
+                "imieDrugie": "K********"
+              },
+              "identyfikator": {
+                "pesel": "0**********"
+              },
+              "funkcjaWOrganie": "PREZES ZARZĄDU",
+              "czyZawieszona": false
+            }
+          ]
+        }
+      },
+      "dzial3": {
+        "przedmiotDzialalnosci": {
+          "przedmiotPrzewazajacejDzialalnosci": [
+            {
+              "opis": "DZIAŁALNOŚĆ KLUBÓW FITNESS",
+              "kodDzial": "93",
+              "kodKlasa": "13",
+              "kodPodklasa": "Z"
+            }
+          ],
+          "przedmiotPozostalejDzialalnosci": [
+            {
+              "opis": "POZOSTAŁE FORMY EDUKACJI SPORTOWEJ ORAZ ZAJĘĆ SPORTOWYCH I REKREACYJNYCH",
+              "kodDzial": "85",
+              "kodKlasa": "51",
+              "kodPodklasa": "Z"
+            },
+            {
+              "opis": "DZIAŁALNOŚĆ W ZAKRESIE FIZJOTERAPII",
+              "kodDzial": "86",
+              "kodKlasa": "95",
+              "kodPodklasa": "Z"
+            },
+            {
+              "opis": "DZIAŁALNOŚĆ DIETETYCZNA",
+              "kodDzial": "86",
+              "kodKlasa": "99",
+              "kodPodklasa": "B"
+            },
+            {
+              "opis": "DZIAŁALNOŚĆ SPORTOWA, GDZIE INDZIEJ NIESKLASYFIKOWANA",
+              "kodDzial": "93",
+              "kodKlasa": "19",
+              "kodPodklasa": "Z"
+            },
+            {
+              "opis": "SPRZEDAŻ DETALICZNA SPRZĘTU SPORTOWEGO",
+              "kodDzial": "47",
+              "kodKlasa": "63",
+              "kodPodklasa": "Z"
+            }
+          ]
+        },
+        "informacjaODniuKonczacymRokObrotowy": {
+          "dzienKonczacyPierwszyRokObrotowy": "31.12.2026"
+        }
+      },
+      "dzial4": {},
+      "dzial5": {},
+      "dzial6": {}
+    }
+  }
+}

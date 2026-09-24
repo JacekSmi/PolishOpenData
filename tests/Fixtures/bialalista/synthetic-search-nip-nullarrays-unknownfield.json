@@ -1,0 +1,30 @@
+{
+  "result": {
+    "subject": {
+      "name": "X",
+      "nip": "9999999982",
+      "statusVat": "Zwolniony",
+      "regon": null,
+      "pesel": null,
+      "krs": null,
+      "residenceAddress": null,
+      "workingAddress": null,
+      "representatives": null,
+      "authorizedClerks": null,
+      "partners": null,
+      "registrationLegalDate": null,
+      "registrationDenialBasis": null,
+      "registrationDenialDate": null,
+      "restorationBasis": null,
+      "restorationDate": null,
+      "removalBasis": null,
+      "removalDate": null,
+      "exemptionSmeDate": "2025-01-01",
+      "accountNumbers": null,
+      "hasVirtualAccounts": null,
+      "brandNewField": 1
+    },
+    "requestId": "AAAAA-0000000",
+    "requestDateTime": "24-09-2026 02:36:01"
+  }
+}

@@ -1,0 +1,351 @@
+# KW court codes. Source: annex 1 to Dz.U. 2016 poz. 312 as replaced by Dz.U. 2026 poz. 740 (in force 2026-07-01),
+# plus historical codes from earlier annex versions. Columns: code<TAB>last_valid_on (empty = current)<TAB>name
+BB1B		Sąd Rejonowy w Bielsku-Białej
+BB1C		Sąd Rejonowy w Cieszynie
+BB1Z		Sąd Rejonowy w Żywcu
+BI1B		Sąd Rejonowy w Białymstoku
+BI1P		Sąd Rejonowy w Bielsku Podlaskim
+BI1S		Sąd Rejonowy w Sokółce
+BI2P		Sąd Rejonowy w Bielsku Podlaskim – wydział zamiejscowy z siedzibą w Hajnówce
+BI3P		Sąd Rejonowy w Bielsku Podlaskim – wydział zamiejscowy z siedzibą w Siemiatyczach
+BY1B		Sąd Rejonowy w Bydgoszczy
+BY1I		Sąd Rejonowy w Inowrocławiu
+BY1M		Sąd Rejonowy w Mogilnie
+BY1N		Sąd Rejonowy w Nakle nad Notecią
+BY1S		Sąd Rejonowy w Świeciu
+BY1T		Sąd Rejonowy w Tucholi
+BY1U		Sąd Rejonowy w Szubinie
+BY1Z		Sąd Rejonowy w Żninie
+BY2T		Sąd Rejonowy w Tucholi – wydział zamiejscowy z siedzibą w Sępólnie Krajeńskim
+CZ1C		Sąd Rejonowy w Częstochowie
+CZ1L		Sąd Rejonowy w Lublińcu
+CZ1M		Sąd Rejonowy w Myszkowie
+CZ1Z		Sąd Rejonowy w Zawierciu
+CZ2C	2024-03-31	Sąd Rejonowy w Częstochowie – wydział zamiejscowy z siedzibą w Kłobucku
+EL1B		Sąd Rejonowy w Braniewie
+EL1D		Sąd Rejonowy w Działdowie
+EL1E		Sąd Rejonowy w Elblągu
+EL1I		Sąd Rejonowy w Iławie
+EL1N		Sąd Rejonowy w Nowym Mieście Lubawskim
+EL1O		Sąd Rejonowy w Ostródzie
+EL2O		Sąd Rejonowy w Ostródzie – wydział zamiejscowy z siedzibą w Morągu
+GD1A		Sąd Rejonowy w Starogardzie Gdańskim
+GD1E		Sąd Rejonowy w Kościerzynie
+GD1G		Sąd Rejonowy Gdańsk-Północ w Gdańsku
+GD1I		Sąd Rejonowy w Kwidzynie
+GD1M		Sąd Rejonowy w Malborku
+GD1R		Sąd Rejonowy w Kartuzach
+GD1S		Sąd Rejonowy w Sopocie
+GD1T		Sąd Rejonowy w Tczewie
+GD1W		Sąd Rejonowy w Wejherowie
+GD1Y		Sąd Rejonowy w Gdyni
+GD2I		Sąd Rejonowy w Kwidzynie – wydział zamiejscowy z siedzibą w Sztumie
+GD2M		Sąd Rejonowy w Malborku – wydział zamiejscowy z siedzibą w Nowym Dworze Gdańskim
+GD2W	2023-04-04	Sąd Rejonowy w Wejherowie – wydział zamiejscowy z siedzibą w Pucku
+GL1G		Sąd Rejonowy w Gliwicach
+GL1J		Sąd Rejonowy w Jastrzębiu-Zdroju
+GL1R		Sąd Rejonowy w Raciborzu
+GL1S		Sąd Rejonowy w Rudzie Śląskiej
+GL1T		Sąd Rejonowy w Tarnowskich Górach
+GL1W		Sąd Rejonowy w Wodzisławiu Śląskim
+GL1X		Sąd Rejonowy w Żorach
+GL1Y		Sąd Rejonowy w Rybniku
+GL1Z		Sąd Rejonowy w Zabrzu
+GW1G		Sąd Rejonowy w Gorzowie Wielkopolskim
+GW1K		Sąd Rejonowy w Strzelcach Krajeńskich
+GW1M		Sąd Rejonowy w Międzyrzeczu
+GW1S		Sąd Rejonowy w Słubicach
+GW1U		Sąd Rejonowy w Sulęcinie
+JG1B		Sąd Rejonowy w Bolesławcu
+JG1J		Sąd Rejonowy w Jeleniej Górze
+JG1K		Sąd Rejonowy w Kamiennej Górze
+JG1L		Sąd Rejonowy w Lubaniu
+JG1S		Sąd Rejonowy w Lwówku Śląskim
+JG1Z		Sąd Rejonowy w Zgorzelcu
+KA1B		Sąd Rejonowy w Będzinie
+KA1C		Sąd Rejonowy w Chorzowie
+KA1D		Sąd Rejonowy w Dąbrowie Górniczej
+KA1I		Sąd Rejonowy w Siemianowicach Śląskich
+KA1J		Sąd Rejonowy w Jaworznie
+KA1K		Sąd Rejonowy Katowice-Wschód w Katowicach
+KA1L		Sąd Rejonowy w Mysłowicach
+KA1M		Sąd Rejonowy w Mikołowie
+KA1P		Sąd Rejonowy w Pszczynie
+KA1S		Sąd Rejonowy w Sosnowcu
+KA1T		Sąd Rejonowy w Tychach
+KA1Y		Sąd Rejonowy w Bytomiu
+KI1A		Sąd Rejonowy w Staszowie
+KI1B		Sąd Rejonowy w Busku-Zdroju
+KI1H		Sąd Rejonowy w Starachowicach
+KI1I		Sąd Rejonowy w Busku-Zdroju – wydział zamiejscowy z siedzibą w Kazimierzy Wielkiej
+KI1J		Sąd Rejonowy w Jędrzejowie
+KI1K		Sąd Rejonowy w Końskich
+KI1L		Sąd Rejonowy w Kielcach
+KI1O		Sąd Rejonowy w Ostrowcu Świętokrzyskim
+KI1P		Sąd Rejonowy w Pińczowie
+KI1R		Sąd Rejonowy w Skarżysku-Kamiennej
+KI1S		Sąd Rejonowy w Sandomierzu
+KI1T		Sąd Rejonowy w Opatowie
+KI1W		Sąd Rejonowy we Włoszczowie
+KN1K		Sąd Rejonowy w Kole
+KN1N		Sąd Rejonowy w Koninie
+KN1S		Sąd Rejonowy w Słupcy
+KN1T		Sąd Rejonowy w Turku
+KO1B		Sąd Rejonowy w Białogardzie
+KO1D		Sąd Rejonowy w Drawsku Pomorskim
+KO1E		Sąd Rejonowy w Sławnie
+KO1I		Sąd Rejonowy w Szczecinku
+KO1K		Sąd Rejonowy w Koszalinie
+KO1L		Sąd Rejonowy w Kołobrzegu
+KO1W		Sąd Rejonowy w Wałczu
+KO2B		Sąd Rejonowy w Białogardzie – wydział zamiejscowy z siedzibą w Świdwinie
+KR1B		Sąd Rejonowy w Suchej Beskidzkiej
+KR1C		Sąd Rejonowy w Chrzanowie
+KR1E		Sąd Rejonowy w Oświęcimiu
+KR1H		Sąd Rejonowy dla Krakowa-Nowej Huty w Krakowie – wydział zamiejscowy z siedzibą w Proszowicach
+KR1I		Sąd Rejonowy w Wieliczce
+KR1K		Sąd Rejonowy dla Krakowa-Krowodrzy w Krakowie – wydział zamiejscowy z siedzibą w Czernichowie
+KR1M		Sąd Rejonowy w Miechowie
+KR1O		Sąd Rejonowy w Olkuszu
+KR1P		Sąd Rejonowy dla Krakowa-Podgórza w Krakowie
+KR1S		Sąd Rejonowy w Miechowie – wydział zamiejscowy z siedzibą w Słomnikach
+KR1W		Sąd Rejonowy w Wadowicach
+KR1Y		Sąd Rejonowy w Myślenicach
+KR2E		Sąd Rejonowy w Oświęcimiu – wydział zamiejscowy z siedzibą w Kętach
+KR2I	2026-06-30	Sąd Rejonowy w Wieliczce – wydział zamiejscowy z siedzibą w Niepołomicach
+KR2K		Sąd Rejonowy dla Krakowa-Krowodrzy w Krakowie – wydział zamiejscowy z siedzibą w Krzeszowicach
+KR2P		Sąd Rejonowy dla Krakowa-Podgórza w Krakowie – wydział zamiejscowy z siedzibą w Skale
+KR2Y		Sąd Rejonowy w Myślenicach – wydział zamiejscowy z siedzibą w Dobczycach
+KR3I	2026-06-30	Sąd Rejonowy w Wieliczce – wydział zamiejscowy z siedzibą w Skawinie
+KS1B		Sąd Rejonowy w Brzozowie
+KS1E		Sąd Rejonowy w Lesku
+KS1J		Sąd Rejonowy w Jaśle
+KS1K		Sąd Rejonowy w Krośnie
+KS1S		Sąd Rejonowy w Sanoku
+KS2E		Sąd Rejonowy w Lesku – wydział zamiejscowy z siedzibą w Ustrzykach Dolnych
+KZ1A		Sąd Rejonowy w Kaliszu
+KZ1E		Sąd Rejonowy w Kępnie
+KZ1J		Sąd Rejonowy w Jarocinie
+KZ1O		Sąd Rejonowy w Ostrzeszowie
+KZ1P		Sąd Rejonowy w Pleszewie
+KZ1R		Sąd Rejonowy w Krotoszynie
+KZ1W		Sąd Rejonowy w Ostrowie Wielkopolskim
+LD1B		Sąd Rejonowy w Brzezinach
+LD1G		Sąd Rejonowy w Zgierzu
+LD1H		Sąd Rejonowy w Skierniewicach
+LD1K		Sąd Rejonowy w Kutnie
+LD1M		Sąd Rejonowy dla Łodzi-Śródmieścia w Łodzi
+LD1O		Sąd Rejonowy w Łowiczu
+LD1P		Sąd Rejonowy w Pabianicach
+LD1R		Sąd Rejonowy w Rawie Mazowieckiej
+LD1Y		Sąd Rejonowy w Łęczycy
+LE1G		Sąd Rejonowy w Głogowie
+LE1J		Sąd Rejonowy w Jaworze
+LE1L		Sąd Rejonowy w Legnicy
+LE1U		Sąd Rejonowy w Lubinie
+LE1Z		Sąd Rejonowy w Złotoryi
+LM1G		Sąd Rejonowy w Grajewie
+LM1L		Sąd Rejonowy w Łomży
+LM1W		Sąd Rejonowy w Wysokiem Mazowieckiem
+LM1Z		Sąd Rejonowy w Zambrowie
+LU1A		Sąd Rejonowy w Lubartowie
+LU1B		Sąd Rejonowy w Białej Podlaskiej
+LU1C		Sąd Rejonowy w Chełmie
+LU1I		Sąd Rejonowy Lublin-Zachód w Lublinie
+LU1K		Sąd Rejonowy w Kraśniku
+LU1O		Sąd Rejonowy w Opolu Lubelskim
+LU1P		Sąd Rejonowy w Puławach
+LU1R		Sąd Rejonowy w Radzyniu Podlaskim
+LU1S		Sąd Rejonowy Lublin-Wschód w Lublinie z siedzibą w Świdniku
+LU1U		Sąd Rejonowy w Łukowie
+LU1W		Sąd Rejonowy we Włodawie
+LU1Y		Sąd Rejonowy w Rykach
+NS1G		Sąd Rejonowy w Gorlicach
+NS1L		Sąd Rejonowy w Limanowej
+NS1M		Sąd Rejonowy w Nowym Sączu – wydział zamiejscowy z siedzibą w Muszynie
+NS1S		Sąd Rejonowy w Nowym Sączu
+NS1T		Sąd Rejonowy w Nowym Targu
+NS1Z		Sąd Rejonowy w Zakopanem
+NS2L		Sąd Rejonowy w Limanowej – wydział zamiejscowy z siedzibą w Mszanie Dolnej
+OL1B		Sąd Rejonowy w Biskupcu
+OL1C		Sąd Rejonowy w Olecku
+OL1E		Sąd Rejonowy w Ełku
+OL1G		Sąd Rejonowy w Giżycku
+OL1K		Sąd Rejonowy w Kętrzynie
+OL1L		Sąd Rejonowy w Lidzbarku Warmińskim
+OL1M		Sąd Rejonowy w Mrągowie
+OL1N		Sąd Rejonowy w Nidzicy
+OL1O		Sąd Rejonowy w Olsztynie
+OL1P		Sąd Rejonowy w Piszu
+OL1S		Sąd Rejonowy w Szczytnie
+OL1Y		Sąd Rejonowy w Bartoszycach
+OL2G		Sąd Rejonowy w Giżycku – wydział zamiejscowy z siedzibą w Węgorzewie
+OP1B		Sąd Rejonowy w Brzegu
+OP1G		Sąd Rejonowy w Głubczycach
+OP1K		Sąd Rejonowy w Kędzierzynie-Koźlu
+OP1L		Sąd Rejonowy w Oleśnie
+OP1N		Sąd Rejonowy w Nysie
+OP1O		Sąd Rejonowy w Opolu
+OP1P		Sąd Rejonowy w Prudniku
+OP1S		Sąd Rejonowy w Strzelcach Opolskich
+OP1U		Sąd Rejonowy w Kluczborku
+OS1M		Sąd Rejonowy w Ostrowi Mazowieckiej
+OS1O		Sąd Rejonowy w Ostrołęce
+OS1P		Sąd Rejonowy w Przasnyszu
+OS1U		Sąd Rejonowy w Pułtusku
+OS1W		Sąd Rejonowy w Wyszkowie
+PL1C		Sąd Rejonowy w Ciechanowie
+PL1E		Sąd Rejonowy w Sierpcu
+PL1G		Sąd Rejonowy w Gostyninie
+PL1L		Sąd Rejonowy w Płońsku
+PL1M		Sąd Rejonowy w Mławie
+PL1O		Sąd Rejonowy w Sochaczewie
+PL1P		Sąd Rejonowy w Płocku
+PL1Z		Sąd Rejonowy w Żyrardowie
+PL2M		Sąd Rejonowy w Mławie – wydział zamiejscowy z siedzibą w Żurominie
+PO1A		Sąd Rejonowy w Szamotułach
+PO1B		Sąd Rejonowy w Wągrowcu
+PO1D		Sąd Rejonowy w Środzie Wielkopolskiej
+PO1E		Sąd Rejonowy w Wolsztynie
+PO1F		Sąd Rejonowy we Wrześni
+PO1G		Sąd Rejonowy w Gnieźnie
+PO1H		Sąd Rejonowy w Chodzieży
+PO1I		Sąd Rejonowy w Pile
+PO1K		Sąd Rejonowy w Kościanie
+PO1L		Sąd Rejonowy w Lesznie
+PO1M		Sąd Rejonowy w Śremie
+PO1N		Sąd Rejonowy w Nowym Tomyślu
+PO1O		Sąd Rejonowy w Obornikach
+PO1P		Sąd Rejonowy Poznań-Stare Miasto w Poznaniu – dla części miasta Poznania w granicach ustalonych tradycyjnie dla dzielnic: Grunwald, Jeżyce i Stare Miasto oraz gmin: Czerwonak, Dopiewo, Murowana Goślina, Suchy Las i Tarnowo Podgórne
+PO1R		Sąd Rejonowy w Rawiczu
+PO1S		Sąd Rejonowy w Grodzisku Wielkopolskim
+PO1T		Sąd Rejonowy w Trzciance
+PO1Y		Sąd Rejonowy w Gostyniu
+PO1Z		Sąd Rejonowy w Złotowie
+PO2A		Sąd Rejonowy w Szamotułach – wydział zamiejscowy z siedzibą w Międzychodzie
+PO2H		Sąd Rejonowy w Chodzieży – wydział zamiejscowy z siedzibą w Wyrzysku
+PO2P		Sąd Rejonowy Poznań-Stare Miasto w Poznaniu – dla części miasta Poznania w granicach ustalonych tradycyjnie dla dzielnic Nowe Miasto i Wilda, miast Luboń i Puszczykowo oraz gmin Komorniki i Swarzędz
+PO2T		Sąd Rejonowy w Trzciance – wydział zamiejscowy z siedzibą w Czarnkowie
+PR1J		Sąd Rejonowy w Jarosławiu
+PR1L		Sąd Rejonowy w Lubaczowie
+PR1P		Sąd Rejonowy w Przemyślu
+PR1R		Sąd Rejonowy w Przeworsku
+PR2R		Sąd Rejonowy w Przeworsku – wydział zamiejscowy z siedzibą w Sieniawie
+PT1B		Sąd Rejonowy w Bełchatowie
+PT1O		Sąd Rejonowy w Opocznie
+PT1P		Sąd Rejonowy w Piotrkowie Trybunalskim
+PT1R		Sąd Rejonowy w Radomsku
+PT1T		Sąd Rejonowy w Tomaszowie Mazowieckim
+RA1G		Sąd Rejonowy w Grójcu
+RA1K		Sąd Rejonowy w Kozienicach
+RA1L		Sąd Rejonowy w Lipsku
+RA1P		Sąd Rejonowy w Przysusze
+RA1R		Sąd Rejonowy w Radomiu
+RA1S		Sąd Rejonowy w Szydłowcu
+RA1Z		Sąd Rejonowy w Zwoleniu
+RA2G		Sąd Rejonowy w Grójcu – wydział zamiejscowy z siedzibą w Białobrzegach
+RA2Z	2017-08-07	Sąd Rejonowy w Zwoleniu – wydział zamiejscowy z siedzibą w Pionkach
+RZ1A		Sąd Rejonowy w Łańcucie
+RZ1D		Sąd Rejonowy w Dębicy
+RZ1E		Sąd Rejonowy w Leżajsku
+RZ1R		Sąd Rejonowy w Ropczycach
+RZ1S		Sąd Rejonowy w Strzyżowie
+RZ1Z		Sąd Rejonowy w Rzeszowie
+RZ2Z	2023-04-04	Sąd Rejonowy w Rzeszowie – wydział zamiejscowy z siedzibą w Tyczynie
+SI1G		Sąd Rejonowy w Garwolinie
+SI1M		Sąd Rejonowy w Mińsku Mazowieckim
+SI1P		Sąd Rejonowy w Sokołowie Podlaskim
+SI1S		Sąd Rejonowy w Siedlcach
+SI1W		Sąd Rejonowy w Węgrowie
+SI2S		Sąd Rejonowy w Siedlcach – wydział zamiejscowy z siedzibą w Łosicach
+SL1B		Sąd Rejonowy w Bytowie
+SL1C		Sąd Rejonowy w Chojnicach
+SL1L		Sąd Rejonowy w Lęborku
+SL1M		Sąd Rejonowy w Miastku
+SL1S		Sąd Rejonowy w Słupsku
+SL1Z		Sąd Rejonowy w Człuchowie
+SO1C		Sąd Rejonowy w Czeladzi
+SR1L		Sąd Rejonowy w Łasku
+SR1S		Sąd Rejonowy w Sieradzu
+SR1W		Sąd Rejonowy w Wieluniu
+SR1Z		Sąd Rejonowy w Zduńskiej Woli
+SR2L		Sąd Rejonowy w Łasku – wydział zamiejscowy z siedzibą w Poddębicach
+SR2W		Sąd Rejonowy w Wieluniu – wydział zamiejscowy z siedzibą w Pajęcznie
+SU1A		Sąd Rejonowy w Augustowie
+SU1N		Sąd Rejonowy w Augustowie – wydział zamiejscowy z siedzibą w Sejnach
+SU1S		Sąd Rejonowy w Suwałkach
+SW1D		Sąd Rejonowy w Dzierżoniowie
+SW1K		Sąd Rejonowy w Kłodzku
+SW1S		Sąd Rejonowy w Świdnicy
+SW1W		Sąd Rejonowy w Wałbrzychu
+SW1Z		Sąd Rejonowy w Ząbkowicach Śląskich
+SW2K	2023-04-04	Sąd Rejonowy w Kłodzku – wydział zamiejscowy z siedzibą w Nowej Rudzie
+SZ1C		Sąd Rejonowy w Choszcznie
+SZ1G		Sąd Rejonowy w Gryficach
+SZ1K		Sąd Rejonowy w Kamieniu Pomorskim
+SZ1L		Sąd Rejonowy w Łobzie
+SZ1M		Sąd Rejonowy w Myśliborzu
+SZ1O		Sąd Rejonowy w Goleniowie
+SZ1S		Sąd Rejonowy Szczecin-Prawobrzeże i Zachód w Szczecinie
+SZ1T		Sąd Rejonowy w Stargardzie
+SZ1W		Sąd Rejonowy w Świnoujściu
+SZ1Y		Sąd Rejonowy w Gryfinie
+SZ2S		Sąd Rejonowy Szczecin-Prawobrzeże i Zachód w Szczecinie – wydział zamiejscowy z siedzibą w Policach
+SZ2T		Sąd Rejonowy w Stargardzie – wydział zamiejscowy z siedzibą w Pyrzycach
+TB1K		Sąd Rejonowy w Kolbuszowej
+TB1M		Sąd Rejonowy w Mielcu
+TB1N		Sąd Rejonowy w Nisku
+TB1S		Sąd Rejonowy w Stalowej Woli
+TB1T		Sąd Rejonowy w Tarnobrzegu
+TO1B		Sąd Rejonowy w Brodnicy
+TO1C		Sąd Rejonowy w Chełmnie
+TO1G		Sąd Rejonowy w Golubiu-Dobrzyniu
+TO1T		Sąd Rejonowy w Toruniu
+TO1U		Sąd Rejonowy w Grudziądzu
+TO1W		Sąd Rejonowy w Wąbrzeźnie
+TR1B		Sąd Rejonowy w Brzesku
+TR1D		Sąd Rejonowy w Dąbrowie Tarnowskiej
+TR1O		Sąd Rejonowy w Bochni
+TR1T		Sąd Rejonowy w Tarnowie
+TR2T		Sąd Rejonowy w Tarnowie – wydział zamiejscowy z siedzibą w Tuchowie
+WA1G		Sąd Rejonowy w Grodzisku Mazowieckim
+WA1I		Sąd Rejonowy w Piasecznie
+WA1L		Sąd Rejonowy w Legionowie
+WA1M		Sąd Rejonowy dla Warszawy-Mokotowa w Warszawie – dla części miasta stołecznego Warszawy w granicach ustalonych dla dzielnic: Bemowo, Bielany, Ochota i Żoliborz oraz gminy Izabelin
+WA1N		Sąd Rejonowy w Nowym Dworze Mazowieckim
+WA1O		Sąd Rejonowy w Otwocku
+WA1P		Sąd Rejonowy w Pruszkowie
+WA1W		Sąd Rejonowy w Wołominie
+WA2M		Sąd Rejonowy dla Warszawy-Mokotowa w Warszawie – dla części miasta stołecznego Warszawy w granicach ustalonych dla dzielnic Mokotów i Wilanów
+WA3M		Sąd Rejonowy dla Warszawy-Mokotowa w Warszawie – dla części miasta stołecznego Warszawy w granicach ustalonych dla dzielnic: Białołęka, Praga-Północ i Targówek
+WA4M		Sąd Rejonowy dla Warszawy-Mokotowa w Warszawie – dla części miasta stołecznego Warszawy w Warszawie w granicach ustalonych dla dzielnic Śródmieście i Wola oraz gminy Łomianki
+WA5M		Sąd Rejonowy dla Warszawy-Mokotowa w Warszawie – dla części miasta stołecznego Warszawy w granicach ustalonych dla dzielnic: Ursus, Ursynów i Włochy
+WA6M		Sąd Rejonowy dla Warszawy-Mokotowa w Warszawie – dla części miasta stołecznego Warszawy w granicach ustalonych dla dzielnic: Praga-Południe, Rembertów, Wawer i Wesoła
+WL1A		Sąd Rejonowy w Aleksandrowie Kujawskim
+WL1L		Sąd Rejonowy w Lipnie
+WL1R		Sąd Rejonowy w Radziejowie
+WL1W		Sąd Rejonowy we Włocławku
+WL1Y		Sąd Rejonowy w Rypinie
+WR1E		Sąd Rejonowy w Oleśnicy
+WR1K		Sąd Rejonowy dla Wrocławia-Krzyków we Wrocławiu
+WR1L		Sąd Rejonowy w Wołowie
+WR1M		Sąd Rejonowy w Miliczu
+WR1O		Sąd Rejonowy w Oławie
+WR1S		Sąd Rejonowy w Środzie Śląskiej
+WR1T		Sąd Rejonowy w Strzelinie
+WR1W		Sąd Rejonowy w Trzebnicy
+ZA1B		Sąd Rejonowy w Biłgoraju
+ZA1H		Sąd Rejonowy w Hrubieszowie
+ZA1J		Sąd Rejonowy w Janowie Lubelskim
+ZA1K		Sąd Rejonowy w Krasnymstawie
+ZA1T		Sąd Rejonowy w Tomaszowie Lubelskim
+ZA1Z		Sąd Rejonowy w Zamościu
+ZG1E		Sąd Rejonowy w Zielonej Górze
+ZG1G		Sąd Rejonowy w Żaganiu
+ZG1K		Sąd Rejonowy w Krośnie Odrzańskim
+ZG1N		Sąd Rejonowy w Nowej Soli
+ZG1R		Sąd Rejonowy w Żarach
+ZG1S		Sąd Rejonowy w Świebodzinie
+ZG1W		Sąd Rejonowy we Wschowie
+ZG2K		Sąd Rejonowy w Krośnie Odrzańskim – wydział zamiejscowy z siedzibą w Gubinie
+ZG2S		Sąd Rejonowy w Świebodzinie – wydział zamiejscowy z siedzibą w Sulechowie
