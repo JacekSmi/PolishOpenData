@@ -10,6 +10,8 @@ var builder = Host.CreateApplicationBuilder(args);
 builder.Logging.AddConsole(o => o.LogToStandardErrorThreshold = LogLevel.Trace);
 builder.Logging.SetMinimumLevel(LogLevel.Warning);
 
+builder.Services.AddPolishOpenDataServices();
+
 builder.Services
     .AddMcpServer(o =>
     {

@@ -6,6 +6,9 @@ namespace PolishOpenData.Mcp;
 
 [JsonSourceGenerationOptions(JsonSerializerDefaults.Web, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(IdentifierValidationReport))]
+[JsonSerializable(typeof(CompanyOverview))]
+[JsonSerializable(typeof(VatAccountCheck))]
+[JsonSerializable(typeof(KrsExtractView))]
 internal sealed partial class McpJsonContext : JsonSerializerContext;
 
 internal static class McpJson

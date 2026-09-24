@@ -22,6 +22,7 @@
     <ProjectReference Include="..\PolishOpenData.Krs\PolishOpenData.Krs.csproj" />
     <ProjectReference Include="..\PolishOpenData.BialaLista\PolishOpenData.BialaLista.csproj" />
     <InternalsVisibleTo Include="PolishOpenData.Mcp.Tests" />
+    <Compile Include="..\Shared\WarsawTime.cs" LinkBase="Shared" />
   </ItemGroup>
 
   <!-- Stamp the package version into .mcp/server.json (the source file keeps the placeholder 0.0.0-dev). -->
