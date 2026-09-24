@@ -166,6 +166,24 @@ public sealed class CompanyToolsTests : IDisposable
     }
 
     [Fact]
+    public async Task Lookup_rejects_a_future_date_without_calling_the_registry()
+    {
+        // The fake clock is 2026-09-24 in Warsaw; 2026-09-25 is tomorrow.
+        var result = await _tools.LookupCompany(nip: "7740001454", date: "2026-09-25", cancellationToken: TestContext.Current.CancellationToken);
+        Assert.True(result.IsError == true);
+        Assert.Contains("is in the future", Text(result), StringComparison.Ordinal);
+        Assert.Empty(_stub.RequestUris);
+    }
+
+    [Fact]
+    public async Task Lookup_by_nip_not_on_whitelist_suggests_krs_when_none_is_known()
+    {
+        var root = Json(await _tools.LookupCompany(nip: "5213003700", cancellationToken: TestContext.Current.CancellationToken));
+        Assert.False(root.GetProperty("found").GetBoolean());
+        Assert.Contains(root.GetProperty("warnings").EnumerateArray(), w => w.GetString()!.Contains("try again with 'krs'", StringComparison.Ordinal));
+    }
+
+    [Fact]
     public async Task Check_account_on_whitelist()
     {
         var root = Json(await _tools.CheckVatBankAccount(OrlenAccount, nip: "7740001454", cancellationToken: TestContext.Current.CancellationToken));
@@ -189,6 +207,16 @@ public sealed class CompanyToolsTests : IDisposable
     {
         var result = await _tools.CheckVatBankAccount("06160011271843983820000035", nip: "7740001454", cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(result.IsError == true);
+        Assert.Empty(_stub.RequestUris);
+    }
+
+    [Fact]
+    public async Task Check_account_rejects_a_future_date_without_calling_the_registry()
+    {
+        // The fake clock is 2026-09-24 in Warsaw; 2026-09-25 is tomorrow.
+        var result = await _tools.CheckVatBankAccount(OrlenAccount, nip: "7740001454", date: "2026-09-25", cancellationToken: TestContext.Current.CancellationToken);
+        Assert.True(result.IsError == true);
+        Assert.Contains("is in the future", Text(result), StringComparison.Ordinal);
         Assert.Empty(_stub.RequestUris);
     }
 

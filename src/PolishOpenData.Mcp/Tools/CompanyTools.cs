@@ -42,7 +42,13 @@ internal sealed partial class CompanyTools(CachedRegistries registries, TimeProv
             return ToolResults.Error(dateError!);
         }
 
-        day ??= WarsawTime.Today(timeProvider);   // resolve "today" before caching, so a cached answer never outlives its day
+        var today = WarsawTime.Today(timeProvider);
+        if (FutureDateError(date, day, today) is { } futureError)
+        {
+            return ToolResults.Error(futureError);
+        }
+
+        day ??= today;   // resolve "today" before caching, so a cached answer never outlives its day
 
         var warnings = new List<string>();
         var sources = new List<SourceInfo>();
@@ -101,6 +107,13 @@ internal sealed partial class CompanyTools(CachedRegistries registries, TimeProv
             }
 
             sources.Add(new SourceInfo(KrsSource, KrsEndpoint, summary?.ExtractedAt ?? timeProvider.GetUtcNow(), null));
+        }
+        else if (!string.IsNullOrWhiteSpace(nip) || !string.IsNullOrWhiteSpace(regon))
+        {
+            // Not on the VAT whitelist, and no KRS number came back from it either: KRS itself has no search by
+            // NIP or REGON, so this is a dead end unless the caller happens to know the KRS number.
+            warnings.Add("Not on the VAT whitelist, and no KRS number is known for it. If this is an organisation " +
+                "not registered for VAT (KRS has no search by NIP or REGON), try again with 'krs' if you know its KRS number.");
         }
 
         // A KRS-first query: take the NIP from the extract and ask the VAT whitelist.
@@ -173,7 +186,13 @@ internal sealed partial class CompanyTools(CachedRegistries registries, TimeProv
             return ToolResults.Error(dateError!);
         }
 
-        day ??= WarsawTime.Today(timeProvider);   // resolve "today" before caching, so a cached answer never outlives its day
+        var today = WarsawTime.Today(timeProvider);
+        if (FutureDateError(date, day, today) is { } futureError)
+        {
+            return ToolResults.Error(futureError);
+        }
+
+        day ??= today;   // resolve "today" before caching, so a cached answer never outlives its day
 
         BialaListaResult<bool> result;
         string? nipText = null;
@@ -335,6 +354,14 @@ internal sealed partial class CompanyTools(CachedRegistries registries, TimeProv
     private static string? ScrubPeselText(string? text) => text is null ? null : PeselPattern().Replace(text, "[PESEL removed]");
 
     private static string Format(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    // Biała Lista answers a future date with WL-103 and still counts the request against the daily limit; reject
+    // it locally first. The lower boundary (dates before the register existed) is not verified: Biała Lista
+    // reports WL-118 for those, and misjudging "too old" locally is riskier than letting the upstream decide.
+    private static string? FutureDateError(string? date, DateOnly? day, DateOnly today) =>
+        day > today
+            ? "'" + date + "' is in the future; today in Poland is " + Format(today) + ". Biała Lista rejects future dates (WL-103), and the rejected request would still count against the daily limit."
+            : null;
 
     [GeneratedRegex(@"\d{11}")]
     private static partial Regex PeselPattern();

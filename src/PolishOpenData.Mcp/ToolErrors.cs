@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Net.Http;
+using Polly;
 
 namespace PolishOpenData.Mcp;
 
@@ -16,6 +17,10 @@ internal static class ToolErrors
         PolishOpenDataApiException api => "The registry rejected the request: " + api.Message,
         PolishOpenDataException other => other.Message,
         HttpRequestException http => "The registry service is unavailable right now (" + http.Message + "). Try again later.",
+        // Thrown by the resilience handlers this server enables (Microsoft.Extensions.Http.Resilience): a timeout
+        // (TimeoutRejectedException) or an open circuit breaker (BrokenCircuitException) both mean the registry
+        // could not be reached in time, same as a transport failure.
+        ExecutionRejectedException rejected => "The registry service is unavailable right now (" + rejected.Message + "). Try again later.",
         _ => "Unexpected error: " + exception.Message,
     };
 }

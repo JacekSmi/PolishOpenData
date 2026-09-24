@@ -1,6 +1,9 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using Polly;
+using Polly.CircuitBreaker;
+using Polly.Timeout;
 using PolishOpenData.Mcp;
 
 namespace PolishOpenData.Mcp.Tests;
@@ -34,4 +37,17 @@ public class ToolErrorsTests
         Assert.Contains("unavailable", ToolErrors.Describe(new HttpRequestException("503")), StringComparison.Ordinal);
         Assert.Null(ToolErrors.Describe(new OperationCanceledException()));
     }
+
+    [Theory]
+    [MemberData(nameof(ResilienceRejections))]
+    public void Resilience_rejections_are_reported_like_transport_errors(ExecutionRejectedException rejection)
+    {
+        Assert.Contains("unavailable", ToolErrors.Describe(rejection), StringComparison.Ordinal);
+    }
+
+    public static TheoryData<ExecutionRejectedException> ResilienceRejections() => new()
+    {
+        new TimeoutRejectedException("The operation didn't complete within the allowed timeout."),
+        new BrokenCircuitException("The circuit is now open and is not allowing calls."),
+    };
 }
