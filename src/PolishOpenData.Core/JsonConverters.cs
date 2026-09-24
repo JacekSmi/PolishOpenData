@@ -57,3 +57,21 @@ public sealed class KrsNumberJsonConverter : JsonConverter<KrsNumber>
         writer.WriteStringValue(value.ToString());
     }
 }
+
+/// <summary>Serialises <see cref="Nrb"/> as its canonical 26-digit string.</summary>
+public sealed class NrbJsonConverter : JsonConverter<Nrb>
+{
+    /// <inheritdoc/>
+    public override Nrb Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var s = reader.GetString();
+        return Nrb.TryParse(s, out var value) ? value : throw new JsonException($"Invalid NRB '{s}'.");
+    }
+
+    /// <inheritdoc/>
+    public override void Write(Utf8JsonWriter writer, Nrb value, JsonSerializerOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(writer);
+        writer.WriteStringValue(value.ToString());
+    }
+}
