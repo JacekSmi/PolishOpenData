@@ -58,6 +58,7 @@ Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_acco
 
 - Podawaj źródło danych i czas pobrania (każdy wynik je zawiera).
 - Biała Lista pozwala na ok. 100 wyszukiwań i 5000 sprawdzeń dziennie z jednego adresu IP; przekroczenie blokuje IP do północy, także w wyszukiwarce ministerstwa.
+- KRS maskuje osoby fizyczne w polach strukturalnych. Ten projekt nigdy nie przekazuje wolnotekstowego pola pełnomocnictwa (`rodzajProkury`) ani surowych sekcji KRS; nieliczne zwracane pola wolnotekstowe — sposób reprezentacji i udziały wspólników — są przekazywane z usuniętym każdym 11-cyfrowym ciągiem przypominającym PESEL.
 - Bez scrapingu, bez masowego pobierania, bez łączenia działek z numerami ksiąg wieczystych.
 
 Licencja MIT. Zasady współpracy: [CONTRIBUTING.md](CONTRIBUTING.md).

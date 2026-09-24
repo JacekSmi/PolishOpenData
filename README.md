@@ -102,9 +102,9 @@ A hosted endpoint (no .NET needed) is planned for v1.1.
 
 ## Responsible use
 
-- Data comes from official public registers; cite the source and the retrieval time (every result carries them).
+- Data comes from official public registers; cite the source and the retrieval time. Every MCP tool result and `BialaListaResult` carries both; `KrsResult` does not add one itself — use the extract's own `ExtractedAt` field when present.
 - Biała Lista allows about 100 searches and 5,000 checks per day per IP address; exceeding them blocks the IP until midnight, including the ministry's web search. Use `TrackQuota` and prefer checks over searches.
-- KRS masks natural persons in structured fields, but some free-text fields are not masked; this project never forwards them to AI assistants.
+- KRS masks natural persons in structured fields. This project never forwards the free-text proxy field (`rodzajProkury`) or raw KRS sections; the few free-text fields it does return — representation method and shareholder shares — are passed through with any 11-digit PESEL-like number removed.
 - No scraping, no bulk harvesting, no linking of parcels to land-registry numbers.
 
 ## Roadmap

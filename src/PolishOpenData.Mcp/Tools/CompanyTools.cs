@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using ModelContextProtocol.Protocol;
@@ -14,7 +15,7 @@ using PolishOpenData.Krs;
 namespace PolishOpenData.Mcp;
 
 [McpServerToolType]
-internal sealed class CompanyTools(CachedRegistries registries, TimeProvider timeProvider)
+internal sealed partial class CompanyTools(CachedRegistries registries, TimeProvider timeProvider)
 {
     private const int MaxListedAccounts = 20;
     private const string KrsSource = "KRS Open API (Ministerstwo Sprawiedliwości)";
@@ -220,7 +221,7 @@ internal sealed class CompanyTools(CachedRegistries registries, TimeProvider tim
     }
 
     [McpServerTool(Name = "get_krs_extract", Title = "Get a KRS company summary", ReadOnly = true, OpenWorld = true, Idempotent = true, Destructive = false, UseStructuredContent = true, OutputSchemaType = typeof(KrsExtractView))]
-    [Description("Returns a summary of the current National Court Register (KRS) extract: name, legal form, NIP/REGON, address, share capital, management and supervisory boards (names masked by the ministry), proxies, shareholders that are companies, and PKD activities. Reports removed entities with their removal date.")]
+    [Description("Returns a summary of the current National Court Register (KRS) extract: name, legal form, NIP/REGON, address, share capital, management and supervisory boards (names masked by the ministry), proxies, shareholders (companies and natural persons with masked names), and PKD activities. Reports removed entities with their removal date.")]
     public async Task<CallToolResult> GetKrsExtract(
         [Description("KRS number (up to 10 digits), e.g. 28860 or 0000028860.")] string krs,
         CancellationToken cancellationToken = default)
@@ -235,7 +236,7 @@ internal sealed class CompanyTools(CachedRegistries registries, TimeProvider tim
         switch (result.Status)
         {
             case KrsLookupStatus.Found:
-                var summary = result.Extract!.ToSummary();
+                var summary = ScrubPesel(result.Extract!.ToSummary());
                 view = new KrsExtractView
                 {
                     Status = "found",
@@ -317,5 +318,24 @@ internal sealed class CompanyTools(CachedRegistries registries, TimeProvider tim
         _ => null,
     };
 
+    // KRS does not mask these free-text fields: strip any 11-digit run (a PESEL number) before this server returns
+    // them. The library itself never does this, so callers who go through PolishOpenData.Krs directly still see
+    // the raw text.
+    private static KrsCompanySummary ScrubPesel(KrsCompanySummary summary) => summary with
+    {
+        Representation = summary.Representation is { } representation ? ScrubBody(representation) : null,
+        SupervisoryBodies = summary.SupervisoryBodies.Select(ScrubBody).ToList(),
+        Shareholders = summary.Shareholders.Select(ScrubShareholder).ToList(),
+    };
+
+    private static KrsBody ScrubBody(KrsBody body) => body with { RepresentationMethod = ScrubPeselText(body.RepresentationMethod) };
+
+    private static KrsShareholderSummary ScrubShareholder(KrsShareholderSummary shareholder) => shareholder with { Shares = ScrubPeselText(shareholder.Shares) };
+
+    private static string? ScrubPeselText(string? text) => text is null ? null : PeselPattern().Replace(text, "[PESEL removed]");
+
     private static string Format(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    [GeneratedRegex(@"\d{11}")]
+    private static partial Regex PeselPattern();
 }

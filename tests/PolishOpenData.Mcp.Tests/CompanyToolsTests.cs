@@ -17,6 +17,30 @@ public sealed class CompanyToolsTests : IDisposable
     private const string OrlenAccount = "06160011271843983820000034";
     private const string WrongAccount = "16160011271234567890123456";
 
+    // Built here (not a committed fixture): a minimal current extract whose free-text fields carry an obviously
+    // synthetic 11-digit run, to prove get_krs_extract scrubs it before the summary leaves the server.
+    private const string PeselExtractJson = """
+        {
+          "odpis": {
+            "naglowekA": { "rejestr": "RejP", "numerKRS": "0000555001" },
+            "dane": {
+              "dzial1": {
+                "danePodmiotu": { "nazwa": "TEST SPÓŁKA Z O.O." },
+                "wspolnicySpzoo": [
+                  { "nazwa": "SHAREHOLDER SPÓŁKA Z O.O.", "posiadaneUdzialy": "10 UDZIAŁÓW, PESEL 12345678901" }
+                ]
+              },
+              "dzial2": {
+                "reprezentacja": { "nazwaOrganu": "ZARZĄD", "sposobReprezentacji": "JEDNOOSOBOWO, PESEL 12345678901", "sklad": [] },
+                "organNadzoru": [
+                  { "nazwa": "RADA NADZORCZA", "sposobReprezentacji": "NADZÓR, PESEL 98765432109", "sklad": [] }
+                ]
+              }
+            }
+          }
+        }
+        """;
+
     private readonly StubHttpMessageHandler _stub = new(Route);
     private readonly ServiceProvider _provider;
     private readonly CompanyTools _tools;
@@ -43,6 +67,7 @@ public sealed class CompanyToolsTests : IDisposable
                 "/api/krs/OdpisAktualny/0000030897?rejestr=S&format=json" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "krs/current-S-0000030897-wosp.json"),
                 "/api/krs/OdpisAktualny/0000106150?rejestr=P&format=json" => StubHttpMessageHandler.Empty(HttpStatusCode.NoContent),
                 "/api/krs/OdpisPelny/0000106150?rejestr=P&format=json" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "krs/full-P-0000106150-removed-trimmed.json"),
+                "/api/krs/OdpisAktualny/0000555001?rejestr=P&format=json" => StubHttpMessageHandler.Json(HttpStatusCode.OK, PeselExtractJson),
                 _ => StubHttpMessageHandler.FromFixture(HttpStatusCode.NotFound, "krs/not-found-404.json"),
             };
         }
@@ -189,5 +214,19 @@ public sealed class CompanyToolsTests : IDisposable
 
         var unknown = Json(await _tools.GetKrsExtract("1", TestContext.Current.CancellationToken));
         Assert.Equal("not_found", unknown.GetProperty("status").GetString());
+    }
+
+    [Fact]
+    public async Task Krs_extract_scrubs_pesel_like_numbers_from_free_text_fields()
+    {
+        var result = await _tools.GetKrsExtract("555001", TestContext.Current.CancellationToken);
+
+        Assert.DoesNotContain("12345678901", Text(result), StringComparison.Ordinal);
+        Assert.DoesNotContain("98765432109", Text(result), StringComparison.Ordinal);
+
+        var summary = Json(result).GetProperty("summary");
+        Assert.Contains("[PESEL removed]", summary.GetProperty("representation").GetProperty("representationMethod").GetString(), StringComparison.Ordinal);
+        Assert.Contains("[PESEL removed]", summary.GetProperty("supervisoryBodies").EnumerateArray().Single().GetProperty("representationMethod").GetString(), StringComparison.Ordinal);
+        Assert.Contains("[PESEL removed]", summary.GetProperty("shareholders").EnumerateArray().Single().GetProperty("shares").GetString(), StringComparison.Ordinal);
     }
 }
