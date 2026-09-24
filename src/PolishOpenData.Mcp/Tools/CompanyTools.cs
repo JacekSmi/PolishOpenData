@@ -108,10 +108,11 @@ internal sealed partial class CompanyTools(CachedRegistries registries, TimeProv
 
             sources.Add(new SourceInfo(KrsSource, KrsEndpoint, summary?.ExtractedAt ?? timeProvider.GetUtcNow(), null));
         }
-        else if (!string.IsNullOrWhiteSpace(nip) || !string.IsNullOrWhiteSpace(regon))
+        else if (vat?.Value is null && (!string.IsNullOrWhiteSpace(nip) || !string.IsNullOrWhiteSpace(regon)))
         {
-            // Not on the VAT whitelist, and no KRS number came back from it either: KRS itself has no search by
-            // NIP or REGON, so this is a dead end unless the caller happens to know the KRS number.
+            // Genuinely no taxpayer for this identifier (not just "found, but this taxpayer has no KRS number" —
+            // that's a sole trader, not a dead end) and no KRS number came back from it either: KRS itself has no
+            // search by NIP or REGON, so this is a dead end unless the caller happens to know the KRS number.
             warnings.Add("Not on the VAT whitelist, and no KRS number is known for it. If this is an organisation " +
                 "not registered for VAT (KRS has no search by NIP or REGON), try again with 'krs' if you know its KRS number.");
         }

@@ -76,6 +76,7 @@ public sealed class CompanyToolsTests : IDisposable
         {
             "/api/search/nip/7740001454" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "bialalista/search-nip-orlen.json"),
             "/api/search/nip/5213003700" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "bialalista/search-nip-notfound.json"),
+            "/api/search/nip/9999999982" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "bialalista/synthetic-search-nip-nullarrays-unknownfield.json"),
             "/api/check/nip/7740001454/bank-account/" + OrlenAccount => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "bialalista/check-nip-tak.json"),
             "/api/check/nip/7740001454/bank-account/" + WrongAccount => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "bialalista/check-nip-nie.json"),
             _ => StubHttpMessageHandler.FromFixture(HttpStatusCode.NotFound, "bialalista/error-404-wl190-unknown-route.json"),
@@ -181,6 +182,17 @@ public sealed class CompanyToolsTests : IDisposable
         var root = Json(await _tools.LookupCompany(nip: "5213003700", cancellationToken: TestContext.Current.CancellationToken));
         Assert.False(root.GetProperty("found").GetBoolean());
         Assert.Contains(root.GetProperty("warnings").EnumerateArray(), w => w.GetString()!.Contains("try again with 'krs'", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Lookup_of_a_taxpayer_without_a_krs_number_does_not_suggest_krs()
+    {
+        // A sole trader (JDG): found and active on the whitelist, but Biała Lista never reports a KRS number for
+        // one. That is not the "dead end" the krs-retry warning is about, and must not say "Not on the VAT whitelist".
+        var root = Json(await _tools.LookupCompany(nip: "9999999982", cancellationToken: TestContext.Current.CancellationToken));
+        Assert.True(root.GetProperty("found").GetBoolean());
+        Assert.Equal("exempt", root.GetProperty("vat").GetProperty("status").GetString());
+        Assert.DoesNotContain(root.GetProperty("warnings").EnumerateArray(), w => w.GetString()!.Contains("Not on the VAT whitelist", StringComparison.Ordinal));
     }
 
     [Fact]
