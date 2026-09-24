@@ -75,3 +75,21 @@ public sealed class NrbJsonConverter : JsonConverter<Nrb>
         writer.WriteStringValue(value.ToString());
     }
 }
+
+/// <summary>Serialises <see cref="KwNumber"/> as <c>CCCC/NNNNNNNN/K</c>.</summary>
+public sealed class KwNumberJsonConverter : JsonConverter<KwNumber>
+{
+    /// <inheritdoc/>
+    public override KwNumber Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var s = reader.GetString();
+        return KwNumber.TryParse(s, out var value) ? value : throw new JsonException($"Invalid KW number '{s}'.");
+    }
+
+    /// <inheritdoc/>
+    public override void Write(Utf8JsonWriter writer, KwNumber value, JsonSerializerOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(writer);
+        writer.WriteStringValue(value.ToString());
+    }
+}
