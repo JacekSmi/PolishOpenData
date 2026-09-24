@@ -1,0 +1,49 @@
+name: Bug report
+description: Something in a package or the MCP server does not work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Use public companies only; never paste PESEL numbers, names of natural persons or full registry extracts.**
+        Reproduce with a large public company (for example NIP 774-000-14-54) and quote only the fields that matter.
+        Security problems go through private reporting instead, see SECURITY.md.
+  - type: dropdown
+    id: package
+    attributes:
+      label: Package
+      options:
+        - PolishOpenData.Core
+        - PolishOpenData.Krs
+        - PolishOpenData.BialaLista
+        - PolishOpenData.Mcp
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      placeholder: 1.0.0
+    validations:
+      required: true
+  - type: input
+    id: framework
+    attributes:
+      label: Target framework and OS
+      placeholder: net10.0 on Windows 11 / net472 / MCP client name
+    validations:
+      required: true
+  - type: input
+    id: identifier
+    attributes:
+      label: Identifier used
+      description: The NIP, REGON, KRS or KW number you passed. Public companies only.
+    validations:
+      required: false
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened, and what did you expect?
+      description: Include the smallest code or MCP call that shows the problem and the exception or output, trimmed to the relevant fields.
+    validations:
+      required: true

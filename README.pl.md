@@ -4,7 +4,7 @@
 
 🇬🇧 [English version](https://github.com/JacekSmi/PolishOpenData/blob/main/README.md)
 
-> Projekt nieoficjalny. Niezwiązany z Ministerstwem Sprawiedliwości, Ministerstwem Finansów ani innym organem publicznym.
+> Projekt nieoficjalny. Niezwiązany z Ministerstwem Sprawiedliwości, Ministerstwem Finansów ani innym organem publicznym. Wyniki mają charakter informacyjny i nie stanowią porady prawnej ani podatkowej; miarodajnym źródłem są same rejestry.
 
 ## Pakiety
 
@@ -17,7 +17,28 @@
 
 Biblioteki działają na .NET 10 oraz .NET Framework / starszych .NET (netstandard2.0) — także w dodatkach do systemów ERP.
 
+## Walidacja offline
+
+Bez sieci i bez DI:
+
+```bash
+dotnet add package PolishOpenData.Core
+```
+
+```csharp
+using PolishOpenData;
+
+Console.WriteLine(Nip.TryParse("774-000-14-54", out var nip) ? $"Poprawny NIP {nip}" : "Niepoprawny NIP"); // Poprawny NIP 7740001454
+Console.WriteLine(KwNumber.TryParse("WA1M/00012345/1", out var kw) ? kw.Court?.Name : "Niepoprawny numer KW"); // Sąd Rejonowy dla Warszawy-Mokotowa …
+Console.WriteLine(string.Join(", ", KwNumber.SuggestCorrections("WAIM/00012345/1"))); // WA1M/00012345/1
+```
+
 ## Szybki start
+
+```bash
+dotnet add package PolishOpenData.BialaLista
+dotnet add package Microsoft.Extensions.Http.Resilience
+```
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
@@ -33,8 +54,10 @@ var vat = provider.GetRequiredService<IBialaListaClient>();
 
 var check = await vat.CheckBankAccountAsync(Nip.Parse("774-000-14-54"), Nrb.Parse("06 1600 1127 1843 9838 2000 0034"));
 Console.WriteLine(check.Value ? "Rachunek jest na Białej liście" : "Rachunku NIE ma na Białej liście");
-Console.WriteLine("Identyfikator zapytania (zachowaj jako dowód): " + check.RequestId);
+Console.WriteLine("Identyfikator zapytania: " + check.RequestId);
 ```
+
+**Zachowaj `RequestId`.** Biała Lista zwraca w każdej odpowiedzi identyfikator i czas zapytania (`RequestId`, `RequestDateTime`); przechowuj je razem z dokumentacją płatności, aby móc wykazać, kiedy sprawdzono wykaz i jaka była odpowiedź.
 
 Ponawianie zapytań (retry) jest wyłączone dla Białej Listy: każda próba ponowienia to kolejne zapytanie, którego nie liczy powyższy strażnik limitu, a po wyczerpaniu dziennego limitu Biała Lista blokuje cały adres IP (nie tylko ten proces) do północy. Zarejestruj `AddBialaListaClient` raz na proces i współdziel powstałego klienta (albo jeden wspólny `BialaListaQuotaTracker`) — klient utworzony bez DI i bez współdzielonego licznika dostaje własny, prywatny licznik, który nie widzi zapytań innych instancji.
 
@@ -52,7 +75,7 @@ Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_acco
 
 ## Księgi wieczyste
 
-`KwNumber` sprawdza offline numery w formacie `WA1M/00012345/1` na podstawie oficjalnej tabeli kodów (Dz.U. 2026 poz. 740) i podpowiada poprawki typowych literówek. To port logiki walidacji z [pyekw](https://github.com/mhajder/pyekw) (MIT). Biblioteka **nie** łączy się z portalem EKW i celowo nie generuje numerów ksiąg — numer KW jest daną osobową (NSA, III OSK 6508/21).
+`KwNumber` sprawdza offline numery w formacie `WA1M/00012345/1` na podstawie oficjalnej tabeli kodów (Dz.U. 2026 poz. 740) i podpowiada poprawki typowych literówek. To port logiki walidacji z [pyekw](https://github.com/mhajder/pyekw) autorstwa mhajder (MIT). Biblioteka **nie** łączy się z portalem EKW i celowo nie generuje numerów ksiąg — numer KW jest daną osobową (NSA, III OSK 6508/21).
 
 ## Odpowiedzialne korzystanie
 
@@ -62,4 +85,10 @@ Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_acco
 - Biała Lista z mocy ustawy publikuje imiona i nazwiska przedsiębiorców jednoosobowych, reprezentantów, prokurentów i wspólników, a dla części z nich numer PESEL. Biblioteka zwraca je tak, jak zostały opublikowane; serwer MCP zwraca tylko nazwę podatnika i jeden adres (dla jednoosobowej działalności — imię i nazwisko właściciela oraz, gdy nie podano adresu działalności, adres zamieszkania).
 - Bez scrapingu, bez masowego pobierania, bez łączenia działek z numerami ksiąg wieczystych.
 
-Licencja MIT. Zasady współpracy: [CONTRIBUTING.md](CONTRIBUTING.md).
+## Możliwe kolejne kroki
+
+Pomysły, nie zobowiązania: wyszukiwanie w GUS REGON (BIR), sprawdzanie offline na podstawie pliku płaskiego Białej Listy oraz dane nieruchomości (działki ULDK, geokoder GUGiK, ceny transakcyjne). Jeśli któryś z nich by Ci się przydał, [otwórz issue](https://github.com/JacekSmi/PolishOpenData/issues), aby dać znać.
+
+## Współpraca i licencja
+
+Licencja MIT. Komponenty zewnętrzne i ich licencje: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md). Zasady współpracy: [CONTRIBUTING.md](CONTRIBUTING.md).

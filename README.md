@@ -2,13 +2,13 @@
 
 **.NET libraries and an MCP server for Polish public registers** — company lookup in KRS, the VAT whitelist (Biała Lista) with bank-account checks, and offline validation of NIP, REGON, KRS, NRB and land-registry (KW) numbers.
 
-[![CI](https://github.com/JacekSmi/PolishOpenData/actions/workflows/ci.yml/badge.svg)](https://github.com/JacekSmi/PolishOpenData/actions/workflows/ci.yml)
+[![CI](https://github.com/JacekSmi/PolishOpenData/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JacekSmi/PolishOpenData/actions/workflows/ci.yml?query=branch%3Amain)
 [![NuGet](https://img.shields.io/nuget/v/PolishOpenData.Mcp?label=PolishOpenData.Mcp)](https://www.nuget.org/packages/PolishOpenData.Mcp)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/JacekSmi/PolishOpenData/blob/main/LICENSE)
 
 🇵🇱 [Polska wersja](https://github.com/JacekSmi/PolishOpenData/blob/main/README.pl.md)
 
-> Unofficial project. Not affiliated with the Ministry of Justice, the Ministry of Finance or any other public body.
+> Unofficial project. Not affiliated with the Ministry of Justice, the Ministry of Finance or any other public body. Results are informational, not legal or tax advice; the registers are the authoritative source.
 
 ## Packages
 
@@ -19,7 +19,29 @@
 | [`PolishOpenData.BialaLista`](https://www.nuget.org/packages/PolishOpenData.BialaLista) | VAT whitelist: status, bank-account check with request ID, batches, daily-limit guard | net10.0, netstandard2.0 |
 | [`PolishOpenData.Mcp`](https://www.nuget.org/packages/PolishOpenData.Mcp) | MCP server exposing all of the above to AI assistants | .NET 10 tool |
 
+## Offline validation
+
+No network, no DI:
+
+```bash
+dotnet add package PolishOpenData.Core
+```
+
+```csharp
+using PolishOpenData;
+
+Console.WriteLine(Nip.TryParse("774-000-14-54", out var nip) ? $"Valid NIP {nip}" : "Invalid NIP"); // Valid NIP 7740001454
+Console.WriteLine(KwNumber.TryParse("WA1M/00012345/1", out var kw) ? kw.Court?.Name : "Invalid KW number"); // Sąd Rejonowy dla Warszawy-Mokotowa …
+Console.WriteLine(string.Join(", ", KwNumber.SuggestCorrections("WAIM/00012345/1"))); // WA1M/00012345/1
+```
+
 ## Quick start: check a counterparty
+
+```bash
+dotnet add package PolishOpenData.BialaLista
+dotnet add package PolishOpenData.Krs
+dotnet add package Microsoft.Extensions.Http.Resilience
+```
 
 ```csharp
 using Microsoft.Extensions.DependencyInjection;
@@ -52,7 +74,7 @@ Retries are off for Biała Lista: every retry the resilience handler would make 
 
 A runnable version is in [`samples/CheckCounterparty`](https://github.com/JacekSmi/PolishOpenData/blob/main/samples/CheckCounterparty).
 
-**Keep `RequestId`.** It is the ministry's proof that you checked the whitelist before paying (VAT Act art. 96b).
+**Keep `RequestId`.** Biała Lista returns a request identifier and time (`RequestId`, `RequestDateTime`) with every answer; keep them with your payment records to document when you checked the whitelist and what it answered.
 
 ## MCP server for AI assistants
 
@@ -94,8 +116,6 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 | `get_krs_extract` | Board and supervisory members (masked by the ministry), capital, shareholders, PKD activities |
 | `validate_identifier` | Offline checksum validation of NIP, REGON, KRS, NRB and KW numbers, with typo suggestions |
 
-A hosted endpoint (no .NET needed) is planned for v1.1.
-
 ## Land-registry (KW) numbers
 
 `KwNumber` validates numbers such as `WA1M/00012345/1` offline using the official court-code table (Dz.U. 2026 poz. 740, 342 current codes plus 7 historical ones) and suggests fixes for common typos (`0S1U` → `OS1U`). It is a .NET port of the validation logic of [pyekw](https://github.com/mhajder/pyekw) by mhajder (MIT). It **does not** query the eKW portal and deliberately offers no number generator: KW numbers are personal data (NSA, III OSK 6508/21), and enumerating them is out of scope.
@@ -108,12 +128,12 @@ A hosted endpoint (no .NET needed) is planned for v1.1.
 - Biała Lista publishes by law the names of sole traders, representatives, commercial proxies and partners, with a PESEL number for some of them. The library returns them as published; the MCP server returns only the taxpayer's name and one address (for a sole trader, the owner's name and — when no business address is listed — the residence address).
 - No scraping, no bulk harvesting, no linking of parcels to land-registry numbers.
 
-## Roadmap
+## Possible next steps
 
-v1.1 hosted MCP endpoint · v1.2 GUS REGON (BIR) · v1.3 offline VAT whitelist flat file · then property data (ULDK parcels, GUGiK geocoder, transaction prices).
+Ideas, not commitments: GUS REGON (BIR) lookups, offline checks against the VAT whitelist flat file, and property data (ULDK parcels, GUGiK geocoder, transaction prices). If one of them would help you, [open an issue](https://github.com/JacekSmi/PolishOpenData/issues) to show interest.
 
 ## Contributing and license
 
-See [CONTRIBUTING.md](https://github.com/JacekSmi/PolishOpenData/blob/main/CONTRIBUTING.md). MIT licensed.
+See [CONTRIBUTING.md](https://github.com/JacekSmi/PolishOpenData/blob/main/CONTRIBUTING.md). MIT licensed. Third-party components and their licences are listed in [THIRD-PARTY-NOTICES.md](https://github.com/JacekSmi/PolishOpenData/blob/main/THIRD-PARTY-NOTICES.md).
 
 <!-- mcp-name: io.github.JacekSmi/PolishOpenData -->

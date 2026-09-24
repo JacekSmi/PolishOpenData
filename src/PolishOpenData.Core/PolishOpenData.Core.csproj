@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>
     <RootNamespace>PolishOpenData</RootNamespace>
-    <Description>Offline parsing and validation of Polish identifiers: NIP, REGON, KRS number, NRB bank account and land-registry (księga wieczysta, KW) numbers with the official court-code table.</Description>
+    <Description>Offline parsing and validation of Polish identifiers: NIP, REGON, KRS number, NRB bank account and land-registry (księga wieczysta, KW) numbers with the official court-code table. Unofficial; not affiliated with the Polish government.</Description>
     <PackageTags>$(PackageTags);validation;identifiers</PackageTags>
   </PropertyGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">

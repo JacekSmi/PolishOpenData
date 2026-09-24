@@ -1,0 +1,3 @@
+- [ ] `dotnet build -c Release` and `dotnet test -c Release` pass (offline; no live registry calls)
+- [ ] New or changed fixtures are redacted as described in CONTRIBUTING.md
+- [ ] Public API or behaviour changes are reflected in README.md and README.pl.md

@@ -9,7 +9,7 @@
     <!-- CI AOT gate: -p:AotGate=true. Passing -p:PublishAot=true instead would leak into the netstandard2.0
          builds of the referenced libraries (NETSDK1207). The NuGet package stays framework-dependent. -->
     <PublishAot Condition="'$(AotGate)' == 'true'">true</PublishAot>
-    <Description>MCP server for Polish public registers: company lookup (KRS + VAT whitelist), bank-account whitelist checks and offline validation of NIP, REGON, KRS, NRB and KW numbers. Run: dotnet dnx PolishOpenData.Mcp --yes</Description>
+    <Description>Unofficial MCP server for Polish public registers: company lookup (KRS + VAT whitelist), bank-account whitelist checks and offline validation of NIP, REGON, KRS, NRB and KW numbers. Not affiliated with the Polish government. Run: dotnet dnx PolishOpenData.Mcp --yes</Description>
     <PackageTags>$(PackageTags);mcp-server;model-context-protocol;ai-tools</PackageTags>
   </PropertyGroup>
   <ItemGroup>
