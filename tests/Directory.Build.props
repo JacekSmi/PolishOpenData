@@ -1,0 +1,23 @@
+<Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- xunit.v3 requires executable test projects -->
+    <OutputType>Exe</OutputType>
+    <!-- Microsoft.Extensions.TimeProvider.Testing warns on net472 but works -->
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+    <!-- underscores in test names; inline constant arrays in tests; shared test helpers are not used by every project -->
+    <NoWarn>$(NoWarn);CA1707;CA1861;CA1812</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <Using Include="Xunit" />
+    <Compile Include="$(MSBuildThisFileDirectory)Shared/**/*.cs" LinkBase="TestShared" />
+    <None Include="$(MSBuildThisFileDirectory)Fixtures/**/*" LinkBase="Fixtures" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <!-- the shared HTTP test helpers need System.Net.Http on .NET Framework -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+</Project>

@@ -4,4 +4,4 @@ obj/
 *.user
 TestResults/
 artifacts/
-*.received.*
+nugetcache/
