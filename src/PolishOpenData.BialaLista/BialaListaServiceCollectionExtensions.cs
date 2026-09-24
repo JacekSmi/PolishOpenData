@@ -16,7 +16,7 @@ public static class BialaListaServiceCollectionExtensions
     /// Do not enable retries on the returned builder: each retry the resilience handler makes is another upstream
     /// request that the <see cref="BialaListaQuotaTracker"/> above cannot count, and once the daily limit is
     /// reached Biała Lista blocks the whole IP address until midnight. Disable retries explicitly:
-    /// <code>services.AddBialaListaClient(...).AddStandardResilienceHandler(o =&gt; o.Retry.ShouldHandle = static _ =&gt; ValueTask.FromResult(false));</code>
+    /// <code>services.AddBialaListaClient(...).AddStandardResilienceHandler(o =&gt; o.Retry.ShouldHandle = _ =&gt; new ValueTask&lt;bool&gt;(false));</code>
     /// </remarks>
     public static IHttpClientBuilder AddBialaListaClient(this IServiceCollection services, Action<BialaListaClientOptions>? configure = null)
     {

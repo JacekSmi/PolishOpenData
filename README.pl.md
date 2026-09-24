@@ -27,7 +27,7 @@ using System.Threading.Tasks;
 
 var services = new ServiceCollection();
 services.AddBialaListaClient(o => o.TrackQuota = true)
-    .AddStandardResilienceHandler(o => o.Retry.ShouldHandle = static _ => ValueTask.FromResult(false));
+    .AddStandardResilienceHandler(o => o.Retry.ShouldHandle = _ => new ValueTask<bool>(false));
 using var provider = services.BuildServiceProvider();
 var vat = provider.GetRequiredService<IBialaListaClient>();
 
@@ -36,7 +36,7 @@ Console.WriteLine(check.Value ? "Rachunek jest na Białej liście" : "Rachunku N
 Console.WriteLine("Identyfikator zapytania (zachowaj jako dowód): " + check.RequestId);
 ```
 
-Retry są wyłączone dla Białej Listy: każda próba ponowienia to kolejne zapytanie, którego nie liczy powyższy strażnik limitu, a po wyczerpaniu dziennego limitu Biała Lista blokuje cały adres IP (nie tylko ten proces) do północy. Zarejestruj `AddBialaListaClient` raz na proces i współdziel powstały klient (albo jeden wspólny `BialaListaQuotaTracker`) — klient utworzony bez DI i bez współdzielonego licznika dostaje własny, prywatny licznik, który nie widzi zapytań innych instancji.
+Ponawianie zapytań (retry) jest wyłączone dla Białej Listy: każda próba ponowienia to kolejne zapytanie, którego nie liczy powyższy strażnik limitu, a po wyczerpaniu dziennego limitu Biała Lista blokuje cały adres IP (nie tylko ten proces) do północy. Zarejestruj `AddBialaListaClient` raz na proces i współdziel powstałego klienta (albo jeden wspólny `BialaListaQuotaTracker`) — klient utworzony bez DI i bez współdzielonego licznika dostaje własny, prywatny licznik, który nie widzi zapytań innych instancji.
 
 ## Serwer MCP
 
@@ -56,9 +56,10 @@ Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_acco
 
 ## Odpowiedzialne korzystanie
 
-- Podawaj źródło danych i czas pobrania (każdy wynik je zawiera).
+- Podawaj źródło danych i czas pobrania. Zawiera je każdy wynik narzędzi MCP korzystających z rejestrów (`lookup_company`, `check_vat_bank_account`, `get_krs_extract`) oraz `BialaListaResult`; `KrsResult` nie dodaje własnego czasu pobrania — użyj `ToSummary().ExtractedAt`, jeśli jest dostępny.
 - Biała Lista pozwala na ok. 100 wyszukiwań i 5000 sprawdzeń dziennie z jednego adresu IP; przekroczenie blokuje IP do północy, także w wyszukiwarce ministerstwa.
-- KRS maskuje osoby fizyczne w polach strukturalnych. Ten projekt nigdy nie przekazuje wolnotekstowego pola pełnomocnictwa (`rodzajProkury`) ani surowych sekcji KRS; nieliczne zwracane pola wolnotekstowe — sposób reprezentacji i udziały wspólników — są przekazywane z usuniętym każdym 11-cyfrowym ciągiem przypominającym PESEL.
+- KRS maskuje osoby fizyczne w polach strukturalnych. Serwer MCP nigdy nie przekazuje asystentom AI wolnotekstowego pola prokury (`rodzajProkury`) ani surowych sekcji KRS, a z pól wolnotekstowych, które zwraca (sposób reprezentacji, udziały wspólników), usuwa każdy 11-cyfrowy ciąg przypominający PESEL. Biblioteki zwracają dane w postaci opublikowanej przez rejestr: `KrsCurrentExtract` zawiera `rodzajProkury`, a `ToSummary()` przekazuje sposób reprezentacji i udziały bez zmian — przed wyświetleniem lub zapisaniem oczyść je we własnym zakresie.
+- Biała Lista z mocy ustawy publikuje imiona i nazwiska przedsiębiorców jednoosobowych, reprezentantów, prokurentów i wspólników, a dla części z nich numer PESEL. Biblioteka zwraca je tak, jak zostały opublikowane; serwer MCP zwraca tylko nazwę podatnika i jeden adres (dla jednoosobowej działalności — imię i nazwisko właściciela oraz, gdy nie podano adresu działalności, adres zamieszkania).
 - Bez scrapingu, bez masowego pobierania, bez łączenia działek z numerami ksiąg wieczystych.
 
 Licencja MIT. Zasady współpracy: [CONTRIBUTING.md](CONTRIBUTING.md).

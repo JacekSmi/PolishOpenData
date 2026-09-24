@@ -87,7 +87,7 @@ public sealed record KrsCompanySummary
 
 /// <summary>A body such as a management or supervisory board.</summary>
 /// <param name="Name">Name of the body, e.g. <c>ZARZĄD</c>.</param>
-/// <param name="RepresentationMethod">How the entity is represented (free text), for the representing body.</param>
+/// <param name="RepresentationMethod">How the entity is represented (free text), for the representing body. May contain unmasked personal data such as a PESEL number; KRS does not mask free text.</param>
 /// <param name="Members">Members with masked names.</param>
 public sealed record KrsBody(string Name, string? RepresentationMethod, IReadOnlyList<KrsPersonSummary> Members);
 
@@ -102,7 +102,7 @@ public sealed record KrsPersonSummary(string MaskedName, string? Function, bool?
 /// <param name="IsLegalEntity">True for companies and other legal entities.</param>
 /// <param name="Krs">KRS number of a legal-entity shareholder.</param>
 /// <param name="Regon">REGON of a legal-entity shareholder.</param>
-/// <param name="Shares">Shares held (free text).</param>
+/// <param name="Shares">Shares held (free text). May contain unmasked personal data such as a PESEL number; KRS does not mask free text.</param>
 /// <param name="HoldsAllShares">Whether the shareholder holds all shares.</param>
 public sealed record KrsShareholderSummary(string Name, bool IsLegalEntity, KrsNumber? Krs, Regon? Regon, string? Shares, bool? HoldsAllShares);
 

@@ -30,7 +30,7 @@ using System.Threading.Tasks;
 
 var services = new ServiceCollection();
 services.AddBialaListaClient(o => o.TrackQuota = true)
-    .AddStandardResilienceHandler(o => o.Retry.ShouldHandle = static _ => ValueTask.FromResult(false));
+    .AddStandardResilienceHandler(o => o.Retry.ShouldHandle = _ => new ValueTask<bool>(false));
 services.AddKrsClient().AddStandardResilienceHandler();
 using var provider = services.BuildServiceProvider();
 
@@ -102,9 +102,10 @@ A hosted endpoint (no .NET needed) is planned for v1.1.
 
 ## Responsible use
 
-- Data comes from official public registers; cite the source and the retrieval time. Every MCP tool result and `BialaListaResult` carries both; `KrsResult` does not add one itself — use `ToSummary().ExtractedAt` when present.
+- Data comes from official public registers; cite the source and the retrieval time. Every registry-backed MCP tool result (`lookup_company`, `check_vat_bank_account`, `get_krs_extract`) and `BialaListaResult` carry both; `KrsResult` does not add one itself — use `ToSummary().ExtractedAt` when present.
 - Biała Lista allows about 100 searches and 5,000 checks per day per IP address; exceeding them blocks the IP until midnight, including the ministry's web search. Use `TrackQuota` and prefer checks over searches.
-- KRS masks natural persons in structured fields. This project never forwards the free-text proxy field (`rodzajProkury`) or raw KRS sections; the few free-text fields it does return — representation method and shareholder shares — are passed through with any 11-digit PESEL-like number removed.
+- KRS masks natural persons in structured fields. The MCP server never forwards the free-text proxy field (`rodzajProkury`) or raw KRS sections to AI assistants, and removes any 11-digit PESEL-like number from the free-text fields it returns (representation method, shareholder shares). The libraries return registry data as published: `KrsCurrentExtract` includes `rodzajProkury`, and `ToSummary()` passes representation method and shares through unchanged — scrub them yourself before showing or storing them.
+- Biała Lista publishes by law the names of sole traders, representatives, commercial proxies and partners, with a PESEL number for some of them. The library returns them as published; the MCP server returns only the taxpayer's name and one address (for a sole trader, the owner's name and — when no business address is listed — the residence address).
 - No scraping, no bulk harvesting, no linking of parcels to land-registry numbers.
 
 ## Roadmap
