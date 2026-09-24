@@ -119,7 +119,7 @@ public static class KrsSummaryExtensions
     private static KrsShareholderSummary ToShareholder(KrsOsoba person) =>
         new(
             MaskedName(person),
-            person.Nazwa is not null,
+            person.Nazwa is { Length: > 0 },
             KrsNumber.TryParse(person.Krs?.Krs, out var krs) ? krs : null,
             NormalizeRegon(person.Identyfikator?.Regon),
             person.PosiadaneUdzialy,

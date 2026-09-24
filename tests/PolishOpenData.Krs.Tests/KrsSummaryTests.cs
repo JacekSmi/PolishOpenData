@@ -120,4 +120,33 @@ public class KrsSummaryTests
         Assert.Null(s.Representation);
         Assert.Empty(s.OtherActivities);
     }
+
+    [Fact]
+    public void Shareholder_with_an_empty_nazwa_is_not_treated_as_a_legal_entity()
+    {
+        // "nazwa": "" is how a natural-person shareholder can arrive on the wire; IsLegalEntity must agree with
+        // MaskedName, which also falls back to the natural-person name fields when Nazwa is empty.
+        var extract = new KrsCurrentExtract
+        {
+            Dane = new KrsCurrentData
+            {
+                Dzial1 = new KrsDzial1
+                {
+                    WspolnicySpzoo =
+                    [
+                        new KrsOsoba
+                        {
+                            Nazwa = "",
+                            Imiona = new KrsImiona { Imie = "JAN" },
+                            Nazwisko = new KrsNazwisko { NazwiskoICzlon = "KOWALSKI" },
+                        },
+                    ],
+                },
+            },
+        };
+
+        var shareholder = Assert.Single(extract.ToSummary().Shareholders);
+        Assert.False(shareholder.IsLegalEntity);
+        Assert.Equal("JAN KOWALSKI", shareholder.Name);
+    }
 }
