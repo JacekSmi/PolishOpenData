@@ -24,10 +24,10 @@ When a new regulation replaces annex 1 to Dz.U. 2016 poz. 312, update `src/Polis
 
 Push a tag `vX.Y.Z` on a commit that is on `main`; `.github/workflows/release.yml` checks that and does the rest (NuGet via Trusted Publishing, GitHub release, MCP Registry). The publish job runs in the `release` environment.
 
-One-time setup by the repository owner:
+One-time setup by the repository owner. Do steps 2, 3 and 5 only after the repository is public: on GitHub Free, environments can only be configured on public repositories; a nuget.org policy created for a private repository is only temporarily active for 7 days and goes inactive if nothing is published in that window (the window can be restarted); and private vulnerability reporting exists only for public repositories.
 1. A nuget.org account.
 2. GitHub → Settings → Environments → **New environment** `release` → Deployment branches and tags: **Selected branches and tags**, add the tag rule `v*`. No required reviewers are needed. (The first release run would create the environment by itself, but without the tag rule.)
-3. nuget.org → username menu → **Trusted Publishing** → add a policy: Repository Owner `JacekSmi`, Repository `PolishOpenData`, Workflow File `release.yml`, Environment `release`. Scope: allow pushing new packages and new versions, package glob `PolishOpenData.*` (the first release creates four new package IDs). Create it for the final repository: nuget.org binds the policy to the repository on first use. Optionally reserve the `PolishOpenData.*` ID prefix on nuget.org.
+3. nuget.org → username menu → **Trusted Publishing** → add a policy: Repository Owner `JacekSmi`, Repository `PolishOpenData`, Workflow File `release.yml`, Environment `release`. Scope: allow pushing new packages and new versions, package glob `PolishOpenData.*` (the first release creates four new package IDs). Create it for the final, public repository. Optionally reserve the `PolishOpenData.*` ID prefix on nuget.org.
 4. GitHub repository secret `NUGET_USER` = the nuget.org profile name (not the e-mail address).
 5. GitHub → Settings → Advanced Security → enable **Private vulnerability reporting** (`SECURITY.md` relies on it).
 6. After 1.0.0 ships, set `<PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>` in `src/Directory.Build.props` so accidental breaking changes fail the build.

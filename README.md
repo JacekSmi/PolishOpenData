@@ -74,7 +74,7 @@ Retries are off for Biała Lista: every retry the resilience handler would make 
 
 A runnable version is in [`samples/CheckCounterparty`](https://github.com/JacekSmi/PolishOpenData/blob/main/samples/CheckCounterparty).
 
-**Keep `RequestId`.** Biała Lista returns a request identifier and time (`RequestId`, `RequestDateTime`) with every answer; keep them with your payment records to document when you checked the whitelist and what it answered.
+**Keep `RequestId`.** Every `BialaListaResult` carries the request identifier and time returned by Biała Lista (`RequestId`, `RequestDateTime`); keep them with your payment records to document when you checked the whitelist and what it answered.
 
 ## MCP server for AI assistants
 

@@ -57,7 +57,7 @@ Console.WriteLine(check.Value ? "Rachunek jest na Białej liście" : "Rachunku N
 Console.WriteLine("Identyfikator zapytania: " + check.RequestId);
 ```
 
-**Zachowaj `RequestId`.** Biała Lista zwraca w każdej odpowiedzi identyfikator i czas zapytania (`RequestId`, `RequestDateTime`); przechowuj je razem z dokumentacją płatności, aby móc wykazać, kiedy sprawdzono wykaz i jaka była odpowiedź.
+**Zachowaj `RequestId`.** Każdy `BialaListaResult` zawiera identyfikator i czas zapytania zwrócone przez Białą Listę (`RequestId`, `RequestDateTime`); przechowuj je razem z dokumentacją płatności, aby móc wykazać, kiedy sprawdzono wykaz i jaka była odpowiedź.
 
 Ponawianie zapytań (retry) jest wyłączone dla Białej Listy: każda próba ponowienia to kolejne zapytanie, którego nie liczy powyższy strażnik limitu, a po wyczerpaniu dziennego limitu Biała Lista blokuje cały adres IP (nie tylko ten proces) do północy. Zarejestruj `AddBialaListaClient` raz na proces i współdziel powstałego klienta (albo jeden wspólny `BialaListaQuotaTracker`) — klient utworzony bez DI i bez współdzielonego licznika dostaje własny, prywatny licznik, który nie widzi zapytań innych instancji.
 

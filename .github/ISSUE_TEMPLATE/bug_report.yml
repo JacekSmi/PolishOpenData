@@ -37,7 +37,7 @@ body:
     id: identifier
     attributes:
       label: Identifier used
-      description: The NIP, REGON, KRS or KW number you passed. Public companies only.
+      description: "The NIP, REGON or KRS number you passed (public companies only). For KW numbers do not paste a real number: reproduce with a made-up one of the same shape, e.g. WA1M/00012345/1."
     validations:
       required: false
   - type: textarea
