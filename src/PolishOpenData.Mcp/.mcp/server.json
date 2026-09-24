@@ -1,0 +1,21 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.JacekSmi/PolishOpenData",
+  "title": "Polish Open Data",
+  "description": "Polish company registers: KRS extracts, Biała Lista VAT and bank account checks, ID validation.",
+  "version": "0.0.0-dev",
+  "websiteUrl": "https://github.com/JacekSmi/PolishOpenData",
+  "repository": { "url": "https://github.com/JacekSmi/PolishOpenData", "source": "github" },
+  "packages": [
+    {
+      "registryType": "nuget",
+      "registryBaseUrl": "https://api.nuget.org/v3/index.json",
+      "identifier": "PolishOpenData.Mcp",
+      "version": "0.0.0-dev",
+      "runtimeHint": "dnx",
+      "transport": { "type": "stdio" },
+      "packageArguments": [],
+      "environmentVariables": []
+    }
+  ]
+}

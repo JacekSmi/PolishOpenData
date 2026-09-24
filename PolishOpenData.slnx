@@ -3,11 +3,13 @@
     <Project Path="src/PolishOpenData.BialaLista/PolishOpenData.BialaLista.csproj" />
     <Project Path="src/PolishOpenData.Core/PolishOpenData.Core.csproj" />
     <Project Path="src/PolishOpenData.Krs/PolishOpenData.Krs.csproj" />
+    <Project Path="src/PolishOpenData.Mcp/PolishOpenData.Mcp.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PolishOpenData.BialaLista.Tests/PolishOpenData.BialaLista.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Core.Tests/PolishOpenData.Core.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Krs.Tests/PolishOpenData.Krs.Tests.csproj" />
+    <Project Path="tests/PolishOpenData.Mcp.Tests/PolishOpenData.Mcp.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Shared.Tests/PolishOpenData.Shared.Tests.csproj" />
   </Folder>
 </Solution>

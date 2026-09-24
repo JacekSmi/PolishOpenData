@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>PolishOpenData.Mcp</RootNamespace>
+    <PackAsTool>true</PackAsTool>
+    <PackageType>McpServer</PackageType>
+    <ToolCommandName>polishopendata-mcp</ToolCommandName>
+    <!-- CI AOT gate: -p:AotGate=true. Passing -p:PublishAot=true instead would leak into the netstandard2.0
+         builds of the referenced libraries (NETSDK1207). The NuGet package stays framework-dependent. -->
+    <PublishAot Condition="'$(AotGate)' == 'true'">true</PublishAot>
+    <Description>MCP server for Polish public registers: company lookup (KRS + VAT whitelist), bank-account whitelist checks and offline validation of NIP, REGON, KRS, NRB and KW numbers. Run: dotnet dnx PolishOpenData.Mcp --yes</Description>
+    <PackageTags>$(PackageTags);mcp-server;model-context-protocol;ai-tools</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+    <PackageReference Include="ModelContextProtocol" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PolishOpenData.Krs\PolishOpenData.Krs.csproj" />
+    <ProjectReference Include="..\PolishOpenData.BialaLista\PolishOpenData.BialaLista.csproj" />
+    <InternalsVisibleTo Include="PolishOpenData.Mcp.Tests" />
+  </ItemGroup>
+
+  <!-- Stamp the package version into .mcp/server.json (the source file keeps the placeholder 0.0.0-dev). -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_StampMcpServerJson</TargetsForTfmSpecificContentInPackage>
+  </PropertyGroup>
+  <Target Name="_StampMcpServerJson" DependsOnTargets="MinVer">
+    <PropertyGroup>
+      <_McpJsonOut>$(IntermediateOutputPath)server.json</_McpJsonOut>
+      <_McpJson>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/.mcp/server.json').Replace('0.0.0-dev', '$(PackageVersion)'))</_McpJson>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(_McpJsonOut)" Lines="$([MSBuild]::Escape($(_McpJson)))" Overwrite="true" WriteOnlyWhenDifferent="true" />
+    <ItemGroup>
+      <TfmSpecificPackageFile Include="$(_McpJsonOut)" PackagePath="/.mcp/server.json" />
+    </ItemGroup>
+  </Target>
+</Project>
