@@ -2,7 +2,7 @@
 
 **Biblioteki .NET i serwer MCP dla polskich rejestrów publicznych** — dane firm z KRS, Biała Lista podatników VAT ze sprawdzaniem rachunków oraz walidacja offline NIP, REGON, numeru KRS, NRB i numeru księgi wieczystej (KW).
 
-🇬🇧 [English version](README.md)
+🇬🇧 [English version](https://github.com/JacekSmi/PolishOpenData/blob/main/README.md)
 
 > Projekt nieoficjalny. Niezwiązany z Ministerstwem Sprawiedliwości, Ministerstwem Finansów ani innym organem publicznym.
 
@@ -46,7 +46,7 @@ Wymaga [.NET 10 SDK](https://dotnet.microsoft.com/download). Bez kluczy API.
 claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx PolishOpenData.Mcp --yes
 ```
 
-Konfiguracje dla VS Code, Claude Desktop i Cursor: zob. [README.md](README.md#mcp-server-for-ai-assistants).
+Konfiguracje dla VS Code, Claude Desktop i Cursor: zob. [README.md](https://github.com/JacekSmi/PolishOpenData/blob/main/README.md#mcp-server-for-ai-assistants).
 
 Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_account` (Biała Lista przed zapłatą faktury), `get_krs_extract` (zarząd, kapitał, PKD), `validate_identifier` (walidacja numerów offline).
 

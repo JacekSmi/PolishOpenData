@@ -4,9 +4,9 @@
 
 [![CI](https://github.com/JacekSmi/PolishOpenData/actions/workflows/ci.yml/badge.svg)](https://github.com/JacekSmi/PolishOpenData/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/v/PolishOpenData.Mcp?label=PolishOpenData.Mcp)](https://www.nuget.org/packages/PolishOpenData.Mcp)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/JacekSmi/PolishOpenData/blob/main/LICENSE)
 
-🇵🇱 [Polska wersja](README.pl.md)
+🇵🇱 [Polska wersja](https://github.com/JacekSmi/PolishOpenData/blob/main/README.pl.md)
 
 > Unofficial project. Not affiliated with the Ministry of Justice, the Ministry of Finance or any other public body.
 
@@ -50,7 +50,7 @@ Console.WriteLine(extract.Extract?.ToSummary().ShareCapital);
 
 Retries are off for Biała Lista: every retry the resilience handler would make is another upstream request that the quota guard above cannot count, and once the daily limit is reached Biała Lista blocks the whole IP address — not just this process — until midnight. Register `AddBialaListaClient` once per process and reuse the resulting client (or pass one shared `BialaListaQuotaTracker` explicitly); a client created without DI and without a shared tracker gets its own private tracker that does not see requests made by other instances.
 
-A runnable version is in [`samples/CheckCounterparty`](samples/CheckCounterparty).
+A runnable version is in [`samples/CheckCounterparty`](https://github.com/JacekSmi/PolishOpenData/blob/main/samples/CheckCounterparty).
 
 **Keep `RequestId`.** It is the ministry's proof that you checked the whitelist before paying (VAT Act art. 96b).
 
@@ -109,10 +109,10 @@ A hosted endpoint (no .NET needed) is planned for v1.1.
 
 ## Roadmap
 
-v1.1 hosted MCP endpoint · v1.2 GUS REGON (BIR) · v1.3 offline VAT whitelist flat file · then property data (ULDK parcels, GUGiK geocoder, transaction prices). See the [design spec](docs/superpowers/specs/2026-09-23-polishopendata-design.md).
+v1.1 hosted MCP endpoint · v1.2 GUS REGON (BIR) · v1.3 offline VAT whitelist flat file · then property data (ULDK parcels, GUGiK geocoder, transaction prices). See the [design spec](https://github.com/JacekSmi/PolishOpenData/blob/main/docs/superpowers/specs/2026-09-23-polishopendata-design.md).
 
 ## Contributing and license
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). MIT licensed.
+See [CONTRIBUTING.md](https://github.com/JacekSmi/PolishOpenData/blob/main/CONTRIBUTING.md). MIT licensed.
 
 <!-- mcp-name: io.github.JacekSmi/PolishOpenData -->
