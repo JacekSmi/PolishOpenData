@@ -82,8 +82,11 @@ jobs:
           done
           echo "NuGet README for $v is not available after 30 minutes; re-run this job later" >&2
           exit 1
-      - name: Install mcp-publisher (pinned)
-        run: curl -sSL "https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+      - name: Install mcp-publisher (pinned, checksum-verified)
+        run: |
+          curl -sSL -o mcp-publisher.tar.gz "https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz"
+          echo "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc  mcp-publisher.tar.gz" | sha256sum -c -
+          tar -xzf mcp-publisher.tar.gz mcp-publisher
       - name: Publish to the MCP Registry
         run: |
           ./mcp-publisher login github-oidc

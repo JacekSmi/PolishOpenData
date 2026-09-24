@@ -5,13 +5,12 @@ on:
     - cron: '17 4 * * *'   # daily, 06:17 Warsaw summer time
   workflow_dispatch:
 
-permissions:
-  contents: read
-  issues: write
-
 jobs:
   smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
     env:
       POLISHOPENDATA_SMOKE: '1'
       DOTNET_NOLOGO: true
@@ -28,8 +27,26 @@ jobs:
           dotnet test --project tests/PolishOpenData.SmokeTests -c Release
           --report-xunit-markdown --report-xunit-markdown-filename smoke.md
           --results-directory artifacts/smoke
+      - name: Upload smoke test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: smoke-results
+          path: artifacts/smoke
+
+  report:
+    needs: smoke
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Download smoke test results
+        uses: actions/download-artifact@v8
+        with:
+          name: smoke-results
+          path: artifacts/smoke
       - name: Open or update an issue on failure
-        if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
