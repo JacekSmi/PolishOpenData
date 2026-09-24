@@ -42,6 +42,10 @@ jobs:
       issues: write
     steps:
       - name: Download smoke test results
+        # The smoke job can fail before it ever uploads an artifact (checkout, setup-dotnet, restore, build all
+        # run before the tests do), in which case there is nothing named "smoke-results" to download. Don't let
+        # that stop this job from still opening/updating the issue below.
+        continue-on-error: true
         uses: actions/download-artifact@v8
         with:
           name: smoke-results
