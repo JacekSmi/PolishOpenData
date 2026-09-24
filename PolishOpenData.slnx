@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/CheckCounterparty/CheckCounterparty.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/PolishOpenData.BialaLista/PolishOpenData.BialaLista.csproj" />
     <Project Path="src/PolishOpenData.Core/PolishOpenData.Core.csproj" />
