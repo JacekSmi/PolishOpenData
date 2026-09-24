@@ -3,13 +3,23 @@ updates:
   - package-ecosystem: nuget
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
+    cooldown:
+      default-days: 7
     groups:
+      # A dependency joins the first group that matches it, so the catch-all stays last.
       microsoft:
         patterns: ["Microsoft.Extensions.*", "Microsoft.Bcl.*", "System.Text.Json", "ModelContextProtocol"]
       testing:
         patterns: ["xunit*", "Microsoft.Extensions.TimeProvider.Testing"]
+      other:
+        patterns: ["*"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]

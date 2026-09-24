@@ -2,11 +2,17 @@ name: nightly-smoke
 
 on:
   schedule:
-    - cron: '17 4 * * *'   # daily, 06:17 Warsaw summer time
+    - cron: '17 4 * * 1'   # weekly, Monday 06:17 Warsaw summer time
   workflow_dispatch:
+
+concurrency:
+  group: smoke
+  cancel-in-progress: true
 
 jobs:
   smoke:
+    # Forks do not run the live checks (or open issues about them).
+    if: github.repository == 'JacekSmi/PolishOpenData'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -16,10 +22,11 @@ jobs:
       DOTNET_NOLOGO: true
       DOTNET_CLI_TELEMETRY_OPTOUT: true
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-dotnet@v6
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
       - name: Run live smoke tests
@@ -29,7 +36,7 @@ jobs:
           --results-directory artifacts/smoke
       - name: Upload smoke test results
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: smoke-results
           path: artifacts/smoke
@@ -47,7 +54,7 @@ jobs:
         # run before the tests do), in which case there is nothing named "smoke-results" to download. Don't let
         # that stop this job from still opening/updating the issue below.
         continue-on-error: true
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: smoke-results
           path: artifacts/smoke
@@ -58,16 +65,16 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           {
-            echo "Nightly live smoke tests failed: $RUN_URL"
+            echo "Scheduled live smoke tests failed: $RUN_URL"
             echo
             echo "An upstream registry may have changed its API. Compare the reported fields with tests/Fixtures, update the models, and capture a new redacted fixture."
             echo
             cat artifacts/smoke/smoke.md 2>/dev/null || true
           } > issue.md
-          gh label create smoke-failure --color B60205 --description "Nightly live API check failed" 2>/dev/null || true
+          gh label create smoke-failure --color B60205 --description "Scheduled live API check failed" 2>/dev/null || true
           existing=$(gh issue list --state open --label smoke-failure --json number --jq '.[0].number // empty')
           if [ -n "$existing" ]; then
             gh issue comment "$existing" --body-file issue.md
           else
-            gh issue create --title "Nightly smoke test failed" --label smoke-failure --body-file issue.md
+            gh issue create --title "Live smoke test failed" --label smoke-failure --body-file issue.md
           fi

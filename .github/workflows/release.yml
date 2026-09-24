@@ -7,18 +7,32 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
   build:
+    if: github.repository == 'JacekSmi/PolishOpenData'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0   # MinVer needs the tags
-      - uses: actions/setup-dotnet@v6
+          fetch-depth: 0   # MinVer needs the tags; also fetches every branch, so origin/main exists below
+          persist-credentials: false
+      - name: Check that the tagged commit is on main
+        # No extra git fetch here: without persisted credentials it would fail while the repository is private.
+        run: |
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_REF_NAME ($GITHUB_SHA) is not on main; tag a commit on main."
+            exit 1
+          fi
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           global-json-file: global.json
       - run: dotnet build -c Release
@@ -34,7 +48,7 @@ jobs:
           v="${GITHUB_REF_NAME#v}"
           jq --arg v "$v" '.version = $v | .packages[0].version = $v' src/PolishOpenData.Mcp/.mcp/server.json > artifacts/packages/server.json
           cat artifacts/packages/server.json
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release
           path: artifacts/packages
@@ -42,32 +56,40 @@ jobs:
   # The only job that can mint OIDC tokens; it runs no build or test code. Re-runnable after a partial failure.
   publish:
     needs: build
+    if: github.repository == 'JacekSmi/PolishOpenData'
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: release   # must match the Environment field of the nuget.org Trusted Publishing policy
     permissions:
       contents: write   # gh release create
       id-token: write   # OIDC for NuGet Trusted Publishing and the MCP Registry
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: release
           path: artifacts/packages
       - name: Install mcp-publisher (pinned, checksum-verified)
+        # Dependabot does not track this pin. To move to a newer release, change the version in the URL and take the
+        # new digest (drop the "sha256:" prefix) from:
+        #   gh api repos/modelcontextprotocol/registry/releases/tags/<tag> --jq '.assets[] | select(.name == "mcp-publisher_linux_amd64.tar.gz") | .digest'
         run: |
-          curl -sSL -o mcp-publisher.tar.gz "https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz"
+          curl -fsSL -o mcp-publisher.tar.gz "https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz"
           echo "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc  mcp-publisher.tar.gz" | sha256sum -c -
           tar -xzf mcp-publisher.tar.gz mcp-publisher
-      - uses: actions/setup-dotnet@v6
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
         with:
           dotnet-version: '10.0.x'
       - name: NuGet login (Trusted Publishing)
         id: login
-        uses: NuGet/login@v1
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
         with:
           user: ${{ secrets.NUGET_USER }}
       - name: Push to nuget.org
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: >
           dotnet nuget push "artifacts/packages/*.nupkg"
-          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
+          --api-key "$NUGET_API_KEY"
           --source https://api.nuget.org/v3/index.json
           --skip-duplicate
       - name: Create the GitHub release (skipped when it already exists)
