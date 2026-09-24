@@ -10,6 +10,7 @@ updates:
       # A dependency joins the first group that matches it, so the catch-all stays last.
       microsoft:
         patterns: ["Microsoft.Extensions.*", "Microsoft.Bcl.*", "System.Text.Json", "ModelContextProtocol"]
+        exclude-patterns: ["Microsoft.Extensions.TimeProvider.Testing"]
       testing:
         patterns: ["xunit*", "Microsoft.Extensions.TimeProvider.Testing"]
       other:
