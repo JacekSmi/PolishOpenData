@@ -7,7 +7,7 @@ namespace PolishOpenData.Core.Tests;
 
 public class KwNumberTests
 {
-    // Real numbers published by municipalities (sources in docs/research/2026-09-24-facts-kwcourts.md) plus algorytm.org.
+    // KW numbers of municipally owned properties from municipal sale/lease listings (art. 35 u.g.n.): pultusk.pl, gozdowo.eu, wieliczka.eu, gizycko.info, bip.miedzychod.pl, stare-miasto.pl; plus the algorytm.org example WL1A/00272852/9.
     [Theory]
     [InlineData("WL1A/00272852/9")]
     [InlineData("OS1U/00016474/4")]

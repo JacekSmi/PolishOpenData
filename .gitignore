@@ -4,4 +4,23 @@ obj/
 *.user
 TestResults/
 artifacts/
-nugetcache/
+
+# Build outputs outside artifacts/
+*.nupkg
+*.snupkg
+*.trx
+coverage*/
+
+# Design notes and agent scratch space kept outside the repository
+docs/superpowers/
+docs/research/
+.superpowers/
+.claude/settings.local.json
+.claude/worktrees/
+CLAUDE.local.md
+.remember/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store

@@ -7,8 +7,8 @@
     <!-- A newly published CVE must not break CI; Dependabot handles upgrades. -->
     <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
-    <!-- CA1716: the public parameter names 'date' (spec 4.3) and 'register' (spec 4.2) and the test namespace
-         PolishOpenData.Shared.Tests are VB keywords; they are part of the specified API and kept on purpose. -->
+    <!-- CA1716: public parameter names date (IBialaListaClient) and register (IKrsClient) and the namespace
+         PolishOpenData.Shared.Tests are VB keywords; kept on purpose. -->
     <NoWarn>$(NoWarn);CA1716</NoWarn>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <Deterministic>true</Deterministic>

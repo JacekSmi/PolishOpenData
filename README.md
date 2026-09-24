@@ -110,7 +110,7 @@ A hosted endpoint (no .NET needed) is planned for v1.1.
 
 ## Roadmap
 
-v1.1 hosted MCP endpoint · v1.2 GUS REGON (BIR) · v1.3 offline VAT whitelist flat file · then property data (ULDK parcels, GUGiK geocoder, transaction prices). See the [design spec](https://github.com/JacekSmi/PolishOpenData/blob/main/docs/superpowers/specs/2026-09-23-polishopendata-design.md).
+v1.1 hosted MCP endpoint · v1.2 GUS REGON (BIR) · v1.3 offline VAT whitelist flat file · then property data (ULDK parcels, GUGiK geocoder, transaction prices).
 
 ## Contributing and license
 
