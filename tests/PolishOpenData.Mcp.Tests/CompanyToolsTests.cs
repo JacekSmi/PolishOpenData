@@ -300,4 +300,24 @@ public sealed class CompanyToolsTests : IDisposable
         Assert.Contains("[PESEL removed]", summary.GetProperty("supervisoryBodies").EnumerateArray().Single().GetProperty("representationMethod").GetString(), StringComparison.Ordinal);
         Assert.Contains("[PESEL removed]", summary.GetProperty("shareholders").EnumerateArray().Single().GetProperty("shares").GetString(), StringComparison.Ordinal);
     }
+
+    // Synthetic numbers only. A PESEL is 11 digits, sometimes written as birth date + serial (6 + 5) with one space or
+    // hyphen; a longer digit run is some other number (a 14-digit REGON, a 26-digit NRB) and stays intact.
+    [Theory]
+    [InlineData("PESEL 12345678901", "PESEL [PESEL removed]")]
+    [InlineData("12345678901", "[PESEL removed]")]
+    [InlineData("PESEL: 12345678901, udziały 10", "PESEL: [PESEL removed], udziały 10")]
+    [InlineData("PESEL 850101 12346", "PESEL [PESEL removed]")]
+    [InlineData("PESEL 850101-12346.", "PESEL [PESEL removed].")]
+    [InlineData("12345678901 i 98765432109", "[PESEL removed] i [PESEL removed]")]
+    [InlineData("REGON 61018820170000, ZARZĄD", "REGON 61018820170000, ZARZĄD")]
+    [InlineData("RACHUNEK 61109010140000071219812874 W BANKU", "RACHUNEK 61109010140000071219812874 W BANKU")]
+    [InlineData("NUMER 123456789012", "NUMER 123456789012")]
+    [InlineData("NUMER 1234567-12345", "NUMER 1234567-12345")]
+    [InlineData("NUMER 850101-123466", "NUMER 850101-123466")]
+    [InlineData("KRS 0000028860, NIP 7740001454", "KRS 0000028860, NIP 7740001454")]
+    public void Pesel_scrub_removes_only_standalone_pesel_like_numbers(string text, string expected)
+    {
+        Assert.Equal(expected, CompanyTools.ScrubPeselText(text));
+    }
 }

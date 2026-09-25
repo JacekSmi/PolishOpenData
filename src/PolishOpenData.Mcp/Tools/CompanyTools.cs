@@ -338,9 +338,8 @@ internal sealed partial class CompanyTools(CachedRegistries registries, TimeProv
         _ => null,
     };
 
-    // KRS does not mask these free-text fields: strip any 11-digit run (a PESEL number) before this server returns
-    // them. The library itself never does this, so callers who go through PolishOpenData.Krs directly still see
-    // the raw text.
+    // KRS does not mask these free-text fields: strip PESEL-like numbers before this server returns them. The
+    // library itself never does this, so callers who go through PolishOpenData.Krs directly still see the raw text.
     private static KrsCompanySummary ScrubPesel(KrsCompanySummary summary) => summary with
     {
         Representation = summary.Representation is { } representation ? ScrubBody(representation) : null,
@@ -352,7 +351,7 @@ internal sealed partial class CompanyTools(CachedRegistries registries, TimeProv
 
     private static KrsShareholderSummary ScrubShareholder(KrsShareholderSummary shareholder) => shareholder with { Shares = ScrubPeselText(shareholder.Shares) };
 
-    private static string? ScrubPeselText(string? text) => text is null ? null : PeselPattern().Replace(text, "[PESEL removed]");
+    internal static string? ScrubPeselText(string? text) => text is null ? null : PeselPattern().Replace(text, "[PESEL removed]");
 
     private static string Format(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
@@ -364,6 +363,8 @@ internal sealed partial class CompanyTools(CachedRegistries registries, TimeProv
             ? "'" + date + "' is in the future; today in Poland is " + Format(today) + ". Biała Lista rejects future dates (WL-103), and the rejected request would still count against the daily limit."
             : null;
 
-    [GeneratedRegex(@"\d{11}")]
+    // A PESEL-like number: 11 digits, or 6 + 5 (birth date, serial) separated by one space or hyphen, and not part of
+    // a longer digit run, so a 14-digit REGON or a 26-digit NRB in the same text is left intact.
+    [GeneratedRegex(@"(?<!\d)(?:\d{11}|\d{6}[ -]\d{5})(?!\d)")]
     private static partial Regex PeselPattern();
 }

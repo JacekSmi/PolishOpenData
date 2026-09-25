@@ -75,9 +75,9 @@ public sealed partial class McpLiveTests(McpLiveFixture live) : IClassFixture<Mc
         Assert.Contains("ORLEN", summary.GetProperty("name").GetString(), StringComparison.Ordinal);
         Assert.Equal(JsonValueKind.Object, summary.GetProperty("representation").ValueKind);
 
-        // The server scrubs 11-digit runs (PESEL numbers) from the KRS free text before returning it.
+        // The server scrubs PESEL-like numbers from the KRS free text before returning it.
         var offenders = new List<string>();
-        FindElevenDigitRuns(root, "$", offenders);
+        FindPeselLikeNumbers(root, "$", offenders);
         Assert.Empty(offenders);
     }
 
@@ -131,7 +131,7 @@ public sealed partial class McpLiveTests(McpLiveFixture live) : IClassFixture<Mc
         Assert.InRange(retrievedAt, now.AddDays(-2), now.AddHours(1));
     }
 
-    private static void FindElevenDigitRuns(JsonElement element, string path, List<string> found)
+    private static void FindPeselLikeNumbers(JsonElement element, string path, List<string> found)
     {
         switch (element.ValueKind)
         {
@@ -140,7 +140,7 @@ public sealed partial class McpLiveTests(McpLiveFixture live) : IClassFixture<Mc
                 {
                     if (!IdentifierProperties.Contains(property.Name, StringComparer.Ordinal))
                     {
-                        FindElevenDigitRuns(property.Value, path + "." + property.Name, found);
+                        FindPeselLikeNumbers(property.Value, path + "." + property.Name, found);
                     }
                 }
 
@@ -149,19 +149,22 @@ public sealed partial class McpLiveTests(McpLiveFixture live) : IClassFixture<Mc
                 var index = 0;
                 foreach (var item in element.EnumerateArray())
                 {
-                    FindElevenDigitRuns(item, path + "[" + index.ToString(CultureInfo.InvariantCulture) + "]", found);
+                    FindPeselLikeNumbers(item, path + "[" + index.ToString(CultureInfo.InvariantCulture) + "]", found);
                     index++;
                 }
 
                 break;
-            case JsonValueKind.String when ElevenDigits().IsMatch(element.GetString()!):
+            case JsonValueKind.String when PeselLikeNumber().IsMatch(element.GetString()!):
                 found.Add(path);
                 break;
         }
     }
 
-    [GeneratedRegex(@"\d{11}")]
-    private static partial Regex ElevenDigits();
+    // The server's rule (CompanyTools.PeselPattern): 11 digits, or 6 + 5 separated by one space or hyphen, not part
+    // of a longer digit run. The server leaves longer runs (a 14-digit REGON, a 26-digit NRB) intact, so they must
+    // not count here either.
+    [GeneratedRegex(@"(?<!\d)(?:\d{11}|\d{6}[ -]\d{5})(?!\d)")]
+    private static partial Regex PeselLikeNumber();
 }
 
 /// <summary>Starts the in-process MCP session with real HTTP, only when the live tests are enabled.</summary>
