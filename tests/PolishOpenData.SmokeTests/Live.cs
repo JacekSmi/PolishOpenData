@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using ModelContextProtocol.Protocol;
 using Xunit.Sdk;
 using Xunit.v3;
@@ -90,6 +91,29 @@ internal static class Live
         {
             Assert.Skip("Registry request limit reached for this IP address: " + Text(result));
         }
+    }
+
+    /// <summary>
+    /// Asked by NIP or REGON, <c>lookup_company</c> keeps the whitelist part when KRS fails: the result is not an error,
+    /// its KRS part is null and the KRS error is in <c>warnings</c>. Skips when that error is a registry limit (as
+    /// <see cref="SkipIfQuotaError"/> does for an error result) and fails with the warnings otherwise.
+    /// </summary>
+    public static void RequirePart(JsonElement result, string property)
+    {
+        if (result.TryGetProperty(property, out var part) && part.ValueKind == JsonValueKind.Object)
+        {
+            return;
+        }
+
+        var warnings = result.TryGetProperty("warnings", out var list) && list.ValueKind == JsonValueKind.Array
+            ? list.EnumerateArray().Select(w => w.ValueKind == JsonValueKind.String ? w.GetString()! : w.GetRawText()).ToList()
+            : [];
+        if (warnings.FirstOrDefault(w => w.Contains("Request limit reached:", StringComparison.Ordinal)) is { } quota)
+        {
+            Assert.Skip("Registry request limit reached for this IP address: " + quota);
+        }
+
+        Assert.Fail("The result has no " + property + " part. Warnings: " + (warnings.Count == 0 ? "(none)" : string.Join(" | ", warnings)));
     }
 
     /// <summary>The first text block of a tool result (the JSON for successful calls, the message for errors).</summary>

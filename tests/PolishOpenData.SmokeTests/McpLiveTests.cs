@@ -37,6 +37,7 @@ public sealed partial class McpLiveTests(McpLiveFixture live) : IClassFixture<Mc
         Assert.Equal(Live.OrlenKrs, root.GetProperty("krs").GetString());
         Assert.Equal("active", root.GetProperty("vat").GetProperty("status").GetString());
         Assert.NotEmpty(root.GetProperty("vat").GetProperty("bankAccounts").EnumerateArray());
+        Live.RequirePart(root, "krsRegistry");   // a KRS failure leaves only the whitelist part, with the error in warnings
         Assert.Equal("found", root.GetProperty("krsRegistry").GetProperty("status").GetString());
         Assert.Equal("entrepreneurs", root.GetProperty("krsRegistry").GetProperty("register").GetString());
 
