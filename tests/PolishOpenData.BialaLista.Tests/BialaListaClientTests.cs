@@ -89,6 +89,70 @@ public class BialaListaClientTests
     }
 
     [Fact]
+    public async Task Batch_search_by_regons()
+    {
+        var (client, stub) = Create(_ => StubHttpMessageHandler.Json(
+            HttpStatusCode.OK,
+            """
+            {"result":{"entries":[
+              {"identifier":"610188201","subjects":[{"name":"ORLEN SPÓŁKA AKCYJNA","nip":"7740001454","regon":"610188201","statusVat":"Czynny"}]},
+              {"identifier":"545772924","subjects":[]}],
+             "requestId":"RG-1","requestDateTime":"24-09-2026 10:00:00"}}
+            """));
+        var result = await client.FindByRegonsAsync(
+            [Regon.Parse("610188201"), Regon.Parse("545772924")],
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        var uri = stub.RequestUris.Single();
+        Assert.Equal("/api/search/regons/610188201,545772924", uri.AbsolutePath);
+        Assert.Equal("?date=2026-09-24", uri.Query);
+        Assert.Equal("RG-1", result.RequestId);
+        Assert.Equal(new DateTimeOffset(2026, 9, 24, 8, 0, 0, TimeSpan.Zero), result.RequestDateTime.ToUniversalTime());
+        Assert.Equal(new[] { "610188201", "545772924" }, result.Value.Select(e => e.Identifier));
+        var orlen = Assert.Single(result.Value[0].Subjects);
+        Assert.Equal(Nip.Parse(Orlen), orlen.Nip);
+        Assert.Equal(Regon.Parse("610188201"), orlen.Regon);
+        Assert.Equal(VatStatus.Active, orlen.VatStatus);
+        Assert.Empty(result.Value[1].Subjects);
+        Assert.Null(result.Value[1].Error);
+    }
+
+    [Fact]
+    public async Task Batch_search_by_bank_accounts()
+    {
+        var (client, stub) = Create(_ => StubHttpMessageHandler.Json(
+            HttpStatusCode.OK,
+            """
+            {"result":{"entries":[
+              {"identifier":"06160011271843983820000034","subjects":[{"name":"ORLEN SPÓŁKA AKCYJNA","nip":"7740001454","statusVat":"Czynny","accountNumbers":["06160011271843983820000034"]}]},
+              {"identifier":"16160011271234567890123456","subjects":[]}],
+             "requestId":"BA-1","requestDateTime":"24-09-2026 10:00:00"}}
+            """));
+        var result = await client.FindByBankAccountsAsync(
+            [Nrb.Parse(OrlenAccount), Nrb.Parse(WrongAccount)],
+            cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal("/api/search/bank-accounts/" + OrlenAccount + "," + WrongAccount, stub.RequestUris.Single().AbsolutePath);
+        Assert.Equal("BA-1", result.RequestId);
+        Assert.Equal(new[] { OrlenAccount, WrongAccount }, result.Value.Select(e => e.Identifier));
+        var orlen = Assert.Single(result.Value[0].Subjects);
+        Assert.Equal("ORLEN SPÓŁKA AKCYJNA", orlen.Name);
+        Assert.Equal(Nrb.Parse(OrlenAccount), Assert.Single(orlen.AccountNumbers));
+        Assert.Empty(result.Value[1].Subjects);
+    }
+
+    [Fact]
+    public async Task Regon_and_account_batches_are_validated()
+    {
+        var (client, stub) = Create();
+        await Assert.ThrowsAsync<ArgumentException>(() => client.FindByRegonsAsync([], cancellationToken: TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentException>(() => client.FindByRegonsAsync([default(Regon)], cancellationToken: TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentException>(() => client.FindByBankAccountsAsync(Enumerable.Repeat(Nrb.Parse(OrlenAccount), 31).ToArray(), cancellationToken: TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentException>(() => client.FindByBankAccountsAsync([default(Nrb)], cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Empty(stub.RequestUris);
+    }
+
+    [Fact]
     public async Task Batch_size_is_validated()
     {
         var (client, stub) = Create();

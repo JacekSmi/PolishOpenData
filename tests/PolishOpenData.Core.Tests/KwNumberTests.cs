@@ -38,6 +38,17 @@ public class KwNumberTests
         Assert.Equal("WL1A/00272852/9", KwNumber.Parse(input).ToString());
     }
 
+    [Theory]
+    [InlineData("WL1A/00272852-9")]
+    [InlineData("wl1a-00272852/9")]
+    public void Mixed_separators_are_accepted_and_normalised(string input)
+    {
+        // Lenient on purpose: each of the two separator positions takes '/' or '-' on its own, so a mix is valid.
+        // Only "both separators or none" is enforced. The canonical form always uses '/'.
+        Assert.True(KwNumber.TryParse(input, out var kw));
+        Assert.Equal("WL1A/00272852/9", kw.ToString());
+    }
+
     [Fact]
     public void Exposes_parts_and_court()
     {

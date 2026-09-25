@@ -67,6 +67,26 @@ public class ChunkedSearchTests
         Assert.Equal(65, results.SelectMany(r => r.Value).Select(e => e.Identifier).Distinct().Count());
     }
 
+    [Theory]
+    [InlineData(30, new[] { 30 })]
+    [InlineData(60, new[] { 30, 30 })]
+    public async Task Exact_multiples_of_thirty_send_no_extra_request(int count, int[] expectedSizes)
+    {
+        var stub = new StubHttpMessageHandler(EchoEntries);
+        var client = new BialaListaClient(new HttpClient(stub), timeProvider: new FakeTimeProvider(new DateTimeOffset(2026, 9, 24, 8, 0, 0, TimeSpan.Zero)));
+        var nips = ValidNips(count);
+
+        var results = new List<BialaListaResult<IReadOnlyList<VatBatchEntry>>>();
+        await foreach (var result in client.FindByNipsChunkedAsync(nips, cancellationToken: TestContext.Current.CancellationToken))
+        {
+            results.Add(result);
+        }
+
+        Assert.Equal(expectedSizes.Length, stub.RequestUris.Count);
+        Assert.Equal(expectedSizes, results.Select(r => r.Value.Count));
+        Assert.Equal(nips.Select(n => n.ToString()), results.SelectMany(r => r.Value).Select(e => e.Identifier));
+    }
+
     [Fact]
     public async Task Empty_input_sends_nothing()
     {

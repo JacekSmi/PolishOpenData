@@ -36,6 +36,23 @@ public class RegonTests
     }
 
     [Fact]
+    public void Remainder_ten_gives_check_digit_zero()
+    {
+        // 9 digits: weights 8 9 2 3 4 5 6 7 on 1 2 3 4 5 6 7 4 give
+        // 8 + 18 + 6 + 12 + 20 + 30 + 42 + 28 = 164 = 14 * 11 + 10; remainder 10 means check digit 0.
+        Assert.True(Regon.TryParse("123456740", out var regon));
+        Assert.Equal("123456740", regon.ToString());
+        Assert.False(Regon.TryParse("123456741", out _));
+
+        // 14 digits: 610188201 (valid) + 7000, weights 2 4 8 5 0 9 7 3 6 1 2 4 8 give
+        // 12 + 4 + 0 + 5 + 0 + 72 + 14 + 0 + 6 + 7 + 0 + 0 + 0 = 120 = 10 * 11 + 10; check digit 0 again.
+        Assert.True(Regon.TryParse("61018820170000", out var local));
+        Assert.True(local.IsLocalUnit);
+        Assert.Equal(Regon.Parse("610188201"), local.BaseRegon);
+        Assert.False(Regon.TryParse("61018820170001", out _));
+    }
+
+    [Fact]
     public void Base_regon_of_local_unit_is_first_nine_digits()
     {
         Assert.Equal(Regon.Parse("610188201"), Regon.Parse("61018820100010").BaseRegon);
