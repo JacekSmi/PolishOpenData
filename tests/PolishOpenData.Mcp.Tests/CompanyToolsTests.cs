@@ -3,10 +3,12 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 using ModelContextProtocol.Protocol;
+using PolishOpenData.Krs;
 using PolishOpenData.Mcp;
 using PolishOpenData.Tests.Shared;
 
@@ -16,6 +18,8 @@ public sealed class CompanyToolsTests : IDisposable
 {
     private const string OrlenAccount = "06160011271843983820000034";
     private const string WrongAccount = "16160011271234567890123456";
+    private const string KrsHost = "api-krs.ms.gov.pl";
+    private const string VatHost = "wl-api.mf.gov.pl";
 
     // Built here (not a committed fixture): a minimal current extract whose free-text fields carry an obviously
     // synthetic 11-digit run, to prove get_krs_extract scrubs it before the summary leaves the server.
@@ -50,7 +54,7 @@ public sealed class CompanyToolsTests : IDisposable
 
     public void Dispose() => _provider.Dispose();
 
-    private static (ServiceProvider Provider, CompanyTools Tools) Build(TimeProvider clock, StubHttpMessageHandler stub)
+    private static (ServiceProvider Provider, CompanyTools Tools) Build(TimeProvider clock, HttpMessageHandler stub)
     {
         var services = new ServiceCollection();
         services.AddSingleton(clock);
@@ -80,11 +84,29 @@ public sealed class CompanyToolsTests : IDisposable
             "/api/search/nip/7740001454" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "bialalista/search-nip-orlen.json"),
             "/api/search/nip/5213003700" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "bialalista/search-nip-notfound.json"),
             "/api/search/nip/9999999982" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "bialalista/synthetic-search-nip-nullarrays-unknownfield.json"),
+            "/api/search/regon/610188201" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "bialalista/search-regon-orlen.json"),
             "/api/check/nip/7740001454/bank-account/" + OrlenAccount => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "bialalista/check-nip-tak.json"),
             "/api/check/nip/7740001454/bank-account/" + WrongAccount => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "bialalista/check-nip-nie.json"),
             _ => StubHttpMessageHandler.FromFixture(HttpStatusCode.NotFound, "bialalista/error-404-wl190-unknown-route.json"),
         };
     }
+
+    // Biała Lista answers as in Route; every KRS request is rejected with 400 (not retried by the resilience handler).
+    private static HttpResponseMessage KrsRejects(HttpRequestMessage request) =>
+        request.RequestUri!.Host == KrsHost ? StubHttpMessageHandler.Json(HttpStatusCode.BadRequest, "{}") : Route(request);
+
+    // ORLEN's KRS number reported as removed (204), and the full extract that would give the removal date rejected.
+    private static HttpResponseMessage FullExtractRejected(HttpRequestMessage request) => request.RequestUri!.PathAndQuery switch
+    {
+        "/api/krs/OdpisAktualny/0000028860?rejestr=P&format=json" => StubHttpMessageHandler.Empty(HttpStatusCode.NoContent),
+        "/api/krs/OdpisPelny/0000028860?rejestr=P&format=json" => StubHttpMessageHandler.Json(HttpStatusCode.BadRequest, "{}"),
+        _ => Route(request),
+    };
+
+    private static FakeTimeProvider Clock() => new(new DateTimeOffset(2026, 9, 24, 8, 0, 0, TimeSpan.Zero));
+
+    private static bool IsAbsent(JsonElement parent, string property) =>
+        !parent.TryGetProperty(property, out var value) || value.ValueKind == JsonValueKind.Null;
 
     private static JsonElement Json(CallToolResult result)
     {
@@ -224,6 +246,116 @@ public sealed class CompanyToolsTests : IDisposable
         Assert.True(root.GetProperty("found").GetBoolean());
         Assert.Equal("exempt", root.GetProperty("vat").GetProperty("status").GetString());
         Assert.DoesNotContain(root.GetProperty("warnings").EnumerateArray(), w => w.GetString()!.Contains("Not on the VAT whitelist", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("7740001454", null)]
+    [InlineData(null, "610188201")]
+    public async Task Lookup_by_nip_or_regon_keeps_the_whitelist_part_when_krs_fails(string? nip, string? regon)
+    {
+        using var stub = new StubHttpMessageHandler(KrsRejects);
+        var (provider, tools) = Build(Clock(), stub);
+        using var disposeProvider = provider;
+
+        var root = Json(await tools.LookupCompany(nip, regon, cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.True(root.GetProperty("found").GetBoolean());
+        Assert.Equal("ORLEN SPÓŁKA AKCYJNA", root.GetProperty("name").GetString());
+        Assert.Equal("7740001454", root.GetProperty("nip").GetString());
+        Assert.Equal("0000028860", root.GetProperty("krs").GetString());   // from the whitelist, for a later get_krs_extract
+        Assert.Equal("active", root.GetProperty("vat").GetProperty("status").GetString());
+        Assert.True(IsAbsent(root, "krsRegistry"));
+
+        var source = Assert.Single(root.GetProperty("sources").EnumerateArray());   // only what was retrieved
+        Assert.Equal("https://" + VatHost, source.GetProperty("endpoint").GetString());
+
+        var warning = Assert.Single(root.GetProperty("warnings").EnumerateArray(), w => w.GetString()!.Contains("KRS", StringComparison.Ordinal)).GetString()!;
+        Assert.Contains("0000028860", warning, StringComparison.Ordinal);
+        Assert.Contains("The registry rejected the request: ", warning, StringComparison.Ordinal);   // the ToolErrors text
+    }
+
+    [Fact]
+    public async Task A_failed_krs_part_is_asked_again_while_the_whitelist_part_comes_from_the_cache()
+    {
+        using var stub = new StubHttpMessageHandler(KrsRejects);
+        var (provider, tools) = Build(Clock(), stub);
+        using var disposeProvider = provider;
+
+        await tools.LookupCompany(nip: "7740001454", cancellationToken: TestContext.Current.CancellationToken);
+        Assert.Equal(1, stub.RequestUris.Count(u => u.Host == VatHost));
+        Assert.Equal(1, stub.RequestUris.Count(u => u.Host == KrsHost));
+
+        var again = Json(await tools.LookupCompany(nip: "7740001454", cancellationToken: TestContext.Current.CancellationToken));
+        Assert.True(IsAbsent(again, "krsRegistry"));
+        Assert.Equal(1, stub.RequestUris.Count(u => u.Host == VatHost));   // cached
+        Assert.Equal(2, stub.RequestUris.Count(u => u.Host == KrsHost));   // the failure was not cached
+    }
+
+    [Fact]
+    public async Task Lookup_by_nip_of_a_removed_entity_keeps_the_removal_when_its_date_cannot_be_read()
+    {
+        using var stub = new StubHttpMessageHandler(FullExtractRejected);
+        var (provider, tools) = Build(Clock(), stub);
+        using var disposeProvider = provider;
+
+        var root = Json(await tools.LookupCompany(nip: "7740001454", cancellationToken: TestContext.Current.CancellationToken));
+
+        var krs = root.GetProperty("krsRegistry");
+        Assert.Equal("removed", krs.GetProperty("status").GetString());
+        Assert.True(IsAbsent(krs, "removedOn"));
+        Assert.Equal("active", root.GetProperty("vat").GetProperty("status").GetString());
+        Assert.Equal(2, root.GetProperty("sources").GetArrayLength());   // the current-extract answer (removed) was retrieved
+
+        var warning = Assert.Single(root.GetProperty("warnings").EnumerateArray(), w => w.GetString()!.Contains("removed from KRS", StringComparison.Ordinal)).GetString()!;
+        Assert.Contains("removal date", warning, StringComparison.Ordinal);
+        Assert.Contains("The registry rejected the request: ", warning, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Lookup_by_krs_number_still_fails_when_krs_fails(bool onlyTheFullExtractFails)
+    {
+        using var stub = new StubHttpMessageHandler(onlyTheFullExtractFails ? FullExtractRejected : KrsRejects);
+        var (provider, tools) = Build(Clock(), stub);
+        using var disposeProvider = provider;
+
+        // Called directly, so the exception is visible; the MCP call-tool filter turns it into an isError result.
+        await Assert.ThrowsAnyAsync<PolishOpenDataApiException>(() => tools.LookupCompany(krs: "28860", cancellationToken: TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task Lookup_by_nip_still_fails_when_the_whitelist_fails()
+    {
+        using var stub = new StubHttpMessageHandler(request => request.RequestUri!.Host == VatHost
+            ? StubHttpMessageHandler.FromFixture(HttpStatusCode.BadRequest, "bialalista/error-400-wl118-old-date.json")
+            : Route(request));
+        var (provider, tools) = Build(Clock(), stub);
+        using var disposeProvider = provider;
+
+        await Assert.ThrowsAnyAsync<PolishOpenDataApiException>(() => tools.LookupCompany(nip: "7740001454", cancellationToken: TestContext.Current.CancellationToken));
+        Assert.DoesNotContain(stub.RequestUris, u => u.Host == KrsHost);
+    }
+
+    [Fact]
+    public async Task Cancelling_during_the_krs_call_cancels_the_lookup_instead_of_returning_the_whitelist_part()
+    {
+        var gate = new GatedHttpMessageHandler(Route, hold: request => request.RequestUri!.Host == KrsHost);
+        var (provider, tools) = Build(Clock(), gate);
+        using var disposeProvider = provider;
+        using var cancel = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+
+        var lookup = tools.LookupCompany(nip: "7740001454", cancellationToken: cancel.Token);
+
+        // The whitelist answered and the KRS request is in progress (a lookup that ends first would be a test failure).
+        Assert.Same(gate.Entered, await Task.WhenAny(gate.Entered, lookup));
+        await cancel.CancelAsync();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => lookup);
+
+        // Let the shared KRS call (which the cancellation did not stop) finish before the provider is disposed: the
+        // resilience pipeline waits for executions in progress on disposal, and with the fake clock it would wait forever.
+        gate.Release();
+        Assert.Equal(KrsLookupStatus.Found, (await provider.GetRequiredService<CachedRegistries>().GetCurrentExtractAsync(KrsNumber.Parse("28860"), TestContext.Current.CancellationToken)).Status);
     }
 
     [Fact]

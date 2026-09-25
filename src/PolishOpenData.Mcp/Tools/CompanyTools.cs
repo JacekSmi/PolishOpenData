@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using PolishOpenData.BialaLista;
@@ -24,7 +25,7 @@ internal sealed partial class CompanyTools(CachedRegistries registries, TimeProv
     private const string VatEndpoint = "https://wl-api.mf.gov.pl";
 
     [McpServerTool(Name = "lookup_company", Title = "Look up a Polish company", ReadOnly = true, OpenWorld = true, Idempotent = true, Destructive = false, UseStructuredContent = true, OutputSchemaType = typeof(CompanyOverview))]
-    [Description("Looks up a Polish company or organisation by exactly one of NIP, REGON or KRS number. Combines the VAT whitelist (Biała Lista: VAT status, seat address, bank accounts) with the National Court Register (KRS: legal form, share capital, registration, removal). Public registry data.")]
+    [Description("Looks up a Polish company or organisation by exactly one of NIP, REGON or KRS number. Combines the VAT whitelist (Biała Lista: VAT status, seat address, bank accounts) with the National Court Register (KRS: legal form, share capital, registration, removal). If the lookup is by NIP or REGON and KRS fails, the whitelist part is still returned, with the KRS error in warnings. Public registry data.")]
     public async Task<CallToolResult> LookupCompany(
         [Description("NIP tax number (10 digits; dashes and a PL prefix are allowed).")] string? nip = null,
         [Description("REGON (9 or 14 digits).")] string? regon = null,
@@ -94,19 +95,44 @@ internal sealed partial class CompanyTools(CachedRegistries registries, TimeProv
         DateOnly? removedOn = null;
         if (krsNumber is { } number)
         {
-            krsResult = await registries.GetCurrentExtractAsync(number, cancellationToken).ConfigureAwait(false);
-            summary = krsResult.Extract?.ToSummary();
-            if (krsResult.Status == KrsLookupStatus.Removed)
+            // Asked by NIP or REGON, the whitelist has already answered, so a KRS failure costs only the KRS part and
+            // is reported in the warnings. Asked by KRS number, there is nothing to show without KRS: it still fails.
+            var whitelistAnswered = vat is not null;
+            try
             {
-                removedOn = (await registries.GetFullExtractAsync(number, cancellationToken).ConfigureAwait(false)).Extract?.RemovedOn;
-                warnings.Add("The entity was removed from KRS" + (removedOn is { } d ? " on " + Format(d) : string.Empty) + ".");
+                krsResult = await registries.GetCurrentExtractAsync(number, cancellationToken).ConfigureAwait(false);
             }
-            else if (krsResult.Status == KrsLookupStatus.NotFound)
+            catch (Exception ex) when (whitelistAnswered && KrsFailure(ex) is { } error)
             {
-                warnings.Add("KRS has no entity with number " + number.ToString() + ".");
+                warnings.Add("KRS data for " + number.ToString() + " is missing. " + error);
             }
 
-            sources.Add(new SourceInfo(KrsSource, KrsEndpoint, summary?.ExtractedAt ?? timeProvider.GetUtcNow(), null));
+            if (krsResult is not null)
+            {
+                summary = krsResult.Extract?.ToSummary();
+                if (krsResult.Status == KrsLookupStatus.Removed)
+                {
+                    string? missingDate = null;
+                    try
+                    {
+                        removedOn = (await registries.GetFullExtractAsync(number, cancellationToken).ConfigureAwait(false)).Extract?.RemovedOn;
+                    }
+                    catch (Exception ex) when (whitelistAnswered && KrsFailure(ex) is { } error)
+                    {
+                        missingDate = error;
+                    }
+
+                    warnings.Add(missingDate is null
+                        ? "The entity was removed from KRS" + (removedOn is { } d ? " on " + Format(d) : string.Empty) + "."
+                        : "The entity was removed from KRS; its removal date is missing. " + missingDate);
+                }
+                else if (krsResult.Status == KrsLookupStatus.NotFound)
+                {
+                    warnings.Add("KRS has no entity with number " + number.ToString() + ".");
+                }
+
+                sources.Add(new SourceInfo(KrsSource, KrsEndpoint, summary?.ExtractedAt ?? timeProvider.GetUtcNow(), null));
+            }
         }
         else if (vat?.Value is null && (!string.IsNullOrWhiteSpace(nip) || !string.IsNullOrWhiteSpace(regon)))
         {
@@ -352,6 +378,9 @@ internal sealed partial class CompanyTools(CachedRegistries registries, TimeProv
     private static KrsShareholderSummary ScrubShareholder(KrsShareholderSummary shareholder) => shareholder with { Shares = ScrubPeselText(shareholder.Shares) };
 
     internal static string? ScrubPeselText(string? text) => text is null ? null : PeselPattern().Replace(text, "[PESEL removed]");
+
+    // The failures the call-tool filter (McpServerSetup) would report as the tool's error text; cancellation propagates.
+    private static string? KrsFailure(Exception exception) => exception is McpProtocolException ? null : ToolErrors.Describe(exception);
 
     private static string Format(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 

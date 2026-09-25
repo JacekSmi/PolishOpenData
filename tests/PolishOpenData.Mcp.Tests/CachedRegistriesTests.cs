@@ -37,7 +37,7 @@ public sealed class CachedRegistriesTests
     public async Task Concurrent_identical_calls_share_one_upstream_request()
     {
         var ct = TestContext.Current.CancellationToken;
-        var handler = new GatedHandler(_ => OrlenExtract());
+        var handler = new GatedHttpMessageHandler(_ => OrlenExtract());
         using var provider = Build(handler);
         var first = provider.GetRequiredService<CachedRegistries>();
         var second = provider.GetRequiredService<CachedRegistries>();
@@ -63,7 +63,7 @@ public sealed class CachedRegistriesTests
     public async Task Concurrent_whitelist_searches_share_a_request_only_for_the_same_date()
     {
         var ct = TestContext.Current.CancellationToken;
-        var handler = new GatedHandler(_ => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "bialalista/search-nip-orlen.json"));
+        var handler = new GatedHttpMessageHandler(_ => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "bialalista/search-nip-orlen.json"));
         using var provider = Build(handler);
 
         var a = provider.GetRequiredService<CachedRegistries>().FindByNipAsync(OrlenNip, new DateOnly(2026, 9, 24), ct);
@@ -84,7 +84,7 @@ public sealed class CachedRegistriesTests
     {
         var ct = TestContext.Current.CancellationToken;
         var responses = 0;
-        var handler = new GatedHandler(_ =>
+        var handler = new GatedHttpMessageHandler(_ =>
         {
             if (Interlocked.Increment(ref responses) > 1)
             {
@@ -127,7 +127,7 @@ public sealed class CachedRegistriesTests
     public async Task One_caller_cancelling_does_not_cancel_the_shared_call()
     {
         var ct = TestContext.Current.CancellationToken;
-        var handler = new GatedHandler(_ => OrlenExtract());
+        var handler = new GatedHttpMessageHandler(_ => OrlenExtract());
         using var provider = Build(handler);
         using var cancelA = CancellationTokenSource.CreateLinkedTokenSource(ct);
 
@@ -149,7 +149,7 @@ public sealed class CachedRegistriesTests
     public async Task A_result_is_cached_even_when_its_only_caller_cancelled()
     {
         var ct = TestContext.Current.CancellationToken;
-        var handler = new GatedHandler(_ => OrlenExtract());
+        var handler = new GatedHttpMessageHandler(_ => OrlenExtract());
         using var provider = Build(handler);
         using var cancelA = CancellationTokenSource.CreateLinkedTokenSource(ct);
 
@@ -178,39 +178,5 @@ public sealed class CachedRegistriesTests
         Task<string> Throw() => throw new InvalidOperationException("thrown before any await");
         await Assert.ThrowsAsync<InvalidOperationException>(() => calls.GetOrStart("other", Throw));
         Assert.Equal("value 3", await calls.GetOrStart("other", Succeed));
-    }
-
-    /// <summary>Holds every request until <see cref="Release"/>; counts the requests that reached it. No network.</summary>
-    private sealed class GatedHandler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler
-    {
-        private readonly TaskCompletionSource _entered = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private readonly TaskCompletionSource _release = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        private int _requests;
-        private int _cancelled;
-
-        public Task Entered => _entered.Task;
-
-        public int Requests => Volatile.Read(ref _requests);
-
-        public bool UpstreamCancelled => Volatile.Read(ref _cancelled) != 0;
-
-        public void Release() => _release.TrySetResult();
-
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-        {
-            Interlocked.Increment(ref _requests);
-            _entered.TrySetResult();
-            try
-            {
-                await _release.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                Interlocked.Exchange(ref _cancelled, 1);
-                throw;
-            }
-
-            return respond(request);
-        }
     }
 }
