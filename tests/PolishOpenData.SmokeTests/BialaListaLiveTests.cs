@@ -110,9 +110,20 @@ public sealed class BialaListaLiveFixture : IDisposable
 
     public BialaListaClient Client { get; }
 
-    /// <summary>The ORLEN NIP search, sent once (the tests run one at a time).</summary>
-    public Task<BialaListaResult<VatSubject?>> FindOrlenAsync(CancellationToken cancellationToken) =>
-        _orlen ??= Client.FindByNipAsync(Nip.Parse(Live.OrlenNip), cancellationToken: cancellationToken);
+    /// <summary>
+    /// The ORLEN NIP search, sent once (the tests run one at a time). A cancelled search (the first caller's test timed
+    /// out, or the HTTP timeout ran out) is sent again, so the next test reports its own result instead of that
+    /// cancellation; any other failure is kept and rethrown to every caller.
+    /// </summary>
+    public Task<BialaListaResult<VatSubject?>> FindOrlenAsync(CancellationToken cancellationToken)
+    {
+        if (_orlen is { IsCanceled: true })
+        {
+            _orlen = null;
+        }
+
+        return _orlen ??= Client.FindByNipAsync(Nip.Parse(Live.OrlenNip), cancellationToken: cancellationToken);
+    }
 
     public void Dispose() => _http.Dispose();
 }

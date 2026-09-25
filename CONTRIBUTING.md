@@ -21,7 +21,7 @@ POLISHOPENDATA_SMOKE=1 dotnet test --project tests/PolishOpenData.SmokeTests -c 
 $env:POLISHOPENDATA_SMOKE='1'; try { dotnet test --project tests/PolishOpenData.SmokeTests -c Release } finally { Remove-Item Env:POLISHOPENDATA_SMOKE }
 ```
 
-The package test uses the latest version on nuget.org; set `POLISHOPENDATA_SMOKE_MCP_VERSION` (for example `1.0.0`) to test another one. Its first run downloads the package.
+The package test uses the latest version on nuget.org; set `POLISHOPENDATA_SMOKE_MCP_VERSION` to test another one. An exact version (for example `1.0.0`) is also compared with the version the server reports; a floating version or range (for example `1.*`) is only passed to dnx. Its first run downloads the package.
 
 One run costs, per IP address:
 
@@ -29,7 +29,9 @@ One run costs, per IP address:
 |---|---|---|---|---|
 | Biała Lista searches (each NIP or REGON counts, also inside a batch) | 4 | 1 | 1 | **6** (5 requests) |
 | Biała Lista checks | 1 | 1 | 0 | **2** |
-| KRS requests | 5 | 1 | 1 | **7** |
+| KRS requests | 5 (up to 9) | 1 | 1 | **7** (up to 11) |
+
+These are the counts when every call succeeds. The change feed test asks for an earlier weekday, up to 5 in all, only while the feeds it got were empty (a public holiday, or a feed not yet published). Failed calls are not cached, so a cancelled or failed search is sent again by the next test that needs it: a run with failures spends at most 9 searches. The MCP server never retries Biała Lista; its KRS client retries transient failures (5xx, 408, 429, connection errors and 10-second attempt timeouts), which can add KRS requests.
 
 Biała Lista allows 100 searches and 5,000 checks per IP address per day, and exceeding either blocks the IP until midnight Warsaw time, including your own searches on podatki.gov.pl. Running the live tests locally a few times a day is fine; don't run them in a loop. A test that reaches a limit is skipped, not failed. The same table is in the `Live` class.
 

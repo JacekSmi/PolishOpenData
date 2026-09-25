@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Globalization;
 using System.Text.Json;
 using System.Threading.Tasks;
 using PolishOpenData.Internal;
@@ -12,6 +12,10 @@ namespace PolishOpenData.SmokeTests;
 /// <summary>The KRS client against the live KRS Open API (gated and budgeted by <see cref="Live"/>).</summary>
 public sealed class KrsLiveTests
 {
+    // Weekdays tried by the change-feed test: the longest run of weekday public holidays (24-26 December), a feed not
+    // yet published for yesterday, and one more.
+    private const int MaxFeedDays = 5;
+
     private static readonly KrsNumber Orlen = KrsNumber.Parse(Live.OrlenKrs);
 
     [Fact(Timeout = Live.TestTimeout)]
@@ -98,22 +102,31 @@ public sealed class KrsLiveTests
     }
 
     [Fact(Timeout = Live.TestTimeout)]
-    public async Task Krs_change_feed_of_the_last_weekday_yields_valid_numbers()
+    public async Task Krs_change_feed_of_a_recent_weekday_is_not_empty()
     {
+        // A weekday feed lists thousands of entities (tests/Fixtures/krs/biuletyn-2026-09-22.json has 3,338). The client
+        // yields nothing for 404 and 204 and skips entries it cannot parse, so a moved route or a new entry format shows
+        // up only as an empty feed. Stepping back over empty days covers public holidays and a feed not yet published.
         Live.SkipUnlessEnabled();
-        var day = LastWeekdayBefore(WarsawTime.Today(TimeProvider.System));
         using var http = Live.CreateHttpClient();
         var client = new KrsClient(http);
 
+        var tried = new List<string>();
         var changed = new List<KrsNumber>();
+        var day = WarsawTime.Today(TimeProvider.System);
         try
         {
-            await foreach (var krs in client.GetChangedAsync(day, TestContext.Current.CancellationToken))
+            while (changed.Count == 0 && tried.Count < MaxFeedDays)
             {
-                changed.Add(krs);
-                if (changed.Count == 50)
+                day = LastWeekdayBefore(day);
+                tried.Add(day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+                await foreach (var krs in client.GetChangedAsync(day, TestContext.Current.CancellationToken))
                 {
-                    break;
+                    changed.Add(krs);
+                    if (changed.Count == 50)
+                    {
+                        break;
+                    }
                 }
             }
         }
@@ -123,9 +136,7 @@ public sealed class KrsLiveTests
             return;
         }
 
-        // No count assertion: a public holiday has an empty feed, and the client yields nothing for 404/204.
-        Assert.All(changed, krs => Assert.Matches("^[0-9]{10}$", krs.ToString()));
-        Assert.Equal(changed.Count, changed.Distinct().Count());
+        Assert.True(changed.Count > 0, "The KRS change feed was empty for " + string.Join(", ", tried) + "; the Biuletyn route or its entry format may have changed.");
     }
 
     private static DateOnly LastWeekdayBefore(DateOnly today)

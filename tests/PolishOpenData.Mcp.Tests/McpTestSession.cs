@@ -29,11 +29,15 @@ internal sealed class McpTestSession : IAsyncDisposable
     public McpClient Client { get; }
 
     /// <summary>Starts a session.</summary>
-    /// <param name="configureHttp">Applied to both registry HTTP clients (e.g. a stub primary handler or a timeout); null keeps production HTTP.</param>
+    /// <param name="configureHttp">
+    /// Applied to both registry HTTP clients: a stub primary handler in the unit tests, a timeout in the live tests.
+    /// Required, so that real registry calls happen only where a test asks for them (the gated live tests).
+    /// </param>
     /// <param name="clock">Registered as the server's <see cref="TimeProvider"/>; null keeps the production default (system clock).</param>
     /// <param name="cancellationToken">Cancels start-up and the MCP handshake.</param>
-    public static async Task<McpTestSession> StartAsync(Action<IHttpClientBuilder>? configureHttp, TimeProvider? clock, CancellationToken cancellationToken)
+    public static async Task<McpTestSession> StartAsync(Action<IHttpClientBuilder> configureHttp, TimeProvider? clock, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(configureHttp);
         var builder = Host.CreateApplicationBuilder();
         builder.Logging.ClearProviders();
         if (clock is not null)

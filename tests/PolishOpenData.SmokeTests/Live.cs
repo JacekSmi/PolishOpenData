@@ -20,22 +20,27 @@ namespace PolishOpenData.SmokeTests;
 /// <listheader><term>Budget</term><description>Library / MCP in-process / published package = total</description></listheader>
 /// <item><term>Biała Lista searches (each NIP or REGON counts, also inside a batch)</term><description>4 (NIP, REGON, 2-NIP batch) / 1 / 1 = 6, sent as 5 requests</description></item>
 /// <item><term>Biała Lista checks</term><description>1 / 1 / 0 = 2</description></item>
-/// <item><term>KRS requests</term><description>5 (current, full, not-found in P and S, change feed) / 1 / 1 = 7</description></item>
+/// <item><term>KRS requests</term><description>5 to 9 (current, full, not-found in P and S, change feed of 1 to 5 weekdays) / 1 / 1 = 7 to 11</description></item>
 /// </list>
-/// The MCP tests share one server session, so its cache answers repeated lookups without new upstream calls. Biała
-/// Lista is never retried; the MCP server's KRS client (in process and published) retries transient failures (5xx,
-/// 408, 429), which can add KRS requests but never Biała Lista quota.
+/// The change feed asks for an earlier weekday only while the feeds it got were empty (a public holiday, or a feed not
+/// yet published). The MCP tests share one server session, so its cache answers repeated lookups without new upstream
+/// calls. Failed calls are not cached, so the next test that needs a failed search sends it again: the library NIP
+/// search when it was cancelled, and any MCP search (for example after the MCP server's 10 s attempt timeout, which
+/// Biała Lista still counts). A run with failures therefore spends at most 9 searches. Biała Lista is never retried;
+/// the MCP server's KRS client (in process and published) retries transient failures (5xx, 408, 429, connection
+/// errors and 10 s attempt timeouts), which can add KRS requests but never Biała Lista quota.
 /// </para>
 /// <para>
 /// Biała Lista allows 100 searches and 5,000 checks per IP address per day; exceeding either blocks the IP until
-/// midnight Warsaw time, including searches on podatki.gov.pl. A run spends 6 searches, so running it locally a few
-/// times a day is fine; do not run it in a loop. A test that hits a limit is skipped, not failed.
+/// midnight Warsaw time, including searches on podatki.gov.pl. A run spends 6 searches (at most 9), so running it
+/// locally a few times a day is fine; do not run it in a loop. A test that hits a limit is skipped, not failed.
 /// </para>
 /// <para>
 /// bash: <c>POLISHOPENDATA_SMOKE=1 dotnet test --project tests/PolishOpenData.SmokeTests -c Release</c><br/>
 /// PowerShell: <c>$env:POLISHOPENDATA_SMOKE='1'; try { dotnet test --project tests/PolishOpenData.SmokeTests -c Release } finally { Remove-Item Env:POLISHOPENDATA_SMOKE }</c><br/>
 /// The published-package test runs <c>dotnet dnx PolishOpenData.Mcp --yes</c> (latest on nuget.org); set
-/// <c>POLISHOPENDATA_SMOKE_MCP_VERSION</c> (e.g. <c>1.0.0</c>) to test a specific version.
+/// <c>POLISHOPENDATA_SMOKE_MCP_VERSION</c> to test another version. An exact version (e.g. <c>1.0.0</c>) is also
+/// compared with the version the server reports; a floating version or range (e.g. <c>1.*</c>) is only passed to dnx.
 /// </para>
 /// </summary>
 internal static class Live

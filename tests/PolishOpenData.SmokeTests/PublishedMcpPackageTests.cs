@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -20,6 +21,8 @@ public sealed class PublishedMcpPackageTests
     private const int PackageTestTimeout = 300_000;
 
     private static readonly string[] ExpectedTools = ["lookup_company", "check_vat_bank_account", "get_krs_extract", "validate_identifier"];
+
+    private static readonly SearchValues<char> VersionRangeCharacters = SearchValues.Create("*[](),");
 
     [Fact(Timeout = PackageTestTimeout)]
     public async Task Published_package_lists_the_tools_and_answers_a_live_lookup()
@@ -57,7 +60,15 @@ public sealed class PublishedMcpPackageTests
             await using var client = await McpClient.CreateAsync(transport, options, cancellationToken: TestContext.Current.CancellationToken);
             if (!string.IsNullOrEmpty(version))
             {
-                Assert.Equal(version, client.ServerInfo.Version);
+                if (IsExactVersion(version))
+                {
+                    // NuGet compares prerelease labels ignoring case; the server reports its version without +metadata.
+                    Assert.Equal(version.Split('+', 2)[0], client.ServerInfo.Version, ignoreCase: true);
+                }
+                else
+                {
+                    TestContext.Current.TestOutputHelper?.WriteLine(version + " is not an exact version, so it is not compared; the server reports " + client.ServerInfo.Version + ".");
+                }
             }
 
             var tools = await client.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
@@ -84,5 +95,18 @@ public sealed class PublishedMcpPackageTests
                 TestContext.Current.TestOutputHelper?.WriteLine("[server stderr] " + line);
             }
         }
+    }
+
+    /// <summary>
+    /// True for a full version such as <c>1.0.0</c> or <c>1.1.0-rc.1</c>. dnx also takes floating versions and ranges
+    /// (<c>1.*</c>, <c>[1.0,2.0)</c>) and short forms (<c>1.0</c>, which NuGet reads as a minimum); those resolve to a
+    /// version the test cannot know in advance.
+    /// </summary>
+    private static bool IsExactVersion(string version)
+    {
+        var core = version.Split('+', 2)[0].Split('-', 2)[0];
+        return !version.AsSpan().ContainsAny(VersionRangeCharacters)
+            && core.Split('.').Length == 3
+            && Version.TryParse(core, out _);
     }
 }
