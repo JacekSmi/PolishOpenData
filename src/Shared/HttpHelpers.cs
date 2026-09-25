@@ -35,14 +35,19 @@ internal static class HttpHelpers
 #endif
     }
 
-    /// <summary>Reads the whole body (cancellable on .NET, best effort on netstandard2.0).</summary>
-    public static Task<byte[]> ReadBytesAsync(this HttpContent content, CancellationToken cancellationToken)
+    /// <summary>Reads the whole body; the token is checked between chunks, so a slow body can be cancelled.</summary>
+    public static async Task<byte[]> ReadBytesAsync(this HttpContent content, CancellationToken cancellationToken)
     {
 #if NET
-        return content.ReadAsByteArrayAsync(cancellationToken);
+        return await content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
 #else
+        // ReadAsByteArrayAsync takes no token here. Requests use ResponseHeadersRead, so on .NET Framework no
+        // HttpClient or resilience timeout covers the body: copy the stream, which passes the token to every read.
         cancellationToken.ThrowIfCancellationRequested();
-        return content.ReadAsByteArrayAsync();
+        using var stream = await content.ReadAsStreamAsync().ConfigureAwait(false);
+        using var buffer = new MemoryStream();
+        await stream.CopyToAsync(buffer, 81920, cancellationToken).ConfigureAwait(false);
+        return buffer.ToArray();
 #endif
     }
 
