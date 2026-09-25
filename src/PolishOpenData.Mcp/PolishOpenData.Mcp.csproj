@@ -22,6 +22,7 @@
     <ProjectReference Include="..\PolishOpenData.Krs\PolishOpenData.Krs.csproj" />
     <ProjectReference Include="..\PolishOpenData.BialaLista\PolishOpenData.BialaLista.csproj" />
     <InternalsVisibleTo Include="PolishOpenData.Mcp.Tests" />
+    <InternalsVisibleTo Include="PolishOpenData.SmokeTests" />
     <Compile Include="..\Shared\WarsawTime.cs" LinkBase="Shared" />
   </ItemGroup>
 

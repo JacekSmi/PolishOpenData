@@ -9,10 +9,34 @@ dotnet test -c Release
 
 Requirements: .NET 10 SDK (see `global.json`). On Windows the Core, Shared, Krs and BialaLista tests also run on .NET Framework 4.7.2. Tests use xUnit v3 on Microsoft Testing Platform (`dotnet test --project tests/<Project>` runs one project).
 
+## Live tests
+
+`tests/PolishOpenData.SmokeTests` checks the libraries, the MCP server (in process, over the MCP protocol) and the published MCP package (`dotnet dnx PolishOpenData.Mcp --yes`, over stdio) against the real KRS and Biała Lista APIs, with ORLEN S.A. as the known subject. Without `POLISHOPENDATA_SMOKE=1` every test is skipped.
+
+```bash
+POLISHOPENDATA_SMOKE=1 dotnet test --project tests/PolishOpenData.SmokeTests -c Release
+```
+
+```powershell
+$env:POLISHOPENDATA_SMOKE='1'; try { dotnet test --project tests/PolishOpenData.SmokeTests -c Release } finally { Remove-Item Env:POLISHOPENDATA_SMOKE }
+```
+
+The package test uses the latest version on nuget.org; set `POLISHOPENDATA_SMOKE_MCP_VERSION` (for example `1.0.0`) to test another one. Its first run downloads the package.
+
+One run costs, per IP address:
+
+| | Libraries | MCP in process | Published package | Total |
+|---|---|---|---|---|
+| Biała Lista searches (each NIP or REGON counts, also inside a batch) | 4 | 1 | 1 | **6** (5 requests) |
+| Biała Lista checks | 1 | 1 | 0 | **2** |
+| KRS requests | 5 | 1 | 1 | **7** |
+
+Biała Lista allows 100 searches and 5,000 checks per IP address per day, and exceeding either blocks the IP until midnight Warsaw time, including your own searches on podatki.gov.pl. Running the live tests locally a few times a day is fine; don't run them in a loop. A test that reaches a limit is skipped, not failed. The same table is in the `Live` class.
+
 ## Rules
 
 - Unit tests never call the network. They replay recorded responses from `tests/Fixtures/`.
-- **Never run the smoke tests with `POLISHOPENDATA_SMOKE=1` on your machine.** Biała Lista blocks your IP until midnight after 100 searches a day, including your own searches on podatki.gov.pl. The weekly `nightly-smoke` workflow runs them and opens an issue labelled `smoke-failure` when a registry changes. GitHub disables scheduled workflows in a public repository after 60 days without repository activity; if that happens, re-enable it with `gh workflow enable nightly-smoke`.
+- Live tests (`tests/PolishOpenData.SmokeTests`) call the real registries and run only with `POLISHOPENDATA_SMOKE=1`; see [Live tests](#live-tests) for their cost. The weekly `nightly-smoke` workflow runs them and opens an issue labelled `smoke-failure` when a registry changes. GitHub disables scheduled workflows in a public repository after 60 days without repository activity; if that happens, re-enable it with `gh workflow enable nightly-smoke`.
 - New fixtures must be redacted before committing: keep the ministry's masks (such as `F*****`) as returned; replace any unmasked name of a natural person with `JAN`/`KOWALSKI`; replace free-text fields that can contain names or PESEL numbers (KRS `rodzajProkury`, `umowaStatut` text) with `[REDACTED]`, and likewise the names of notaries or proxies inside other free text, such as the dzial6 merger/split descriptions (`opisPolaczeniaPodzialuPrzeksztalcenia`). Sources and the redaction already applied are listed in [`tests/Fixtures/README.md`](tests/Fixtures/README.md).
 - Warnings are errors; code uses invariant culture and ordinal comparisons; every async test passes `TestContext.Current.CancellationToken`.
 
