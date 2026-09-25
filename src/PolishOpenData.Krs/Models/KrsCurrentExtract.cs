@@ -1,7 +1,7 @@
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using PolishOpenData.Internal;
+using PolishOpenData.Krs.Serialization;
 
 #pragma warning disable CS1591 // wire model: properties mirror the KRS JSON field names one to one
 
@@ -26,18 +26,18 @@ public sealed class KrsCurrentHeader : KrsNode
     public string? NumerKrs { get; set; }
 
     /// <summary>When the extract was generated (Warsaw time, exposed with its offset).</summary>
-    [JsonConverter(typeof(DottedWarsawDateTimeConverter))]
+    [JsonConverter(typeof(KrsTimestampJsonConverter))]
     public DateTimeOffset? DataCzasOdpisu { get; set; }
 
-    [JsonConverter(typeof(DottedDateOnlyConverter))]
+    [JsonConverter(typeof(KrsDateJsonConverter))]
     public DateOnly? StanZDnia { get; set; }
 
-    [JsonConverter(typeof(DottedDateOnlyConverter))]
+    [JsonConverter(typeof(KrsDateJsonConverter))]
     public DateOnly? DataRejestracjiWKrs { get; set; }
 
     public int? NumerOstatniegoWpisu { get; set; }
 
-    [JsonConverter(typeof(DottedDateOnlyConverter))]
+    [JsonConverter(typeof(KrsDateJsonConverter))]
     public DateOnly? DataOstatniegoWpisu { get; set; }
 
     public string? SygnaturaAktSprawyDotyczacejOstatniegoWpisu { get; set; }
