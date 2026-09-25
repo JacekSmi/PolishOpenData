@@ -69,6 +69,8 @@ public class KrsPublicConverterTests
 // checked by KrsPublicConverterTests above; these tests check that the generated code reads and writes the same values
 // as the reflection path.
 [JsonSourceGenerationOptions(JsonSerializerDefaults.Web)]
+[JsonSerializable(typeof(KrsCurrentExtract))]
+[JsonSerializable(typeof(KrsFullExtract))]
 [JsonSerializable(typeof(ConsumerCurrentEnvelope))]
 [JsonSerializable(typeof(ConsumerFullEnvelope))]
 internal sealed partial class ConsumerKrsJsonContext : JsonSerializerContext;
@@ -123,6 +125,17 @@ public class KrsSourceGenerationTests
             Assert.Equal(source[read]!.GetValue<string>(), written[name]!.GetValue<string>());
             Assert.Equal(writtenByReflection[name]!.GetValue<string>(), written[name]!.GetValue<string>());
         }
+
+        // the whole extract, written and read back through the consumer context, keeps the same dates
+        var extract = JsonSerializer.Deserialize(json, ConsumerKrsJsonContext.Default.ConsumerCurrentEnvelope)!.Odpis!;
+        var again = JsonSerializer.Deserialize(
+            JsonSerializer.Serialize(extract, ConsumerKrsJsonContext.Default.KrsCurrentExtract),
+            ConsumerKrsJsonContext.Default.KrsCurrentExtract)!.NaglowekA!;
+        Assert.Equal(generated.DataCzasOdpisu, again.DataCzasOdpisu);
+        Assert.Equal(generated.DataCzasOdpisu!.Value.Offset, again.DataCzasOdpisu!.Value.Offset);
+        Assert.Equal(generated.StanZDnia, again.StanZDnia);
+        Assert.Equal(generated.DataRejestracjiWKrs, again.DataRejestracjiWKrs);
+        Assert.Equal(generated.DataOstatniegoWpisu, again.DataOstatniegoWpisu);
     }
 
     [Fact]

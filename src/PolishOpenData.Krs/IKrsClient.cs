@@ -11,8 +11,9 @@ public interface IKrsClient
     /// <summary>Gets the current extract (<i>odpis aktualny</i>). Without <paramref name="register"/>, tries P then S.</summary>
     /// <exception cref="PolishOpenDataApiException">
     /// KRS answered with a 4xx error other than 404, or with a success response that is not a readable extract
-    /// (malformed JSON, an unexpected value or no <c>odpis</c>). <see cref="PolishOpenDataApiException.StatusCode"/> and
-    /// <see cref="PolishOpenDataApiException.ResponseSnippet"/> describe the response.
+    /// (malformed JSON, a value of the wrong type or format, or no <c>odpis</c>).
+    /// <see cref="PolishOpenDataApiException.StatusCode"/> and <see cref="PolishOpenDataApiException.ResponseSnippet"/>
+    /// describe the response.
     /// </exception>
     /// <exception cref="QuotaExceededException">KRS answered HTTP 429.</exception>
     Task<KrsResult<KrsCurrentExtract>> GetCurrentExtractAsync(KrsNumber krs, KrsRegister? register = null, CancellationToken cancellationToken = default);
@@ -20,8 +21,9 @@ public interface IKrsClient
     /// <summary>Gets the full extract (<i>odpis pełny</i>) with the entry history. Without <paramref name="register"/>, tries P then S.</summary>
     /// <exception cref="PolishOpenDataApiException">
     /// KRS answered with a 4xx error other than 404, or with a success response that is not a readable extract
-    /// (malformed JSON, an unexpected value or no <c>odpis</c>). <see cref="PolishOpenDataApiException.StatusCode"/> and
-    /// <see cref="PolishOpenDataApiException.ResponseSnippet"/> describe the response.
+    /// (malformed JSON, a value of the wrong type or format, or no <c>odpis</c>).
+    /// <see cref="PolishOpenDataApiException.StatusCode"/> and <see cref="PolishOpenDataApiException.ResponseSnippet"/>
+    /// describe the response.
     /// </exception>
     /// <exception cref="QuotaExceededException">KRS answered HTTP 429.</exception>
     Task<KrsResult<KrsFullExtract>> GetFullExtractAsync(KrsNumber krs, KrsRegister? register = null, CancellationToken cancellationToken = default);
