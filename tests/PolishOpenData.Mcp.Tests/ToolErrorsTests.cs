@@ -31,6 +31,19 @@ public class ToolErrorsTests
         Assert.Contains("rejected the request", ToolErrors.Describe(new PolishOpenDataApiException("bad date", HttpStatusCode.BadRequest, "WL-103", null)), StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("KRS returned a response that could not be read (HTTP 200): 'x' is invalid. Path: $.odpis.")]
+    [InlineData("KRS returned a response without an extract.")]
+    public void An_unreadable_success_response_is_not_called_a_rejection(string message)
+    {
+        // Built by the libraries for a 200 whose body is malformed or has no usable content.
+        var text = ToolErrors.Describe(new PolishOpenDataApiException(message, HttpStatusCode.OK, null, "<html>"));
+        Assert.NotNull(text);
+        Assert.StartsWith("The registry answered, but its response could not be used: ", text, StringComparison.Ordinal);
+        Assert.EndsWith(message, text, StringComparison.Ordinal);
+        Assert.DoesNotContain("rejected", text, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Transport_errors_and_cancellation()
     {
