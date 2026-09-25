@@ -18,7 +18,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EnablePackageValidation>true</EnablePackageValidation>
     <!-- Compare the public API with the last release on nuget.org: an accidental breaking change fails pack. -->
-    <PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
+    <PackageValidationBaselineVersion>1.1.0</PackageValidationBaselineVersion>
     <!-- Internal wire DTOs are instantiated by System.Text.Json only. -->
     <NoWarn>$(NoWarn);CA1812</NoWarn>
   </PropertyGroup>
