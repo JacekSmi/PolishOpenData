@@ -15,7 +15,8 @@ jobs:
     if: github.repository == 'JacekSmi/PolishOpenData'
     runs-on: ubuntu-latest
     # Above the sum of the per-test timeouts (11 network tests x 2 min + the published-package test's 5 min) plus
-    # setup and build, so a stalled registry ends as a failed test, which the report job reports, not a cancelled job.
+    # setup and build, so a stalled registry ends as a failed test with its details. If the job still hits this
+    # limit, it ends as cancelled, and the report job reports that too.
     timeout-minutes: 45
     permissions:
       contents: read
@@ -45,7 +46,9 @@ jobs:
 
   report:
     needs: smoke
-    if: failure()
+    # A failed smoke job, or one cancelled by its own timeout; not a run that was cancelled as a whole (by hand, or
+    # by a newer run through the concurrency group).
+    if: ${{ !cancelled() && (needs.smoke.result == 'failure' || needs.smoke.result == 'cancelled') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
