@@ -6,11 +6,11 @@ using PolishOpenData;
 using PolishOpenData.BialaLista;
 using PolishOpenData.Krs;
 
-// Usage: dotnet run --project samples/CheckCounterparty -- <NIP> [bank account]
+// Usage: dotnet run --project samples/CheckCounterparty -- <NIP> ["bank account number"]
 // Makes live calls to the Ministry of Finance and Ministry of Justice APIs.
 if (args.Length == 0 || !Nip.TryParse(args[0], out var nip))
 {
-    Console.Error.WriteLine("Usage: CheckCounterparty <NIP> [bank account number]");
+    Console.Error.WriteLine("Usage: CheckCounterparty <NIP> [\"bank account number\"]");
     return 1;
 }
 
@@ -18,10 +18,12 @@ if (args.Length == 0 || !Nip.TryParse(args[0], out var nip))
 Nrb? account = null;
 if (args.Length > 1)
 {
-    if (!Nrb.TryParse(args[1], out var parsedAccount))
+    // An account typed in its usual spaced form without quotes arrives as several arguments: put them back together.
+    var accountText = string.Join(" ", args, 1, args.Length - 1);
+    if (!Nrb.TryParse(accountText, out var parsedAccount))
     {
-        Console.Error.WriteLine("'" + args[1] + "' is not a valid Polish bank account number (NRB: 26 digits with a correct IBAN checksum; spaces and a PL prefix are allowed).");
-        Console.Error.WriteLine("Usage: CheckCounterparty <NIP> [bank account number]");
+        Console.Error.WriteLine("'" + accountText + "' is not a valid Polish bank account number (NRB: 26 digits with a correct IBAN checksum; spaces and a PL prefix are allowed, and quotes around a spaced number are optional).");
+        Console.Error.WriteLine("Usage: CheckCounterparty <NIP> [\"bank account number\"]");
         return 1;
     }
 
