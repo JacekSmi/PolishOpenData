@@ -16,15 +16,19 @@ namespace PolishOpenData.Krs.Tests;
 public class KrsPublicConverterTests
 {
     // This test assembly sees Krs internals (InternalsVisibleTo), so the generator here would accept an internal
-    // converter; a consumer's would not (SYSLIB1220). Hence this check, which also runs on .NET Framework.
+    // converter; a consumer's would not (SYSLIB1220). Hence this check, which also runs on .NET Framework. The build-time
+    // check is the consumer context in PolishOpenData.Mcp.Tests, which has no InternalsVisibleTo from Krs.
     [Fact]
     public void Every_converter_on_a_public_krs_type_is_usable_by_a_consumer_source_generator()
     {
-        var offenders = new List<string>();
+        var offenders = new SortedSet<string>(StringComparer.Ordinal);
         foreach (var type in typeof(KrsClient).Assembly.GetExportedTypes())
         {
             Check(type.GetCustomAttribute<JsonConverterAttribute>(), type.FullName!);
-            foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly))
+
+            // inherited properties too: a consumer's generator serialises every public property of a model, including
+            // one declared on a base type outside this assembly, which the exported-type loop would not reach
+            foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.FlattenHierarchy))
             {
                 Check(property.GetCustomAttribute<JsonConverterAttribute>(), type.FullName + "." + property.Name);
             }
