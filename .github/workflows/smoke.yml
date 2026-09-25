@@ -14,7 +14,9 @@ jobs:
     # Forks do not run the live checks (or open issues about them).
     if: github.repository == 'JacekSmi/PolishOpenData'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # Above the sum of the per-test timeouts (11 network tests x 2 min + the published-package test's 5 min) plus
+    # setup and build, so a stalled registry ends as a failed test, which the report job reports, not a cancelled job.
+    timeout-minutes: 45
     permissions:
       contents: read
     env:
@@ -68,6 +70,8 @@ jobs:
             echo "Scheduled live smoke tests failed: $RUN_URL"
             echo
             echo "An upstream registry may have changed its API. Compare the reported fields with tests/Fixtures, update the models, and capture a new redacted fixture."
+            echo
+            echo "If only PublishedMcpPackageTests failed, check nuget.org, 'dotnet dnx PolishOpenData.Mcp --yes' on the runner's SDK and the latest published package, not the fixtures. If McpLiveTests failed but the library tests passed, look for a regression in the MCP server."
             echo
             cat artifacts/smoke/smoke.md 2>/dev/null || true
           } > issue.md
