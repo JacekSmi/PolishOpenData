@@ -16,6 +16,7 @@ internal static class McpServerSetup
     {
         services.TryAddSingleton(TimeProvider.System);
         services.AddMemoryCache();
+        services.TryAddSingleton<InFlightCalls>();
 
         var krs = services.AddKrsClient();
         var vat = services.AddBialaListaClient(o => o.TrackQuota = true);
