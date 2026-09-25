@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
@@ -257,6 +258,7 @@ public class BialaListaClientTests
         Assert.Null(ex.ErrorCode);
         Assert.False(ex.IsTransient);
         Assert.Contains("Biała Lista", ex.Message, StringComparison.Ordinal);
+        Assert.IsType<JsonException>(ex.InnerException);
     }
 
     [Fact]

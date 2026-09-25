@@ -64,6 +64,25 @@ public class PolishOpenDataApiException : PolishOpenDataException
         IsTransient = isTransient;
     }
 
+    /// <summary>Creates an exception describing an upstream error that was caused by another exception.</summary>
+    /// <param name="message">Human-readable description.</param>
+    /// <param name="statusCode">HTTP status of the response; <c>null</c> when the error was detected locally.</param>
+    /// <param name="errorCode">Upstream error code such as <c>WL-115</c>, when the body carried one.</param>
+    /// <param name="responseSnippet">The start of the response body, for diagnostics.</param>
+    /// <param name="innerException">
+    /// The exception that caused this one, for example the <see cref="System.Text.Json.JsonException"/> raised while
+    /// reading a malformed success response.
+    /// </param>
+    /// <param name="isTransient">True when the upstream said the request may succeed if repeated shortly.</param>
+    public PolishOpenDataApiException(string message, HttpStatusCode? statusCode, string? errorCode, string? responseSnippet, Exception? innerException, bool isTransient = false)
+        : base(message, innerException!)
+    {
+        StatusCode = statusCode;
+        ErrorCode = errorCode;
+        ResponseSnippet = responseSnippet;
+        IsTransient = isTransient;
+    }
+
     /// <summary>HTTP status of the response; <c>null</c> when the error was detected locally.</summary>
     public HttpStatusCode? StatusCode { get; }
 

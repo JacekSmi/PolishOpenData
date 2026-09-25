@@ -74,13 +74,13 @@ internal static class HttpHelpers
                 message += " Path: " + path + ".";
             }
 
-            throw UnreadableResponse(message, response, body);
+            throw UnreadableResponse(message, response, body, exception);
         }
     }
 
     /// <summary>An error for a success response whose body the library cannot use.</summary>
-    public static PolishOpenDataApiException UnreadableResponse(string message, HttpResponseMessage response, byte[] body) =>
-        new(message, response.StatusCode, null, Snippet(body));
+    public static PolishOpenDataApiException UnreadableResponse(string message, HttpResponseMessage response, byte[] body, Exception? innerException = null) =>
+        new(message, response.StatusCode, null, Snippet(body), innerException);
 
     /// <summary>Cuts text to at most <paramref name="max"/> characters.</summary>
     public static string? Truncate(string? text, int max = 512) =>

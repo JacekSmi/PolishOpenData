@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using PolishOpenData.Krs;
@@ -175,6 +176,7 @@ public class KrsClientTests
         Assert.Equal(HttpStatusCode.OK, ex.StatusCode);
         Assert.Equal(body, ex.ResponseSnippet);
         Assert.Contains("KRS", ex.Message, StringComparison.Ordinal);
+        Assert.IsType<JsonException>(ex.InnerException);
     }
 
     [Fact]
@@ -186,6 +188,7 @@ public class KrsClientTests
         Assert.Contains("HTTP 200", ex.Message, StringComparison.Ordinal);
         Assert.Contains("2026-09-17", ex.Message, StringComparison.Ordinal);
         Assert.Contains("$.odpis.naglowekA.stanZDnia", ex.Message, StringComparison.Ordinal);
+        Assert.Equal("$.odpis.naglowekA.stanZDnia", Assert.IsType<JsonException>(ex.InnerException).Path);
     }
 
     [Fact]
