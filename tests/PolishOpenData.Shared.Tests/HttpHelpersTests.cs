@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using PolishOpenData.Internal;
 
 namespace PolishOpenData.Shared.Tests;
@@ -32,6 +33,16 @@ public class HttpHelpersTests
         Assert.Null(HttpHelpers.Truncate(null));
         Assert.Equal("abc", HttpHelpers.Truncate("abc"));
         Assert.Equal(512, HttpHelpers.Truncate(new string('x', 2000))!.Length);
+    }
+
+    [Fact]
+    public void Snippet_is_the_start_of_the_utf8_body_without_a_byte_order_mark()
+    {
+        Assert.Equal(string.Empty, HttpHelpers.Snippet([]));
+        Assert.Equal("{\"a\":1}", HttpHelpers.Snippet(Encoding.UTF8.GetBytes("\uFEFF{\"a\":1}")));
+        Assert.Equal(new string('\u017C', 512), HttpHelpers.Snippet(Encoding.UTF8.GetBytes(new string('\u017C', 2000))));   // 2 bytes each
+        Assert.Equal(new string('\u4E2D', 512), HttpHelpers.Snippet(Encoding.UTF8.GetBytes(new string('\u4E2D', 600))));    // 3 bytes each
+        Assert.Equal("abc", HttpHelpers.Snippet(Encoding.UTF8.GetBytes("abcdef"), 3));
     }
 
     [Fact]

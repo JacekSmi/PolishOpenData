@@ -42,40 +42,39 @@ public sealed class BialaListaClient : IBialaListaClient
     public async Task<BialaListaResult<VatSubject?>> FindByNipAsync(Nip nip, DateOnly? date = null, CancellationToken cancellationToken = default)
     {
         RequireValue(nip.IsEmpty, nameof(nip));
-        var response = await SendAsync("api/search/nip/" + nip.ToString(), date, BialaListaRequestKind.Search, BialaListaJson.EntityResponse, cancellationToken).ConfigureAwait(false);
-        return MapEntity(response.Result);
+        var item = await SendAsync("api/search/nip/" + nip.ToString(), date, BialaListaRequestKind.Search, BialaListaJson.EntityResponse, static r => r.Result, cancellationToken).ConfigureAwait(false);
+        return MapEntity(item);
     }
 
     /// <inheritdoc/>
     public async Task<BialaListaResult<IReadOnlyList<VatBatchEntry>>> FindByNipsAsync(IReadOnlyCollection<Nip> nips, DateOnly? date = null, CancellationToken cancellationToken = default)
     {
         var path = "api/search/nips/" + JoinBatch(nips, n => n.IsEmpty, n => n.ToString(), nameof(nips));
-        var response = await SendAsync(path, date, BialaListaRequestKind.Search, BialaListaJson.EntryListResponse, cancellationToken).ConfigureAwait(false);
-        return MapEntries(response.Result);
+        var list = await SendAsync(path, date, BialaListaRequestKind.Search, BialaListaJson.EntryListResponse, static r => r.Result, cancellationToken).ConfigureAwait(false);
+        return MapEntries(list);
     }
 
     /// <inheritdoc/>
     public async Task<BialaListaResult<VatSubject?>> FindByRegonAsync(Regon regon, DateOnly? date = null, CancellationToken cancellationToken = default)
     {
         RequireValue(regon.IsEmpty, nameof(regon));
-        var response = await SendAsync("api/search/regon/" + regon.ToString(), date, BialaListaRequestKind.Search, BialaListaJson.EntityResponse, cancellationToken).ConfigureAwait(false);
-        return MapEntity(response.Result);
+        var item = await SendAsync("api/search/regon/" + regon.ToString(), date, BialaListaRequestKind.Search, BialaListaJson.EntityResponse, static r => r.Result, cancellationToken).ConfigureAwait(false);
+        return MapEntity(item);
     }
 
     /// <inheritdoc/>
     public async Task<BialaListaResult<IReadOnlyList<VatBatchEntry>>> FindByRegonsAsync(IReadOnlyCollection<Regon> regons, DateOnly? date = null, CancellationToken cancellationToken = default)
     {
         var path = "api/search/regons/" + JoinBatch(regons, r => r.IsEmpty, r => r.ToString(), nameof(regons));
-        var response = await SendAsync(path, date, BialaListaRequestKind.Search, BialaListaJson.EntryListResponse, cancellationToken).ConfigureAwait(false);
-        return MapEntries(response.Result);
+        var list = await SendAsync(path, date, BialaListaRequestKind.Search, BialaListaJson.EntryListResponse, static r => r.Result, cancellationToken).ConfigureAwait(false);
+        return MapEntries(list);
     }
 
     /// <inheritdoc/>
     public async Task<BialaListaResult<IReadOnlyList<VatSubject>>> FindByBankAccountAsync(Nrb account, DateOnly? date = null, CancellationToken cancellationToken = default)
     {
         RequireValue(account.IsEmpty, nameof(account));
-        var response = await SendAsync("api/search/bank-account/" + account.ToString(), date, BialaListaRequestKind.Search, BialaListaJson.EntityListResponse, cancellationToken).ConfigureAwait(false);
-        var list = response.Result ?? throw Malformed();
+        var list = await SendAsync("api/search/bank-account/" + account.ToString(), date, BialaListaRequestKind.Search, BialaListaJson.EntityListResponse, static r => r.Result, cancellationToken).ConfigureAwait(false);
         return new BialaListaResult<IReadOnlyList<VatSubject>>(VatMapper.MapSubjects(list.Subjects), list.RequestId ?? string.Empty, VatMapper.ParseRequestTime(list.RequestDateTime, _timeProvider), VatMapper.UnknownKeys(list.Extra));
     }
 
@@ -83,8 +82,8 @@ public sealed class BialaListaClient : IBialaListaClient
     public async Task<BialaListaResult<IReadOnlyList<VatBatchEntry>>> FindByBankAccountsAsync(IReadOnlyCollection<Nrb> accounts, DateOnly? date = null, CancellationToken cancellationToken = default)
     {
         var path = "api/search/bank-accounts/" + JoinBatch(accounts, a => a.IsEmpty, a => a.ToString(), nameof(accounts));
-        var response = await SendAsync(path, date, BialaListaRequestKind.Search, BialaListaJson.EntryListResponse, cancellationToken).ConfigureAwait(false);
-        return MapEntries(response.Result);
+        var list = await SendAsync(path, date, BialaListaRequestKind.Search, BialaListaJson.EntryListResponse, static r => r.Result, cancellationToken).ConfigureAwait(false);
+        return MapEntries(list);
     }
 
     /// <inheritdoc/>
@@ -92,8 +91,8 @@ public sealed class BialaListaClient : IBialaListaClient
     {
         RequireValue(nip.IsEmpty, nameof(nip));
         RequireValue(account.IsEmpty, nameof(account));
-        var response = await SendAsync("api/check/nip/" + nip.ToString() + "/bank-account/" + account.ToString(), date, BialaListaRequestKind.Check, BialaListaJson.CheckResponse, cancellationToken).ConfigureAwait(false);
-        return MapCheck(response.Result);
+        var check = await SendAsync("api/check/nip/" + nip.ToString() + "/bank-account/" + account.ToString(), date, BialaListaRequestKind.Check, BialaListaJson.CheckResponse, static r => r.Result, cancellationToken).ConfigureAwait(false);
+        return MapCheck(check);
     }
 
     /// <inheritdoc/>
@@ -101,12 +100,19 @@ public sealed class BialaListaClient : IBialaListaClient
     {
         RequireValue(regon.IsEmpty, nameof(regon));
         RequireValue(account.IsEmpty, nameof(account));
-        var response = await SendAsync("api/check/regon/" + regon.ToString() + "/bank-account/" + account.ToString(), date, BialaListaRequestKind.Check, BialaListaJson.CheckResponse, cancellationToken).ConfigureAwait(false);
-        return MapCheck(response.Result);
+        var check = await SendAsync("api/check/regon/" + regon.ToString() + "/bank-account/" + account.ToString(), date, BialaListaRequestKind.Check, BialaListaJson.CheckResponse, static r => r.Result, cancellationToken).ConfigureAwait(false);
+        return MapCheck(check);
     }
 
-    private async Task<T> SendAsync<T>(string path, DateOnly? date, BialaListaRequestKind kind, JsonTypeInfo<T> typeInfo, CancellationToken cancellationToken)
-        where T : class
+    private async Task<TResult> SendAsync<TResponse, TResult>(
+        string path,
+        DateOnly? date,
+        BialaListaRequestKind kind,
+        JsonTypeInfo<TResponse> typeInfo,
+        Func<TResponse, TResult?> result,
+        CancellationToken cancellationToken)
+        where TResponse : class
+        where TResult : class
     {
         if (_options.TrackQuota)
         {
@@ -121,8 +127,9 @@ public sealed class BialaListaClient : IBialaListaClient
             await ThrowForErrorAsync(response, cancellationToken).ConfigureAwait(false);
         }
 
-        using var stream = await response.Content.ReadStreamAsync(cancellationToken).ConfigureAwait(false);
-        return await JsonSerializer.DeserializeAsync(stream, typeInfo, cancellationToken).ConfigureAwait(false) ?? throw Malformed();
+        var (envelope, body) = await response.ReadJsonAsync(typeInfo, "Biała Lista", cancellationToken).ConfigureAwait(false);
+        return (envelope is null ? null : result(envelope))
+            ?? throw HttpHelpers.UnreadableResponse("Biała Lista returned a response without a result.", response, body);
     }
 
     private async Task ThrowForErrorAsync(HttpResponseMessage response, CancellationToken cancellationToken)
@@ -181,36 +188,24 @@ public sealed class BialaListaClient : IBialaListaClient
     private static string? GetString(JsonElement element, string name) =>
         element.TryGetProperty(name, out var value) && value.ValueKind == JsonValueKind.String ? value.GetString() : null;
 
-    private BialaListaResult<VatSubject?> MapEntity(WlEntityItem? item)
+    private BialaListaResult<VatSubject?> MapEntity(WlEntityItem item)
     {
-        if (item is null)
-        {
-            throw Malformed();
-        }
-
         var subject = item.Subject is null ? null : VatMapper.MapSubject(item.Subject);
         return new BialaListaResult<VatSubject?>(subject, item.RequestId ?? string.Empty, VatMapper.ParseRequestTime(item.RequestDateTime, _timeProvider), VatMapper.UnknownKeys(item.Extra));
     }
 
-    private BialaListaResult<IReadOnlyList<VatBatchEntry>> MapEntries(WlEntryList? list)
-    {
-        if (list is null)
-        {
-            throw Malformed();
-        }
+    private BialaListaResult<IReadOnlyList<VatBatchEntry>> MapEntries(WlEntryList list) =>
+        new(VatMapper.MapEntries(list.Entries), list.RequestId ?? string.Empty, VatMapper.ParseRequestTime(list.RequestDateTime, _timeProvider), VatMapper.UnknownKeys(list.Extra, list.Entries));
 
-        return new BialaListaResult<IReadOnlyList<VatBatchEntry>>(VatMapper.MapEntries(list.Entries), list.RequestId ?? string.Empty, VatMapper.ParseRequestTime(list.RequestDateTime, _timeProvider), VatMapper.UnknownKeys(list.Extra, list.Entries));
-    }
-
-    private BialaListaResult<bool> MapCheck(WlCheck? check)
+    private BialaListaResult<bool> MapCheck(WlCheck check)
     {
-        var assigned = check?.AccountAssigned switch
+        var assigned = check.AccountAssigned switch
         {
             "TAK" => true,
             "NIE" => false,
-            _ => throw new PolishOpenDataApiException("Biała Lista returned an unexpected accountAssigned value '" + check?.AccountAssigned + "'."),
+            _ => throw new PolishOpenDataApiException("Biała Lista returned an unexpected accountAssigned value '" + check.AccountAssigned + "'."),
         };
-        return new BialaListaResult<bool>(assigned, check!.RequestId ?? string.Empty, VatMapper.ParseRequestTime(check.RequestDateTime, _timeProvider), VatMapper.UnknownKeys(check.Extra));
+        return new BialaListaResult<bool>(assigned, check.RequestId ?? string.Empty, VatMapper.ParseRequestTime(check.RequestDateTime, _timeProvider), VatMapper.UnknownKeys(check.Extra));
     }
 
     private static string JoinBatch<T>(IReadOnlyCollection<T> items, Func<T, bool> isEmpty, Func<T, string> format, string parameterName)
@@ -242,6 +237,4 @@ public sealed class BialaListaClient : IBialaListaClient
             throw new ArgumentException("The identifier is empty.", parameterName);
         }
     }
-
-    private static PolishOpenDataApiException Malformed() => new("Biała Lista returned a response without a result.");
 }

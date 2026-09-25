@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using PolishOpenData.Krs;
@@ -157,6 +158,96 @@ public class KrsClientTests
         var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.GetCurrentExtractAsync(KrsNumber.Parse("28860"), cancellationToken: TestContext.Current.CancellationToken));
         Assert.Equal(HttpStatusCode.BadRequest, ex.StatusCode);
         Assert.Contains("Bad Request", ex.ResponseSnippet, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("<html><body>Przerwa techniczna</body></html>")]
+    [InlineData("""{"odpis":{"rodzaj":"Aktualny","naglowekA":""")]              // cut off
+    [InlineData("")]
+    [InlineData("""{"odpis":{"naglowekA":{"stanZDnia":"2026-09-17"}}}""")]     // date not in dd.MM.yyyy
+    [InlineData("""{"odpis":{"naglowekA":{"numerOstatniegoWpisu":"many"}}}""")] // string for a number
+    public async Task Malformed_current_extract_is_an_api_exception_with_status_and_snippet(string body)
+    {
+        var (client, _) = Create(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, body));
+        var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.GetCurrentExtractAsync(KrsNumber.Parse("28860"), cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.Equal(HttpStatusCode.OK, ex.StatusCode);
+        Assert.Equal(body, ex.ResponseSnippet);
+        Assert.Contains("KRS", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Malformed_value_names_its_json_path()
+    {
+        var (client, _) = Create(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, """{"odpis":{"naglowekA":{"stanZDnia":"2026-09-17"}}}"""));
+        var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.GetCurrentExtractAsync(KrsNumber.Parse("28860"), cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.Contains("HTTP 200", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("2026-09-17", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("$.odpis.naglowekA.stanZDnia", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Byte_order_mark_before_the_json_is_accepted()
+    {
+        var json = Encoding.UTF8.GetBytes(Fixture.Read("krs/current-P-0001268296.json"));
+        var body = new byte[] { 0xEF, 0xBB, 0xBF }.Concat(json).ToArray();
+        var (client, _) = Create(_ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(body) });
+        var result = await client.GetCurrentExtractAsync(KrsNumber.Parse("1268296"), KrsRegister.Entrepreneurs, TestContext.Current.CancellationToken);
+
+        Assert.Equal(KrsLookupStatus.Found, result.Status);
+        Assert.Equal("0001268296", result.Extract!.NaglowekA!.NumerKrs);
+    }
+
+    [Fact]
+    public async Task Malformed_full_extract_is_an_api_exception()
+    {
+        var (client, _) = Create(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, """{"odpis":{"naglowekP":{"wpis":[{"dataWpisu":"12/08/2022"}]}}}"""));
+        var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.GetFullExtractAsync(KrsNumber.Parse("106150"), cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.Equal(HttpStatusCode.OK, ex.StatusCode);
+        Assert.Contains("12/08/2022", ex.ResponseSnippet, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Long_malformed_body_is_cut_to_512_characters()
+    {
+        var body = "<html>" + new string('x', 5000);
+        var (client, _) = Create(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, body));
+        var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.GetCurrentExtractAsync(KrsNumber.Parse("28860"), cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.Equal(body.Substring(0, 512), ex.ResponseSnippet);
+    }
+
+    [Theory]
+    [InlineData("""{"odpis":null}""")]
+    [InlineData("{}")]
+    [InlineData("null")]
+    public async Task Success_without_an_extract_is_an_api_exception_with_snippet(string body)
+    {
+        var (client, _) = Create(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, body));
+        var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.GetCurrentExtractAsync(KrsNumber.Parse("28860"), cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.Equal(HttpStatusCode.OK, ex.StatusCode);
+        Assert.Equal(body, ex.ResponseSnippet);
+        Assert.Contains("without an extract", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("""{"numery":["0000028860"]}""")]
+    [InlineData("""["0000028860",""")]
+    public async Task Malformed_change_feed_is_an_api_exception(string body)
+    {
+        var (client, _) = Create(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, body));
+        var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(async () =>
+        {
+            await foreach (var _ in client.GetChangedAsync(new DateOnly(2026, 9, 22), TestContext.Current.CancellationToken))
+            {
+            }
+        });
+
+        Assert.Equal(HttpStatusCode.OK, ex.StatusCode);
+        Assert.Equal(body, ex.ResponseSnippet);
     }
 
     [Fact]

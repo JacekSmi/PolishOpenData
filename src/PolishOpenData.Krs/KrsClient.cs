@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using PolishOpenData.Internal;
@@ -28,11 +27,11 @@ public sealed class KrsClient : IKrsClient
 
     /// <inheritdoc/>
     public Task<KrsResult<KrsCurrentExtract>> GetCurrentExtractAsync(KrsNumber krs, KrsRegister? register = null, CancellationToken cancellationToken = default) =>
-        GetExtractAsync(krs, register, "OdpisAktualny", ReadCurrentAsync, cancellationToken);
+        GetExtractAsync(krs, register, "OdpisAktualny", KrsJson.Current, static envelope => envelope.Odpis, cancellationToken);
 
     /// <inheritdoc/>
     public Task<KrsResult<KrsFullExtract>> GetFullExtractAsync(KrsNumber krs, KrsRegister? register = null, CancellationToken cancellationToken = default) =>
-        GetExtractAsync(krs, register, "OdpisPelny", ReadFullAsync, cancellationToken);
+        GetExtractAsync(krs, register, "OdpisPelny", KrsJson.Full, static envelope => envelope.Odpis, cancellationToken);
 
     /// <inheritdoc/>
     public IAsyncEnumerable<KrsNumber> GetChangedAsync(DateOnly day, CancellationToken cancellationToken = default) =>
@@ -57,12 +56,14 @@ public sealed class KrsClient : IKrsClient
         return GetChangedCoreAsync(path, cancellationToken);
     }
 
-    private async Task<KrsResult<T>> GetExtractAsync<T>(
+    private async Task<KrsResult<T>> GetExtractAsync<TEnvelope, T>(
         KrsNumber krs,
         KrsRegister? register,
         string kind,
-        Func<Stream, CancellationToken, Task<T?>> read,
+        JsonTypeInfo<TEnvelope> envelopeType,
+        Func<TEnvelope, T?> extract,
         CancellationToken cancellationToken)
+        where TEnvelope : class
         where T : class
     {
         if (krs.IsEmpty)
@@ -87,10 +88,10 @@ public sealed class KrsClient : IKrsClient
             }
 
             await EnsureSuccessAsync(response, cancellationToken).ConfigureAwait(false);
-            using var stream = await response.Content.ReadStreamAsync(cancellationToken).ConfigureAwait(false);
-            var extract = await read(stream, cancellationToken).ConfigureAwait(false)
-                ?? throw new PolishOpenDataApiException("KRS returned a response without an extract.", response.StatusCode, null, null);
-            return new KrsResult<T>(krs, KrsLookupStatus.Found, candidate, extract);
+            var (envelope, body) = await response.ReadJsonAsync(envelopeType, "KRS", cancellationToken).ConfigureAwait(false);
+            var value = (envelope is null ? null : extract(envelope))
+                ?? throw HttpHelpers.UnreadableResponse("KRS returned a response without an extract.", response, body);
+            return new KrsResult<T>(krs, KrsLookupStatus.Found, candidate, value);
         }
 
         return new KrsResult<T>(krs, KrsLookupStatus.NotFound, null, null);
@@ -108,8 +109,7 @@ public sealed class KrsClient : IKrsClient
             }
 
             await EnsureSuccessAsync(response, cancellationToken).ConfigureAwait(false);
-            using var stream = await response.Content.ReadStreamAsync(cancellationToken).ConfigureAwait(false);
-            numbers = await JsonSerializer.DeserializeAsync(stream, KrsJson.StringArray, cancellationToken).ConfigureAwait(false);
+            (numbers, _) = await response.ReadJsonAsync(KrsJson.StringArray, "KRS", cancellationToken).ConfigureAwait(false);
         }
 
         var seen = new HashSet<KrsNumber>();
@@ -121,12 +121,6 @@ public sealed class KrsClient : IKrsClient
             }
         }
     }
-
-    private static async Task<KrsCurrentExtract?> ReadCurrentAsync(Stream stream, CancellationToken cancellationToken) =>
-        (await JsonSerializer.DeserializeAsync(stream, KrsJson.Current, cancellationToken).ConfigureAwait(false))?.Odpis;
-
-    private static async Task<KrsFullExtract?> ReadFullAsync(Stream stream, CancellationToken cancellationToken) =>
-        (await JsonSerializer.DeserializeAsync(stream, KrsJson.Full, cancellationToken).ConfigureAwait(false))?.Odpis;
 
     private static async Task EnsureSuccessAsync(HttpResponseMessage response, CancellationToken cancellationToken)
     {

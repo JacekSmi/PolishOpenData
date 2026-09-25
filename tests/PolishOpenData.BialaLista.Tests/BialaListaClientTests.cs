@@ -241,6 +241,57 @@ public class BialaListaClientTests
         Assert.Equal(new[] { "newEvidenceField" }, result.UnknownFields);
     }
 
+    [Theory]
+    [InlineData("<html><body>Przerwa techniczna</body></html>")]
+    [InlineData("""{"result":{"subject":{"name":"X",""")]                                 // cut off
+    [InlineData("")]
+    [InlineData("""{"result":{"subject":{"name":"X","registrationLegalDate":"05.07.1993"}}}""")] // date not in yyyy-MM-dd
+    [InlineData("""{"result":{"subject":{"name":"X","hasVirtualAccounts":"TAK"}}}""")]          // string for a bool
+    public async Task Malformed_success_response_is_an_api_exception_with_status_and_snippet(string body)
+    {
+        var (client, _) = Create(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, body));
+        var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.FindByNipAsync(Nip.Parse(Orlen), cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.Equal(HttpStatusCode.OK, ex.StatusCode);
+        Assert.Equal(body, ex.ResponseSnippet);
+        Assert.Null(ex.ErrorCode);
+        Assert.False(ex.IsTransient);
+        Assert.Contains("Biała Lista", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Malformed_batch_and_check_responses_are_api_exceptions()
+    {
+        const string Body = """{"result":{"entries":[{"identifier":"7740001454","subjects":[{"removalDate":"31.03.2026"}]}]}}""";
+        var (client, _) = Create(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, Body));
+        var batch = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.FindByNipsAsync([Nip.Parse(Orlen)], cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(HttpStatusCode.OK, batch.StatusCode);
+        Assert.Equal(Body, batch.ResponseSnippet);
+
+        var (checkClient, _) = Create(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, "<html></html>"));
+        var check = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => checkClient.CheckBankAccountAsync(Nip.Parse(Orlen), Nrb.Parse(OrlenAccount), cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Equal(HttpStatusCode.OK, check.StatusCode);
+        Assert.Equal("<html></html>", check.ResponseSnippet);
+    }
+
+    [Theory]
+    [InlineData("""{"result":null}""")]
+    [InlineData("{}")]
+    [InlineData("null")]
+    public async Task Success_without_a_result_is_an_api_exception_with_snippet(string body)
+    {
+        var (client, _) = Create(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, body));
+        var search = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.FindByBankAccountAsync(Nrb.Parse(OrlenAccount), cancellationToken: TestContext.Current.CancellationToken));
+        var check = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.CheckBankAccountAsync(Nip.Parse(Orlen), Nrb.Parse(OrlenAccount), cancellationToken: TestContext.Current.CancellationToken));
+
+        foreach (var ex in new[] { search, check })
+        {
+            Assert.Equal(HttpStatusCode.OK, ex.StatusCode);
+            Assert.Equal(body, ex.ResponseSnippet);
+            Assert.Contains("without a result", ex.Message, StringComparison.Ordinal);
+        }
+    }
+
     [Fact]
     public async Task Server_error_is_an_http_request_exception()
     {
