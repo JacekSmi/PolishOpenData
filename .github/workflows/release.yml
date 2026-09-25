@@ -85,6 +85,8 @@ jobs:
         with:
           user: ${{ secrets.NUGET_USER }}
       - name: Push to nuget.org
+        # The pattern matches the .nupkg files only; for each one, dotnet nuget push also pushes the .snupkg symbol
+        # package next to it (nuget.org's symbol server), so the symbols are not listed separately here.
         env:
           NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: >
@@ -98,7 +100,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
-            gh release create "$GITHUB_REF_NAME" artifacts/packages/*.nupkg --generate-notes --verify-tag
+            gh release create "$GITHUB_REF_NAME" artifacts/packages/*.nupkg artifacts/packages/*.snupkg --generate-notes --verify-tag
       - name: Wait until NuGet serves the MCP package README
         run: |
           v="${GITHUB_REF_NAME#v}"
