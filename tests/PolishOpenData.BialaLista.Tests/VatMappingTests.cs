@@ -104,6 +104,21 @@ public class VatMappingTests
     }
 
     [Fact]
+    public void Unknown_person_fields_are_listed_once_per_list()
+    {
+        var subject = VatMapper.MapSubject(BialaListaJson.Deserialize(
+            """
+            {"result":{"subject":{"name":"X",
+              "representatives":[{"firstName":"JAN","newKey":1},{"firstName":"ANNA","newKey":2,"otherKey":3},{"firstName":"EWA","newKey":4}],
+              "partners":[{"companyName":"Y","newKey":5}]}}}
+            """,
+            BialaListaJson.EntityResponse)!.Result!.Subject!);
+
+        Assert.Equal(3, subject.Representatives.Count);
+        Assert.Equal(new[] { "representatives[].newKey", "representatives[].otherKey", "partners[].newKey" }, subject.UnknownFields);
+    }
+
+    [Fact]
     public void Missing_request_time_falls_back_to_the_clock()
     {
         Assert.Equal(Clock.GetUtcNow(), VatMapper.ParseRequestTime(null, Clock));

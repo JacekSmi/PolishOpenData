@@ -132,7 +132,12 @@ internal static class VatMapper
             {
                 foreach (var key in extra.Keys)
                 {
-                    unknown.Add(field + "[]." + key);
+                    // one entry per list and key, however many people carry it (as UnknownKeys does for entries[])
+                    var name = field + "[]." + key;
+                    if (!unknown.Contains(name))
+                    {
+                        unknown.Add(name);
+                    }
                 }
             }
 
