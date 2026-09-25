@@ -45,15 +45,16 @@ internal sealed class CachedRegistries(IKrsClient krs, IBialaListaClient vat, IM
         }
 
         // The shared call runs without this caller's token, so a caller that stops waiting does not cancel it for
-        // the others; HttpClient's timeout and the resilience handler's timeouts bound it instead.
-        var shared = inFlight.GetOrStart(key, async () =>
+        // the others; HttpClient's timeout and the resilience handler's timeouts bound it instead, and it is
+        // cancelled when the server shuts down.
+        var shared = inFlight.GetOrStart(key, async stopping =>
         {
             if (cache.TryGetValue(key, out T? hit) && hit is not null)
             {
                 return hit;   // another call finished and cached it after this caller's lookup above
             }
 
-            var value = await factory(CancellationToken.None).ConfigureAwait(false);
+            var value = await factory(stopping).ConfigureAwait(false);
             cache.Set(key, value, lifetime);   // before the call leaves the in-flight map, so no caller misses both
             return value;
         });

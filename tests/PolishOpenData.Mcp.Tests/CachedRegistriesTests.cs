@@ -166,16 +166,36 @@ public sealed class CachedRegistriesTests
     }
 
     [Fact]
+    public async Task Shutting_down_cancels_a_shared_call_in_progress()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var handler = new GatedHttpMessageHandler(_ => OrlenExtract());
+
+        // The system clock here: on disposal the resilience pipeline waits, on its clock, for executions in progress.
+        var services = new ServiceCollection();
+        services.AddPolishOpenDataServices(http => http.ConfigurePrimaryHttpMessageHandler(() => handler));
+        var provider = services.BuildServiceProvider();
+
+        var call = provider.GetRequiredService<CachedRegistries>().GetCurrentExtractAsync(Orlen, ct);
+        await handler.Entered.WaitAsync(ct);
+
+        // No caller cancelled, but the server is stopping: the shared call must not hold up the shutdown.
+        await provider.DisposeAsync().AsTask().WaitAsync(TimeSpan.FromSeconds(20), ct);
+        Assert.True(handler.UpstreamCancelled);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => call);
+    }
+
+    [Fact]
     public async Task A_call_that_completes_or_throws_synchronously_does_not_stay_in_flight()
     {
         var calls = new InFlightCalls();
         var starts = 0;
 
-        Task<string> Succeed() => Task.FromResult("value " + (++starts).ToString(CultureInfo.InvariantCulture));
+        Task<string> Succeed(CancellationToken stopping) => Task.FromResult("value " + (++starts).ToString(CultureInfo.InvariantCulture));
         Assert.Equal("value 1", await calls.GetOrStart("key", Succeed));
         Assert.Equal("value 2", await calls.GetOrStart("key", Succeed));
 
-        Task<string> Throw() => throw new InvalidOperationException("thrown before any await");
+        Task<string> Throw(CancellationToken stopping) => throw new InvalidOperationException("thrown before any await");
         await Assert.ThrowsAsync<InvalidOperationException>(() => calls.GetOrStart("other", Throw));
         Assert.Equal("value 3", await calls.GetOrStart("other", Succeed));
     }
