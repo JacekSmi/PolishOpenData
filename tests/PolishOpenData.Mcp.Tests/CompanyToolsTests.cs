@@ -433,8 +433,9 @@ public sealed class CompanyToolsTests : IDisposable
         Assert.Contains("[PESEL removed]", summary.GetProperty("shareholders").EnumerateArray().Single().GetProperty("shares").GetString(), StringComparison.Ordinal);
     }
 
-    // Synthetic numbers only. A PESEL is 11 digits, sometimes written as birth date + serial (6 + 5) with one space or
-    // hyphen; a longer digit run is some other number (a 14-digit REGON, a 26-digit NRB) and stays intact.
+    // Synthetic numbers only: none has a valid PESEL check digit (the scrub ignores check digits). A PESEL is 11 digits,
+    // sometimes written as birth date + serial (6 + 5) with one space or hyphen; a longer digit run is some other number
+    // (a 14-digit REGON, a 26-digit NRB) and stays intact.
     [Theory]
     [InlineData("PESEL 12345678901", "PESEL [PESEL removed]")]
     [InlineData("12345678901", "[PESEL removed]")]
