@@ -14,6 +14,20 @@ if (args.Length == 0 || !Nip.TryParse(args[0], out var nip))
     return 1;
 }
 
+// Validate the account before any request, so a mistyped account stops here and costs no Biała Lista request.
+Nrb? account = null;
+if (args.Length > 1)
+{
+    if (!Nrb.TryParse(args[1], out var parsedAccount))
+    {
+        Console.Error.WriteLine("'" + args[1] + "' is not a valid Polish bank account number (NRB: 26 digits with a correct IBAN checksum; spaces and a PL prefix are allowed).");
+        Console.Error.WriteLine("Usage: CheckCounterparty <NIP> [bank account number]");
+        return 1;
+    }
+
+    account = parsedAccount;
+}
+
 var services = new ServiceCollection();
 services.AddBialaListaClient(o => o.TrackQuota = true).AddStandardResilienceHandler(o =>
 {
@@ -36,12 +50,12 @@ if (found.Value is not { } subject)
 Console.WriteLine(subject.Name + " | VAT: " + subject.VatStatus.ToString() + " | accounts on the whitelist: " +
     subject.AccountNumbers.Count.ToString(CultureInfo.InvariantCulture) + " | request " + found.RequestId);
 
-if (args.Length > 1 && Nrb.TryParse(args[1], out var account))
+if (account is { } nrb)
 {
-    var check = await vat.CheckBankAccountAsync(nip, account);
+    var check = await vat.CheckBankAccountAsync(nip, nrb);
     Console.WriteLine(check.Value
-        ? "Account " + account.ToString() + " is on the whitelist (request " + check.RequestId + ")."
-        : "Account " + account.ToString() + " is NOT on the whitelist for this taxpayer (request " + check.RequestId + ").");
+        ? "Account " + nrb.ToString() + " is on the whitelist (request " + check.RequestId + ")."
+        : "Account " + nrb.ToString() + " is NOT on the whitelist for this taxpayer (request " + check.RequestId + ").");
 }
 
 if (subject.Krs is { } krsNumber && (await krs.GetCurrentExtractAsync(krsNumber)).Extract is { } extract)
