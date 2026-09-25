@@ -60,6 +60,14 @@ public class FormatsTests
     }
 
     [Fact]
+    public void Timestamp_converter_rejects_a_moment_that_has_no_utc_value()
+    {
+        // 01.01.0001 00:00:00 in Warsaw is before 0001-01-01 00:00 UTC, which DateTimeOffset cannot hold
+        var ex = Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<ConverterSample>("""{"Stamp":"01.01.0001 00:00:00"}"""));
+        Assert.Contains("01.01.0001 00:00:00", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Converters_accept_null_for_nullable_properties()
     {
         var sample = JsonSerializer.Deserialize<ConverterSample>("""{"Dotted":null,"Iso":null,"Stamp":null}""")!;

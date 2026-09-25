@@ -107,9 +107,10 @@ internal static class VatMapper
     public static DateTimeOffset ParseRequestTime(string? value, TimeProvider timeProvider)
     {
         if (value is not null &&
-            DateTime.TryParseExact(value, RequestTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var local))
+            DateTime.TryParseExact(value, RequestTimeFormat, CultureInfo.InvariantCulture, DateTimeStyles.None, out var local) &&
+            WarsawTime.TryFromLocal(local, out var time))
         {
-            return WarsawTime.FromLocal(local);
+            return time;
         }
 
         return timeProvider.GetUtcNow();

@@ -38,6 +38,17 @@ public class WarsawTimeTests
     }
 
     [Fact]
+    public void Try_from_local_rejects_a_moment_before_the_first_utc_instant()
+    {
+        // Warsaw is always ahead of UTC, so its first wall-clock instant maps to a UTC time before year 1
+        Assert.False(WarsawTime.TryFromLocal(DateTime.MinValue, out _));
+        Assert.True(WarsawTime.TryFromLocal(new DateTime(2026, 9, 24, 2, 34, 18), out var value));
+        Assert.Equal(WarsawTime.FromLocal(new DateTime(2026, 9, 24, 2, 34, 18)), value);
+        Assert.True(WarsawTime.TryFromLocal(DateTime.MaxValue, out var last));
+        Assert.Equal(DateTime.MaxValue, last.DateTime);
+    }
+
+    [Fact]
     public void Custom_zone_matches_the_system_zone_2000_to_2040()
     {
         var system = WarsawTime.TryFind("Europe/Warsaw") ?? WarsawTime.TryFind("Central European Standard Time");

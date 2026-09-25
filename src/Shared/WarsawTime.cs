@@ -26,10 +26,31 @@ internal static class WarsawTime
     }
 
     /// <summary>Interprets a wall-clock time (Kind ignored) as Warsaw local time.</summary>
+    /// <exception cref="ArgumentOutOfRangeException">The moment has no UTC value (see <see cref="TryFromLocal"/>).</exception>
     public static DateTimeOffset FromLocal(DateTime local)
     {
         var unspecified = DateTime.SpecifyKind(local, DateTimeKind.Unspecified);
         return new DateTimeOffset(unspecified, Zone.GetUtcOffset(unspecified));
+    }
+
+    /// <summary>
+    /// Interprets a wall-clock time (Kind ignored) as Warsaw local time. False when the moment, with the Warsaw offset
+    /// applied, falls outside the range <see cref="DateTimeOffset"/> can hold (such as 0001-01-01 00:00 in Warsaw,
+    /// which is before 0001-01-01 00:00 UTC).
+    /// </summary>
+    public static bool TryFromLocal(DateTime local, out DateTimeOffset value)
+    {
+        var unspecified = DateTime.SpecifyKind(local, DateTimeKind.Unspecified);
+        var offset = Zone.GetUtcOffset(unspecified);
+        var utcTicks = unspecified.Ticks - offset.Ticks;
+        if (utcTicks < DateTime.MinValue.Ticks || utcTicks > DateTime.MaxValue.Ticks)
+        {
+            value = default;
+            return false;
+        }
+
+        value = new DateTimeOffset(unspecified, offset);
+        return true;
     }
 
     /// <summary>Tries a system time-zone id; <c>null</c> when the OS does not know it.</summary>

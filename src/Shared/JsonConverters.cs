@@ -67,7 +67,13 @@ internal sealed class DottedWarsawDateTimeConverter : JsonConverter<DateTimeOffs
             throw new JsonException($"Expected a {Format} timestamp but got '{text}'.");
         }
 
-        return WarsawTime.FromLocal(local);
+        if (!WarsawTime.TryFromLocal(local, out var value))
+        {
+            // DateTimeOffset would throw ArgumentOutOfRangeException, which the serializer does not wrap
+            throw new JsonException($"The timestamp '{text}' is out of range in Warsaw time.");
+        }
+
+        return value;
     }
 
     public override void Write(Utf8JsonWriter writer, DateTimeOffset value, JsonSerializerOptions options)

@@ -123,6 +123,7 @@ public class VatMappingTests
     {
         Assert.Equal(Clock.GetUtcNow(), VatMapper.ParseRequestTime(null, Clock));
         Assert.Equal(Clock.GetUtcNow(), VatMapper.ParseRequestTime("garbage", Clock));
+        Assert.Equal(Clock.GetUtcNow(), VatMapper.ParseRequestTime("01-01-0001 00:00:00", Clock));   // no UTC value
     }
 
     [Fact]

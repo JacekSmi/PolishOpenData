@@ -166,6 +166,7 @@ public class KrsClientTests
     [InlineData("")]
     [InlineData("""{"odpis":{"naglowekA":{"stanZDnia":"2026-09-17"}}}""")]     // date not in dd.MM.yyyy
     [InlineData("""{"odpis":{"naglowekA":{"numerOstatniegoWpisu":"many"}}}""")] // string for a number
+    [InlineData("""{"odpis":{"naglowekA":{"dataCzasOdpisu":"01.01.0001 00:00:00"}}}""")] // before year 1 in UTC
     public async Task Malformed_current_extract_is_an_api_exception_with_status_and_snippet(string body)
     {
         var (client, _) = Create(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, body));

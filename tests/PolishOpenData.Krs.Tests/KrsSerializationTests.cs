@@ -59,6 +59,9 @@ public class KrsPublicConverterTests
         Assert.Equal(TimeSpan.FromHours(1), winter.Offset);
         Assert.Equal("\"24.09.2026 02:32:16\"", JsonSerializer.Serialize(new DateTimeOffset(2026, 9, 24, 0, 32, 16, TimeSpan.Zero), options));
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DateTimeOffset>("\"2026-09-24T02:32:16\"", options));
+
+        // well formed, but with the Warsaw offset applied the moment falls before DateTimeOffset.MinValue
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<DateTimeOffset>("\"01.01.0001 00:00:00\"", options));
     }
 }
 
