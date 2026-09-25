@@ -17,7 +17,7 @@
 
 Biblioteki działają na .NET 10 oraz .NET Framework / starszych .NET (netstandard2.0) — także w dodatkach do systemów ERP.
 
-**JSON z generatorem źródeł.** Modele KRS korzystają z publicznych konwerterów z `PolishOpenData.Krs.Serialization` (`KrsDateJsonConverter`, `KrsTimestampJsonConverter`), więc na .NET 8 lub nowszym można dodać `KrsCurrentExtract` albo `KrsFullExtract` do własnego `JsonSerializerContext` bez dodatkowej konfiguracji (na .NET Framework zostań przy domyślnej serializacji opartej na refleksji).
+**JSON z generatorem źródeł.** Modele KRS korzystają z publicznych konwerterów z `PolishOpenData.Krs.Serialization` (`KrsDateJsonConverter`, `KrsTimestampJsonConverter`), więc na .NET 8 lub nowszym można dodać `KrsCurrentExtract` albo `KrsFullExtract` do własnego `JsonSerializerContext` bez rejestrowania konwerterów. Aby czytać JSON zwracany przez rejestr, oznacz ten kontekst atrybutem `[JsonSourceGenerationOptions(JsonSerializerDefaults.Web)]`, tak jak robi to biblioteka: modele nie mają atrybutów `[JsonPropertyName]`, a nazwy pól rejestru, np. `dataRejestracjiWKRS`, pasują do właściwości tylko bez rozróżniania wielkości liter. Na .NET Framework zostań przy domyślnej serializacji opartej na refleksji.
 
 ## Walidacja offline
 

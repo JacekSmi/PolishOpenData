@@ -30,8 +30,9 @@ public interface IKrsClient
 
     /// <summary>Streams the KRS numbers that changed on a day (<i>Biuletyn</i>, available from 2021-12-08), de-duplicated.</summary>
     /// <exception cref="PolishOpenDataApiException">
-    /// Thrown while enumerating: KRS answered with a 4xx error other than 404, or with a success response that is not
-    /// a JSON array of strings. <see cref="PolishOpenDataApiException.StatusCode"/> and
+    /// Thrown while enumerating: KRS answered with a 4xx error other than 404, or with a success response that is
+    /// neither a JSON array of strings nor <c>null</c> (<c>null</c> reads as no changes, and items that are not KRS
+    /// numbers are skipped). <see cref="PolishOpenDataApiException.StatusCode"/> and
     /// <see cref="PolishOpenDataApiException.ResponseSnippet"/> describe the response.
     /// </exception>
     /// <exception cref="QuotaExceededException">Thrown while enumerating: KRS answered HTTP 429.</exception>
@@ -39,8 +40,9 @@ public interface IKrsClient
 
     /// <summary>Streams the KRS numbers that changed between two hours of a day (<i>BiuletynGodzinowy</i>), de-duplicated.</summary>
     /// <exception cref="PolishOpenDataApiException">
-    /// Thrown while enumerating: KRS answered with a 4xx error other than 404, or with a success response that is not
-    /// a JSON array of strings. <see cref="PolishOpenDataApiException.StatusCode"/> and
+    /// Thrown while enumerating: KRS answered with a 4xx error other than 404, or with a success response that is
+    /// neither a JSON array of strings nor <c>null</c> (<c>null</c> reads as no changes, and items that are not KRS
+    /// numbers are skipped). <see cref="PolishOpenDataApiException.StatusCode"/> and
     /// <see cref="PolishOpenDataApiException.ResponseSnippet"/> describe the response.
     /// </exception>
     /// <exception cref="QuotaExceededException">Thrown while enumerating: KRS answered HTTP 429.</exception>

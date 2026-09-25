@@ -16,6 +16,18 @@ public static class BialaListaClientExtensions
     /// upstream request so that every <see cref="BialaListaResult{T}.RequestId"/> is kept. Each request counts as one
     /// search against the daily limit of 100.
     /// </summary>
+    /// <exception cref="ArgumentNullException"><paramref name="client"/> or <paramref name="nips"/> is null.</exception>
+    /// <exception cref="PolishOpenDataApiException">
+    /// Thrown while enumerating: Biała Lista rejected a request (its code, such as <c>WL-115</c>, is in
+    /// <see cref="PolishOpenDataApiException.ErrorCode"/>), or answered with a success response that is not readable
+    /// (malformed JSON, a value of the wrong type or format, or no <c>result</c>; then
+    /// <see cref="PolishOpenDataApiException.StatusCode"/> and <see cref="PolishOpenDataApiException.ResponseSnippet"/>
+    /// describe the response). The results already yielded stay valid.
+    /// </exception>
+    /// <exception cref="QuotaExceededException">
+    /// Thrown while enumerating: the daily limit is reached (reported by the API or by the local quota tracker). The
+    /// results already yielded stay valid.
+    /// </exception>
     public static IAsyncEnumerable<BialaListaResult<IReadOnlyList<VatBatchEntry>>> FindByNipsChunkedAsync(
         this IBialaListaClient client,
         IEnumerable<Nip> nips,

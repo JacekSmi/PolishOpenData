@@ -251,6 +251,31 @@ public class KrsClientTests
         Assert.Equal(body, ex.ResponseSnippet);
     }
 
+    // Not errors, as documented on GetChangedAsync: JSON null reads as a day without changes, and array items that are
+    // not KRS numbers (null included) are skipped.
+    [Theory]
+    [InlineData("null", "")]
+    [InlineData("[]", "")]
+    [InlineData("""["0000028860",null,"abc","28860"]""", "0000028860")]
+    public async Task Null_change_feed_is_no_changes_and_other_items_are_skipped(string body, string expected)
+    {
+        var (client, _) = Create(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, body));
+        var daily = new List<string>();
+        await foreach (var krs in client.GetChangedAsync(new DateOnly(2026, 9, 22), TestContext.Current.CancellationToken))
+        {
+            daily.Add(krs.ToString());
+        }
+
+        var hourly = new List<string>();
+        await foreach (var krs in client.GetChangedAsync(new DateOnly(2026, 9, 22), 10, 11, TestContext.Current.CancellationToken))
+        {
+            hourly.Add(krs.ToString());
+        }
+
+        Assert.Equal(expected, string.Join(",", daily));
+        Assert.Equal(expected, string.Join(",", hourly));
+    }
+
     [Fact]
     public async Task Rate_limit_is_a_quota_exception()
     {

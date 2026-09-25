@@ -76,7 +76,7 @@ A runnable version is in [`samples/CheckCounterparty`](https://github.com/JacekS
 
 **Keep `RequestId`.** Every `BialaListaResult` carries the request identifier and time returned by Biała Lista (`RequestId`, `RequestDateTime`); keep them with your payment records to document when you checked the whitelist and what it answered.
 
-**Source-generated JSON.** The KRS models use public converters from `PolishOpenData.Krs.Serialization` (`KrsDateJsonConverter`, `KrsTimestampJsonConverter`), so on .NET 8 or later you can add `KrsCurrentExtract` or `KrsFullExtract` to your own `JsonSerializerContext` with no extra setup (on .NET Framework, keep the default reflection-based serializer).
+**Source-generated JSON.** The KRS models use public converters from `PolishOpenData.Krs.Serialization` (`KrsDateJsonConverter`, `KrsTimestampJsonConverter`), so on .NET 8 or later you can add `KrsCurrentExtract` or `KrsFullExtract` to your own `JsonSerializerContext` without registering any converter. To read the registry's own JSON, give that context `[JsonSourceGenerationOptions(JsonSerializerDefaults.Web)]`, as the library does: the models have no `[JsonPropertyName]` attributes, and registry field names such as `dataRejestracjiWKRS` match their properties only case-insensitively. On .NET Framework, keep the default reflection-based serializer.
 
 ## MCP server for AI assistants
 

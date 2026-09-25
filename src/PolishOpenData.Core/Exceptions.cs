@@ -25,9 +25,10 @@ public class PolishOpenDataException : Exception
 }
 
 /// <summary>
-/// An upstream registry answered with a semantic error (a 4xx response or an error body). Transport failures and 5xx
-/// responses are reported as <see cref="System.Net.Http.HttpRequestException"/> instead, so standard resilience
-/// handlers keep working.
+/// An upstream registry answered with a semantic error (a 4xx response or an error body), or with a success response
+/// that the library could not use, such as malformed JSON (then <see cref="StatusCode"/> is the 2xx status and
+/// <see cref="ResponseSnippet"/> holds the start of the body). Transport failures and 5xx responses are reported as
+/// <see cref="System.Net.Http.HttpRequestException"/> instead, so standard resilience handlers keep working.
 /// </summary>
 public class PolishOpenDataApiException : PolishOpenDataException
 {
