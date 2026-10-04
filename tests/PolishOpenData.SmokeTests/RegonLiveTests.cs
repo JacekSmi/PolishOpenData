@@ -44,16 +44,20 @@ public sealed class RegonTestEnvironmentLiveTests
             }
 
             Assert.Equal(date.Value, date.DataAsOf);
-
-            await client.LogoutAsync(ct);
         }
         catch (QuotaExceededException ex)
         {
             Live.SkipOnQuota(ex);
         }
+        finally
+        {
+            // also after a failed assertion or a quota refusal: the session must not stay open at GUS (best effort, never throws but for cancellation)
+            await client.LogoutAsync(ct);
+        }
     }
 
-    // The shape that both live tests expect of GUS's own row: one legal person, the same in every environment.
+    // The shape that both live tests expect of GUS's own row: one legal person. The test environment is a copy that is not
+    // updated, so only the stable fields are asserted.
     internal static void AssertGusRow(RegonResult<IReadOnlyList<RegonEntity>> search, RegonEnvironment environment)
     {
         Assert.Equal(environment, search.Environment);
@@ -71,7 +75,8 @@ public sealed class RegonTestEnvironmentLiveTests
     {
         Assert.Equal(environment, details.Environment);
         var d = Assert.Single(details.Value);
-        Assert.Equal(GusRegon, d.Fields["praw_regon9"]);
+        Assert.True(d.Fields.TryGetValue("praw_regon9", out var regon9), "GUS no longer sends praw_regon9");
+        Assert.Equal(GusRegon, regon9);
         Assert.NotNull(d.LegalFormCode);
         Assert.NotNull(d.Address.City);
         Assert.NotNull(d.Address.PostalCode);
@@ -82,7 +87,9 @@ public sealed class RegonTestEnvironmentLiveTests
     {
         Assert.Equal(environment, report.Environment);
         var record = Assert.Single(report.Value);
+        Assert.True(record.Fields.ContainsKey("praw_regon9"), "GUS no longer sends praw_regon9");
         Assert.Equal(GusRegon, record["praw_regon9"]);
+        Assert.True(record.Fields.ContainsKey("praw_nazwa"), "GUS no longer sends praw_nazwa");
         Assert.False(string.IsNullOrEmpty(record["praw_nazwa"]));
     }
 }
@@ -116,12 +123,15 @@ public sealed class RegonLiveTests
 
             var report = await client.GetReportAsync(Regon.Parse(RegonTestEnvironmentLiveTests.GusRegon), RegonReport.OsPrawna, ct);
             RegonTestEnvironmentLiveTests.AssertGusReport(report, RegonEnvironment.Production);
-
-            await client.LogoutAsync(ct);
         }
         catch (QuotaExceededException ex)
         {
             Live.SkipOnQuota(ex);
+        }
+        finally
+        {
+            // also after a failed assertion or a quota refusal: the session on the owner's production key must not stay open
+            await client.LogoutAsync(ct);
         }
     }
 }

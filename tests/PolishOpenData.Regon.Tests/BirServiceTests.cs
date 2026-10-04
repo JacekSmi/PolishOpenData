@@ -155,11 +155,11 @@ public class BirServiceTests
     [Fact]
     public async Task Error_code_5_throws_with_the_error_code()
     {
-        var server = new FakeBirServer().Report("14726216300027", "BIR121JednLokalnaOsPrawnej", "synthetic-report-error-5");
+        var server = new FakeBirServer().Report("14239685800010", "BIR121JednLokalnaOsPrawnej", "synthetic-report-error-5");
         using var harness = new Harness(server);
 
         var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(() =>
-            harness.Service.ReportAsync("14726216300027", "BIR121JednLokalnaOsPrawnej", TestContext.Current.CancellationToken));
+            harness.Service.ReportAsync("14239685800010", "BIR121JednLokalnaOsPrawnej", TestContext.Current.CancellationToken));
 
         Assert.Equal("5", ex.ErrorCode);
         Assert.False(ex.IsTransient);
@@ -186,7 +186,7 @@ public class BirServiceTests
     [Fact]
     public async Task Code_101_is_transient()
     {
-        // Invented answer: only the code matters (api-facts.md section 9 names 101 as GUS's "try again in a few minutes" guard).
+        // Invented answer: only the code matters (the GUS BIR1.2 manual names 101 as GUS's "try again in a few minutes" guard).
         const string inner = "<root><dane><ErrorCode>101</ErrorCode><ErrorMessageEn>Try again in a few minutes.</ErrorMessageEn></dane></root>";
         var server = new FakeBirServer().Respond(call =>
             string.Equals(call.Operation, "DaneSzukajPodmioty", StringComparison.Ordinal)
@@ -205,10 +205,10 @@ public class BirServiceTests
     [Fact]
     public async Task Search_weight_is_the_number_of_ids()
     {
-        var server = new FakeBirServer().Search("Nipy", "5261040828,1234563218,7740001454", "synthetic-search-batch-nips");
+        var server = new FakeBirServer().Search("Nipy", "5261040828,1234563218,9999999999", "synthetic-search-batch-nips");
         using var harness = new Harness(server, RegonRateLimit.Strictest);
 
-        var rows = await harness.Service.SearchAsync(BirSearchField.Nipy, "5261040828,1234563218,7740001454", 3, TestContext.Current.CancellationToken);
+        var rows = await harness.Service.SearchAsync(BirSearchField.Nipy, "5261040828,1234563218,9999999999", 3, TestContext.Current.CancellationToken);
 
         Assert.Equal(2, rows.Count);
         Assert.Equal(1 + 3, harness.Limiter.WeightInLastMinute);
@@ -357,10 +357,10 @@ public class BirServiceTests
             failures.Add(await Assert.ThrowsAnyAsync<Exception>(() => harness.Service.SearchAsync(BirSearchField.Nip, "5261040828", 1, ct)));
         }
 
-        var inBand = new FakeBirServer().Report("14726216300027", "BIR121JednLokalnaOsPrawnej", "synthetic-report-error-5");
+        var inBand = new FakeBirServer().Report("14239685800010", "BIR121JednLokalnaOsPrawnej", "synthetic-report-error-5");
         using (var harness = new Harness(inBand))
         {
-            failures.Add(await Assert.ThrowsAnyAsync<Exception>(() => harness.Service.ReportAsync("14726216300027", "BIR121JednLokalnaOsPrawnej", ct)));
+            failures.Add(await Assert.ThrowsAnyAsync<Exception>(() => harness.Service.ReportAsync("14239685800010", "BIR121JednLokalnaOsPrawnej", ct)));
         }
 
         var emptyTwice = new FakeBirServer().Respond(call =>

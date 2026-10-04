@@ -1,6 +1,6 @@
 <root>
   <dane>
-    <lokpraw_regon14>14726216300027</lokpraw_regon14>
+    <lokpraw_regon14>14239685800010</lokpraw_regon14>
     <lokpraw_nazwa>ODDZIAŁ TESTOWY W WARSZAWIE</lokpraw_nazwa>
     <lokpraw_numerWrejestrzeEwidencji>0000135115</lokpraw_numerWrejestrzeEwidencji>
     <lokpraw_dataPowstania>2003-07-01</lokpraw_dataPowstania>
@@ -11,7 +11,7 @@
     <lokpraw_adSiedzMiejscowosc_Nazwa>Warszawa</lokpraw_adSiedzMiejscowosc_Nazwa>
     <lokpraw_adSiedzUlica_Nazwa>ul. Test-Domaniewska</lokpraw_adSiedzUlica_Nazwa>
     <lokpraw_rodzajRejestruEwidencji_Symbol>000</lokpraw_rodzajRejestruEwidencji_Symbol>
-    <lokpraw_nip>5260251049</lokpraw_nip>
+    <lokpraw_nip>1234563218</lokpraw_nip>
     <lokpraw_statusNip />
   </dane>
 </root>

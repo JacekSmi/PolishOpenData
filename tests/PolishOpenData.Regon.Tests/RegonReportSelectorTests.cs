@@ -88,15 +88,15 @@ public class RegonReportSelectorTests
     [Fact]
     public void RegonFor_returns_9_or_14_digits_or_throws()
     {
-        var localUnit = Entity("14726216300027", RegonEntityType.LegalPersonLocalUnit);
-        var legalPerson = Entity("147262163");
+        var localUnit = Entity("14239685800010", RegonEntityType.LegalPersonLocalUnit);
+        var legalPerson = Entity("142396858");
 
-        Assert.Equal("147262163", RegonReportSelector.RegonFor(legalPerson, RegonReport.OsPrawna));
-        Assert.Equal("147262163", RegonReportSelector.RegonFor(localUnit, RegonReport.OsPrawna));   // the base number of a local unit
-        Assert.Equal("14726216300027", RegonReportSelector.RegonFor(localUnit, RegonReport.JednLokalnaOsPrawnej121));
-        Assert.Equal("14726216300027", RegonReportSelector.RegonFor(localUnit, RegonReport.JednLokalnaOsPrawnejPkd));
-        Assert.Equal("14726216300027", RegonReportSelector.RegonFor(localUnit, RegonReport.TypPodmiotu));   // either length
-        Assert.Equal("147262163", RegonReportSelector.RegonFor(legalPerson, RegonReport.TypPodmiotu));
+        Assert.Equal("142396858", RegonReportSelector.RegonFor(legalPerson, RegonReport.OsPrawna));
+        Assert.Equal("142396858", RegonReportSelector.RegonFor(localUnit, RegonReport.OsPrawna));   // the base number of a local unit
+        Assert.Equal("14239685800010", RegonReportSelector.RegonFor(localUnit, RegonReport.JednLokalnaOsPrawnej121));
+        Assert.Equal("14239685800010", RegonReportSelector.RegonFor(localUnit, RegonReport.JednLokalnaOsPrawnejPkd));
+        Assert.Equal("14239685800010", RegonReportSelector.RegonFor(localUnit, RegonReport.TypPodmiotu));   // either length
+        Assert.Equal("142396858", RegonReportSelector.RegonFor(legalPerson, RegonReport.TypPodmiotu));
 
         Assert.Throws<ArgumentException>(() => RegonReportSelector.RegonFor(legalPerson, RegonReport.JednLokalnaOsPrawnej));
         Assert.Throws<ArgumentException>(() => RegonReportSelector.RegonFor(Entity(null), RegonReport.OsPrawna));

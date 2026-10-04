@@ -8,7 +8,7 @@ namespace PolishOpenData.Bir.Tests;
 public class RegonModelTests
 {
     // The 17 report names and the REGON length each report needs, written out by hand so that a typo in the library is caught
-    // (research-gus-bir/api-facts.md section 5.4).
+    // (GUS BIR1.2 manual).
     private static readonly (RegonReport Report, string WireName, int Length)[] ExpectedReports =
     [
         (RegonReport.OsPrawna, "BIR12OsPrawna", 9),
@@ -141,7 +141,7 @@ public class RegonModelTests
     [Fact]
     public void Silo_and_type_values_follow_the_gus_codes()
     {
-        // SilosID 1, 2, 3, 4 and 6 (research-gus-bir/api-facts.md section 5.3); the mapper parses the numbers into these members.
+        // SilosID 1, 2, 3, 4 and 6 (GUS BIR1.2 manual); the mapper parses the numbers into these members.
         Assert.Equal(1, (int)RegonSilo.Ceidg);
         Assert.Equal(2, (int)RegonSilo.Agricultural);
         Assert.Equal(3, (int)RegonSilo.Other);

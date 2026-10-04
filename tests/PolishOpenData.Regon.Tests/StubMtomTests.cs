@@ -15,7 +15,7 @@ public class StubMtomTests
         return await client.GetAsync(new Uri("https://example.test/svc"), HttpCompletionOption.ResponseHeadersRead, TestContext.Current.CancellationToken);
     }
 
-    // The raw Content-Type header, read the way the library reads it (dotnet-approach.md section 3.3, step 1).
+    // The raw Content-Type header, read the way the library reads it.
     private static string RawContentType(HttpResponseMessage response) =>
         response.Content.Headers.TryGetValues("Content-Type", out var values) ? string.Join(", ", values) : string.Empty;
 

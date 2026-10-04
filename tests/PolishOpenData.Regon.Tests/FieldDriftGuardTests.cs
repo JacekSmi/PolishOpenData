@@ -12,10 +12,10 @@ namespace PolishOpenData.Bir.Tests;
 // read by a table of RegonFields or on its list of deliberately raw-only fields, and nothing stale may stay in the tables. When GUS adds,
 // renames or drops a field, the TSV is updated and these tests say which table needs a line.
 // The TSV was reconstructed from the BIR11 schemas plus the documented BIR12 differences, not copied from the BIR12 XSDs
-// (research-gus-bir/api-facts.md section 5.4; the field list of Task 2); see tests/Fixtures/README.md.
+// (GUS BIR1.2 manual; the field list is tests/Fixtures/regon/bir12-field-names.tsv); see tests/Fixtures/README.md.
 public class FieldDriftGuardTests
 {
-    // fields per report, as in the field list of Task 2 (sum 427)
+    // fields per report, as in tests/Fixtures/regon/bir12-field-names.tsv (sum 427)
     private static readonly (string Report, int Count)[] ExpectedCounts =
     [
         ("BIR12OsPrawna", 55),
@@ -150,7 +150,7 @@ public class FieldDriftGuardTests
             .OrderBy(name => name, StringComparer.Ordinal)
             .ToArray();
 
-        // the ten report fixtures of the fixtures of Task 2; a later fixture is checked too
+        // the ten synthetic report fixtures; a later fixture is checked too
         foreach (var expected in new[]
         {
             "synthetic-report-osprawna-gus.xml", "synthetic-report-osprawna-pkd.xml", "synthetic-report-osprawna-lista-jednostek.xml",

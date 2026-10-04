@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using PolishOpenData.Tests.Shared;
 
@@ -10,17 +11,32 @@ public class FixtureFramingTests
 {
     private static string FixtureFolder => Path.Combine(AppContext.BaseDirectory, "Fixtures", "regon");
 
-    // The sizes of the captured bodies. A different size means a tool normalised line endings or re-saved the file.
+    // The sizes and SHA-256 hashes of the captured bodies and their .headers files. A different size means a tool normalised
+    // line endings or re-saved the file; a different hash means the recorded bytes were edited, which they never are.
     [Theory]
-    [InlineData("zaloguj-ok", 650)]
-    [InlineData("search-regon-gus", 1549)]
-    [InlineData("wyloguj-true", 634)]
-    [InlineData("search-empty", 659)]
-    [InlineData("getvalue-empty", 601)]
-    [InlineData("fault-sender-500", 896)]
-    public void Recorded_fixtures_have_the_captured_sizes(string name, int size)
+    [InlineData("zaloguj-ok", 650, "7ec2a614020b9c07beb0a1832b75f39dfc8765e1b92d9f406a3d958607eb734b", "5f074a194da92130da2a0eb5da81eabea486377b496263e68aed60e11b60bd6c")]
+    [InlineData("search-regon-gus", 1549, "e1b6b12440af87084f09eeb3b9b38c32f463938a490e9639c3bb0e8976c948c9", "c13c99a8f93b0e640abf9070c73cb2b79dbe2e78d46381522508f86a206b1728")]
+    [InlineData("wyloguj-true", 634, "c508d3f29191b116553d9654a0dbb2a2447b530a3b7f5e704b3ef46980100edb", "599ce9112aa54fc380853b389773bd7e718787c18858b0deefd0c3a530cb09b7")]
+    [InlineData("search-empty", 659, "57efb2f2f5e8773fc63a049d6d12bf168efc4c9049505316b74bc8e74d5207d2", "3fbb7e1d09b8cc61b21613b19b3b70b96828601cd8e6c08f16fff171e4839a6a")]
+    [InlineData("getvalue-empty", 601, "6a057dc63a84cda9da79c68afb430cfecc622ac0bb1244d4fc31dfa87ff36258", "c01e2c1d490e2077f0f740c93b2a58fa8510995299b1e6ea247a6f35afba4ef4")]
+    [InlineData("fault-sender-500", 896, "fda9e9946bb84eab50860ba6b7a0d752c170031fb8c8f013304ecc0e9539207a", "b1e3b13fd8cdd9966a8e38b0ec991b7eef3353fe6af93a08ae32f063b0721d0e")]
+    public void Recorded_fixtures_have_the_captured_sizes_and_hashes(string name, int size, string mtomSha256, string headersSha256)
     {
-        Assert.Equal(size, Fixture.ReadBytes("regon/" + name + ".mtom").Length);
+        var mtom = Fixture.ReadBytes("regon/" + name + ".mtom");
+        Assert.Equal(size, mtom.Length);
+        Assert.Equal(mtomSha256, Sha256Hex(mtom));
+        Assert.Equal(headersSha256, Sha256Hex(Fixture.ReadBytes("regon/" + name + ".headers")));
+    }
+
+    private static string Sha256Hex(byte[] bytes)
+    {
+#if NET
+        return Convert.ToHexStringLower(SHA256.HashData(bytes));
+#else
+        // net472 has neither SHA256.HashData nor Convert.ToHexStringLower
+        using var sha = SHA256.Create();
+        return BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", string.Empty).ToLowerInvariant();
+#endif
     }
 
     [Fact]

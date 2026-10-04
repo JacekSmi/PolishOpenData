@@ -11,7 +11,7 @@ namespace PolishOpenData.Bir.Tests;
 public class RegonClientDetailsTests
 {
     private const string GusRegon = "000331501";
-    private const string LocalUnitRegon = "14726216300027";
+    private const string LocalUnitRegon = "14239685800010";
     private const string NaturalRegon = "999999990";
 
     private static FakeTimeProvider Clock() => new(new DateTimeOffset(2026, 10, 3, 8, 0, 0, TimeSpan.Zero));
@@ -26,14 +26,14 @@ public class RegonClientDetailsTests
         .Search("Regon", GusRegon, "search-regon-gus")
         .Report(GusRegon, "BIR12OsPrawna", "synthetic-report-osprawna-gus");
 
-    // A sole trader with two silos (CEIDG and agricultural), as the hand-made fixtures describe (research-gus-bir/api-facts.md 5.3 and 5.4, rows 1 to 3).
+    // A sole trader with two silos (CEIDG and agricultural), as the hand-made fixtures describe (GUS BIR1.2 manual).
     private static FakeBirServer NaturalPersonServer() => new FakeBirServer()
         .Search("Regon", NaturalRegon, "synthetic-search-natural-person")
         .Report(NaturalRegon, "BIR12OsFizycznaDaneOgolne", "synthetic-report-fiz-daneogolne")
         .Report(NaturalRegon, "BIR12OsFizycznaDzialalnoscCeidg", "synthetic-report-fiz-ceidg")
         .Report(NaturalRegon, "BIR12OsFizycznaDzialalnoscRolnicza", "synthetic-report-fiz-rolnicza");
 
-    // A local unit of a legal person whose BIR121 report the (fake) service does not know: ErrorCode 5 (api-facts.md 5.4 row 13a and 8.1).
+    // A local unit of a legal person whose BIR121 report the (fake) service does not know: ErrorCode 5 (GUS BIR1.2 manual).
     private static FakeBirServer LocalUnitWithoutBir121Server() => new FakeBirServer()
         .Search("Regon", LocalUnitRegon, "synthetic-search-local-unit-lp")
         .Report(LocalUnitRegon, "BIR121JednLokalnaOsPrawnej", "synthetic-report-error-5")
@@ -42,7 +42,7 @@ public class RegonClientDetailsTests
                 HttpStatusCode.OK,
                 RegonTestResponses.Mtom(
                     "DanePobierzPelnyRaport",
-                    "<root><dane><lokpraw_regon14>14726216300027</lokpraw_regon14><lokpraw_nazwa>ODDZIAŁ TESTOWY W WARSZAWIE</lokpraw_nazwa></dane></root>"))
+                    "<root><dane><lokpraw_regon14>14239685800010</lokpraw_regon14><lokpraw_nazwa>ODDZIAŁ TESTOWY W WARSZAWIE</lokpraw_nazwa></dane></root>"))
             : null);
 
     private static string[] ReportsRequested(FakeBirServer server) =>
@@ -84,13 +84,13 @@ public class RegonClientDetailsTests
         await CreateClient(localUnit).GetDetailsAsync(Regon.Parse(LocalUnitRegon), cancellationToken: TestContext.Current.CancellationToken);
 
         // The 9-digit base number of that unit goes to the reports of the legal person.
-        var fromEntity = new FakeBirServer().Report("147262163", "BIR12OsPrawna", "synthetic-report-osprawna-gus");
+        var fromEntity = new FakeBirServer().Report("142396858", "BIR12OsPrawna", "synthetic-report-osprawna-gus");
         var unitEntity = new RegonEntity { Regon = Regon.Parse(LocalUnitRegon), Type = RegonEntityType.LegalPerson, Silo = RegonSilo.LegalPerson };
         await CreateClient(fromEntity).GetDetailsAsync(unitEntity, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal([GusRegon], legalPerson.Calls.Where(c => c.Operation == "DanePobierzPelnyRaport").Select(c => c.Arg("pRegon")));
         Assert.Equal([LocalUnitRegon], localUnit.Calls.Where(c => c.Operation == "DanePobierzPelnyRaport").Select(c => c.Arg("pRegon")));
-        Assert.Equal(["147262163"], fromEntity.Calls.Where(c => c.Operation == "DanePobierzPelnyRaport").Select(c => c.Arg("pRegon")));
+        Assert.Equal(["142396858"], fromEntity.Calls.Where(c => c.Operation == "DanePobierzPelnyRaport").Select(c => c.Arg("pRegon")));
     }
 
     [Fact]
@@ -155,7 +155,7 @@ public class RegonClientDetailsTests
 
         var result = await client.GetDetailsAsync(Regon.Parse(NaturalRegon), RegonInclude.Pkd, TestContext.Current.CancellationToken);
 
-        // The PKD report lists every silo (api-facts.md 5.4, row 6) and is fetched once for both rows.
+        // The PKD report lists every silo and is fetched once for both rows.
         Assert.Equal(
             ["BIR12OsFizycznaDaneOgolne", "BIR12OsFizycznaDzialalnoscCeidg", "BIR12OsFizycznaPkd", "BIR12OsFizycznaDzialalnoscRolnicza"],
             ReportsRequested(server));
@@ -188,7 +188,7 @@ public class RegonClientDetailsTests
     [Fact]
     public async Task Include_partners_tolerates_not_a_civil_partnership()
     {
-        // ErrorCode 21 ("not a civil partnership", api-facts.md 8.1) means this entity has no partners: an empty list, not an error.
+        // ErrorCode 21 ("not a civil partnership" in the GUS BIR1.2 manual) means this entity has no partners: an empty list, not an error.
         var server = LegalPersonServer().Report(GusRegon, "BIR12OsPrawnaSpCywilnaWspolnicy", "synthetic-report-error-21");
         var client = CreateClient(server);
 
@@ -227,7 +227,7 @@ public class RegonClientDetailsTests
         Assert.Equal(["BIR121JednLokalnaOsPrawnej"], ReportsRequested(known));
         Assert.Equal(RegonEntityType.LegalPersonLocalUnit, withBir121.Type);
         Assert.Equal(Regon.Parse(LocalUnitRegon), withBir121.Regon);
-        Assert.Equal(Nip.Parse("5260251049"), withBir121.Nip);
+        Assert.Equal(Nip.Parse("1234563218"), withBir121.Nip);
         Assert.Equal("0000135115", withBir121.RegisterNumber);
         Assert.True(knownSession.Bir121Supported);
 
@@ -349,8 +349,8 @@ public class RegonClientDetailsTests
     }
 
     [Theory]
-    [InlineData("14726216300027", RegonReport.OsPrawna)]
-    [InlineData("14726216300027", RegonReport.OsFizycznaPkd)]
+    [InlineData("14239685800010", RegonReport.OsPrawna)]
+    [InlineData("14239685800010", RegonReport.OsFizycznaPkd)]
     [InlineData("000331501", RegonReport.JednLokalnaOsPrawnej)]
     [InlineData("000331501", RegonReport.JednLokalnaOsFizycznejPkd)]
     [InlineData(null, RegonReport.OsPrawna)]

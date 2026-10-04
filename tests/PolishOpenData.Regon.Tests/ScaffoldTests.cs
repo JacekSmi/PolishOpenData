@@ -4,14 +4,15 @@ namespace PolishOpenData.Bir.Tests;
 
 public class ScaffoldTests
 {
-    // Valid-checksum identifiers that the fixtures and the later tests rely on (checked with the Core algorithms).
+    // Valid-checksum identifiers that the fixtures and the tests rely on (checked with the Core algorithms): identifiers of GUS's
+    // test database, GUS's own (000331501, NIP 5261040828), local units derived from them, and the placeholders 123456785 / 1234563218.
     [Fact]
     public void Core_identifiers_used_by_the_fixtures_are_valid()
     {
         string[] regons =
         [
-            "000331501", "999999990", "123456785", "610188201", "545772924", "142396858", "010418973", "651536363", "002003735", "021625560",
-            "14726216300027", "99999999000026",
+            "000331501", "999999990", "123456785", "142396858", "010418973", "651536363", "002003735", "021625560",
+            "14239685800010", "99999999000026",
         ];
         foreach (var text in regons)
         {
@@ -19,10 +20,10 @@ public class ScaffoldTests
             Assert.Equal(text, regon.ToString());
         }
 
-        Assert.Equal(Regon.Parse("147262163"), Regon.Parse("14726216300027").BaseRegon);
+        Assert.Equal(Regon.Parse("142396858"), Regon.Parse("14239685800010").BaseRegon);
         Assert.Equal(Regon.Parse("999999990"), Regon.Parse("99999999000026").BaseRegon);
 
-        string[] nips = ["5261040828", "9999999999", "1234563218", "7740001454", "5260251049", "0000000000"];
+        string[] nips = ["5261040828", "9999999999", "1234563218", "0000000000"];
         foreach (var text in nips)
         {
             Assert.True(Nip.TryParse(text, out var nip), "NIP " + text);

@@ -82,24 +82,24 @@ public class RegonClientSearchTests
     {
         var server = new FakeBirServer()
             .Search("Regon", GusRegon, "search-regon-gus")
-            .Search("Regon", "14726216300027", "synthetic-search-local-unit-lp");
+            .Search("Regon", "14239685800010", "synthetic-search-local-unit-lp");
         var client = CreateClient(server);
 
         var entity = Assert.Single((await client.FindByRegonAsync(Regon.Parse(GusRegon), TestContext.Current.CancellationToken)).Value);
-        var unit = Assert.Single((await client.FindByRegonAsync(Regon.Parse("14726216300027"), TestContext.Current.CancellationToken)).Value);
+        var unit = Assert.Single((await client.FindByRegonAsync(Regon.Parse("14239685800010"), TestContext.Current.CancellationToken)).Value);
 
         Assert.Equal(RegonEntityType.LegalPerson, entity.Type);
         Assert.Equal(RegonEntityType.LegalPersonLocalUnit, unit.Type);
         Assert.True(unit.Regon!.Value.IsLocalUnit);
         Assert.Equal("ODDZIAŁ TESTOWY W WARSZAWIE", unit.Name);
-        Assert.Equal([GusRegon, "14726216300027"], server.Calls.Where(c => c.Operation == "DaneSzukajPodmioty").Select(c => c.Arg("Regon")));
+        Assert.Equal([GusRegon, "14239685800010"], server.Calls.Where(c => c.Operation == "DaneSzukajPodmioty").Select(c => c.Arg("Regon")));
         Assert.Equal(1, server.Count("Zaloguj"));
     }
 
     [Fact]
     public async Task Finds_by_krs()
     {
-        // A search row carries no KRS field (research-gus-bir/api-facts.md 5.3), so the fixture is the GUS row whatever number is asked for.
+        // A search row carries no KRS field (GUS BIR1.2 manual), so the fixture is the GUS row whatever number is asked for.
         var server = new FakeBirServer().Search("Krs", "0000028860", "search-regon-gus");
         var client = CreateClient(server);
 
@@ -165,7 +165,7 @@ public class RegonClientSearchTests
     [Fact]
     public async Task One_nip_can_return_several_rows()
     {
-        // api-facts.md 5.3: a natural person has up to three rows for one REGON, one per silo, each with its own address; the element Ulica is left out when empty.
+        // A natural person has up to three rows for one REGON, one per silo, each with its own address; the element Ulica is left out when empty.
         var server = new FakeBirServer().Search("Nip", "9999999999", "synthetic-search-natural-person");
         var client = CreateClient(server);
 
@@ -205,7 +205,7 @@ public class RegonClientSearchTests
     [Fact]
     public async Task Batch_nips_returns_one_entry_per_requested_identifier()
     {
-        // api-facts.md 5.3 [OBS call 7]: GUS answers a batch with the found entities only; an unknown NIP gets no row and no ErrorCode.
+        // Observed behaviour of the GUS service: it answers a batch with the found entities only; an unknown NIP gets no row and no ErrorCode.
         var server = new FakeBirServer().Search("Nipy", GusNip + ",1234563218,0000000000", "synthetic-search-batch-nips");
         var client = CreateClient(server);
 
@@ -266,7 +266,7 @@ public class RegonClientSearchTests
         var server = new FakeBirServer();
         if (answeredWithAnEmptyResult)
         {
-            // Unobserved at GUS (dotnet-approach.md 3.6): an empty result even with a valid session. The client logs in once more, asks once more and gives up.
+            // Unobserved at GUS: an empty result even with a valid session. The client logs in once more, asks once more and gives up.
             server.Respond(call => call.Operation == "DaneSzukajPodmioty"
                 ? RegonTestResponses.Response(HttpStatusCode.OK, RegonTestResponses.Mtom("DaneSzukajPodmioty", null))
                 : null);
@@ -286,17 +286,17 @@ public class RegonClientSearchTests
     [Fact]
     public async Task Batch_regons_split_by_length_and_keep_request_order()
     {
-        // api-facts.md 5.3: Regony9zn and Regony14zn are separate search fields; GUS leaves the second local unit out of its answer here.
+        // GUS BIR1.2 manual: Regony9zn and Regony14zn are separate search fields; GUS leaves the second local unit out of its answer here.
         var server = new FakeBirServer()
             .Search("Regony9zn", GusRegon + ",123456785", "synthetic-search-batch-nips")
-            .Search("Regony14zn", "14726216300027,99999999000026", "synthetic-search-local-unit-lp");
+            .Search("Regony14zn", "14239685800010,99999999000026", "synthetic-search-local-unit-lp");
         var client = CreateClient(server);
 
         var result = await client.FindByRegonsAsync(
-            [Regon.Parse("14726216300027"), Regon.Parse(GusRegon), Regon.Parse("123456785"), Regon.Parse("99999999000026")],
+            [Regon.Parse("14239685800010"), Regon.Parse(GusRegon), Regon.Parse("123456785"), Regon.Parse("99999999000026")],
             TestContext.Current.CancellationToken);
 
-        Assert.Equal(["14726216300027", GusRegon, "123456785", "99999999000026"], result.Value.Select(e => e.Identifier));
+        Assert.Equal(["14239685800010", GusRegon, "123456785", "99999999000026"], result.Value.Select(e => e.Identifier));
         Assert.Equal(RegonEntityType.LegalPersonLocalUnit, Assert.Single(result.Value[0].Entities).Type);
         Assert.Equal("GŁÓWNY URZĄD STATYSTYCZNY", Assert.Single(result.Value[1].Entities).Name);
         Assert.Equal("PRZYKŁADOWA SPÓŁKA TESTOWA", Assert.Single(result.Value[2].Entities).Name);
@@ -304,7 +304,7 @@ public class RegonClientSearchTests
         var searches = server.Calls.Where(c => c.Operation == "DaneSzukajPodmioty").ToList();
         Assert.Equal(2, searches.Count);
         Assert.Equal(GusRegon + ",123456785", searches[0].Arg("Regony9zn"));
-        Assert.Equal("14726216300027,99999999000026", searches[1].Arg("Regony14zn"));
+        Assert.Equal("14239685800010,99999999000026", searches[1].Arg("Regony14zn"));
     }
 
     [Fact]

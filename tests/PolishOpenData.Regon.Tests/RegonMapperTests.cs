@@ -6,7 +6,7 @@ using PolishOpenData.Tests.Shared;
 
 namespace PolishOpenData.Bir.Tests;
 
-// Every expectation below is a value pinned by the fixtures of Task 2; the tests do not depend on how
+// Every expectation below is a value pinned by the synthetic fixtures in tests/Fixtures/regon; the tests do not depend on how
 // the fixtures fill the fields that table leaves open.
 public class RegonMapperTests
 {
@@ -107,7 +107,7 @@ public class RegonMapperTests
         Assert.Equal(RegonSilo.Agricultural, person[1].Silo);
         Assert.Equal("piaseczyński", person[1].Address.County);
         Assert.Equal(new DateOnly(2020, 12, 31), person[1].EndDate);
-        Assert.Equal(Regon.Parse("14726216300027"), legalUnit.Regon);
+        Assert.Equal(Regon.Parse("14239685800010"), legalUnit.Regon);
         Assert.Equal(RegonEntityType.LegalPersonLocalUnit, legalUnit.Type);
         Assert.Equal("02-672", legalUnit.Address.PostalCode);
         Assert.Equal(Regon.Parse("99999999000026"), naturalUnit.Regon);
@@ -204,7 +204,7 @@ public class RegonMapperTests
     {
         Assert.Equal(new DateOnly(2005, 3, 1), RegonMapper.ParseDate("2005-03-01"));
         Assert.Equal(new DateOnly(1975, 12, 15), RegonMapper.ParseDate("1975-12-15"));
-        Assert.Equal(new DateOnly(1700, 6, 15), RegonMapper.ParseDate("1700-06-15"));   // GUS allows dates before 1753 since 2025 (api-facts.md section 10)
+        Assert.Equal(new DateOnly(1700, 6, 15), RegonMapper.ParseDate("1700-06-15"));   // GUS allows dates before 1753 since 2025 (GUS BIR1.2 manual)
         foreach (var invalid in new[] { null, string.Empty, " ", "2005-3-1", "01-03-2005", "2005/03/01", "2005-02-30", "2005-13-01", "2005-03-01 00:00:00", "20050301", "garbage" })
         {
             Assert.Null(RegonMapper.ParseDate(invalid));
@@ -283,7 +283,7 @@ public class RegonMapperTests
     public void The_misspelt_rolnicza_removal_date_is_mapped()
     {
         // GUS spells the field fiz_dataSkresleniaDzialalanosciZRegon (extra "a") in the agricultural report and
-        // fiz_dataSkresleniaDzialalnosciZRegon in the CEIDG and the other-activity reports (api-facts.md section 5.4).
+        // fiz_dataSkresleniaDzialalnosciZRegon in the CEIDG and the other-activity reports (GUS BIR1.2 manual).
         var misspelt = Details(RegonEntityType.NaturalPerson, RegonSilo.Agricultural, Row(("fiz_dataSkresleniaDzialalanosciZRegon", "2020-12-31")));
         var correct = Details(RegonEntityType.NaturalPerson, RegonSilo.Ceidg, Row(("fiz_dataSkresleniaDzialalnosciZRegon", "2019-01-31")));
         var fixture = Details(RegonEntityType.NaturalPerson, RegonSilo.Agricultural, OneRow("synthetic-report-fiz-rolnicza"));
@@ -302,8 +302,8 @@ public class RegonMapperTests
     {
         var details = Details(RegonEntityType.LegalPersonLocalUnit, RegonSilo.LegalPerson, OneRow("synthetic-report-jednlokalna-lp-121"));
 
-        Assert.Equal(Regon.Parse("14726216300027"), details.Regon);
-        Assert.Equal(Nip.Parse("5260251049"), details.Nip);
+        Assert.Equal(Regon.Parse("14239685800010"), details.Regon);
+        Assert.Equal(Nip.Parse("1234563218"), details.Nip);
         Assert.Null(details.StatusNip);
         Assert.Equal("ODDZIAŁ TESTOWY W WARSZAWIE", details.Name);
         Assert.Equal("0000135115", details.RegisterNumber);   // lokpraw_numerWrejestrzeEwidencji (lowercase r)
@@ -397,12 +397,12 @@ public class RegonMapperTests
         var partners = Rows("synthetic-report-osprawna-wspolnicy").Select(RegonMapper.MapPartner).ToArray();
 
         Assert.Equal(2, partners.Length);
-        Assert.Equal(Regon.Parse("123456785"), partners[0].Regon);
+        Assert.Equal(Regon.Parse("999999990"), partners[0].Regon);
         Assert.Equal("JAN", partners[0].FirstName);
         Assert.Null(partners[0].SecondName);
         Assert.Equal("KOWALSKI", partners[0].LastName);
         Assert.Null(partners[0].CompanyName);
-        Assert.Equal(Regon.Parse("610188201"), partners[1].Regon);
+        Assert.Equal(Regon.Parse("142396858"), partners[1].Regon);
         Assert.Null(partners[1].FirstName);
         Assert.Null(partners[1].LastName);
         Assert.Equal("PRZYKŁADOWA SPÓŁKA TESTOWA", partners[1].CompanyName);
@@ -505,10 +505,10 @@ public class RegonMapperTests
     [Fact]
     public void An_invalid_regon_maps_to_null()
     {
-        // 123456789 and 14726216300028 fail the mod-11 check, 1234567890 is not a NIP; Core's Regon and Nip are strict
+        // 123456789 and 14239685800028 fail the mod-11 check, 1234567890 is not a NIP; Core's Regon and Nip are strict
         var entity = RegonMapper.MapEntity(Row(("Regon", "123456789"), ("Nip", "1234567890"), ("Nazwa", "X")));
         var details = Details(RegonEntityType.LegalPerson, RegonSilo.LegalPerson, Row(("praw_regon9", "123456789"), ("praw_nip", "123")));
-        var unit = RegonMapper.MapLocalUnit(Row(("lokpraw_regon14", "14726216300028")));
+        var unit = RegonMapper.MapLocalUnit(Row(("lokpraw_regon14", "14239685800028")));
         var partner = RegonMapper.MapPartner(Row(("wspolsc_regonWspolnikSpolki", "not a regon")));
 
         Assert.Null(entity.Regon);

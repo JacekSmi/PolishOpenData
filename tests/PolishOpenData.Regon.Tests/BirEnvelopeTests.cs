@@ -88,7 +88,7 @@ public class BirEnvelopeTests
     {
         var bytes = BirEnvelope.GetValue(TestEndpoint, "StanDanych", out var action);
 
-        // GetValue lives in the namespace and interface without PUBL (api-facts.md section 4.1)
+        // GetValue lives in the namespace and interface without PUBL (GUS BIR1.2 manual)
         Assert.Equal("http://CIS/BIR/2014/07/IUslugaBIR/GetValue", action);
         AssertGolden(
             """
@@ -112,7 +112,7 @@ public class BirEnvelopeTests
     [InlineData("Nip", "5261040828")]
     [InlineData("Krs", "0000028860")]
     [InlineData("Regony9zn", "000331501,123456785")]
-    [InlineData("Regony14zn", "14726216300027,99999999000026")]
+    [InlineData("Regony14zn", "14239685800010,99999999000026")]
     [InlineData("Nipy", "5261040828,1234563218")]
     [InlineData("Krsy", "0000028860,0001268296")]
     public void Search_writes_exactly_one_datacontract_child(string element, string value)

@@ -20,7 +20,7 @@ public class FakeBirServerTests
     private const string BirAction = BirNamespace + "/IUslugaBIR/";
     private const string DummyKey = "dummy-key-not-a-secret";
 
-    // Requests are written by hand here on purpose: this task has no library code yet, only the fakes.
+    // Requests are written by hand here on purpose: the fakes are tested without the library code.
     private static async Task<HttpResponseMessage> PostAsync(HttpClient client, string ns, string action, string operation, string bodyXml, string? sid)
     {
         var envelope =

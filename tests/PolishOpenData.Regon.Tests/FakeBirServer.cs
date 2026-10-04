@@ -253,7 +253,7 @@ internal sealed class FakeBirServer
 
         if (!valid)
         {
-            return Ok(call.Operation, null);   // a dead session: HTTP 200 and an empty result (dotnet-approach.md section 3.6)
+            return Ok(call.Operation, null);   // a dead session: HTTP 200 and an empty result (observed behaviour of the GUS service)
         }
 
         string key;

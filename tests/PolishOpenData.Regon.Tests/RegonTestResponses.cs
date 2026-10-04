@@ -9,7 +9,7 @@ namespace PolishOpenData.Bir.Tests;
 
 /// <summary>
 /// Builds BIR answers framed exactly like the live service (MTOM, one part, CRLF framing, entity-escaped result text),
-/// for tests that need an answer no recorded fixture holds (api-facts.md section 7). The framing is compared with the captured
+/// for tests that need an answer no recorded fixture holds (the framing observed from the GUS service). The framing is compared with the captured
 /// bytes in <c>RegonTestResponsesTests</c>.
 /// </summary>
 internal static class RegonTestResponses

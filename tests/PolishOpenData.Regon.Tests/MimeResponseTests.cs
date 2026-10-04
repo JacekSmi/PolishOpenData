@@ -9,7 +9,7 @@ using PolishOpenData.Tests.Shared;
 
 namespace PolishOpenData.Bir.Tests;
 
-// The cases of the prototype's Synthetic() checks (research-gus-bir/dotnet-approach-artifacts/prototype/App/Program.cs), without the XML reader.
+// Hand-made MIME cases (boundaries, the start parameter, transfer encodings, line breaks), without the XML reader.
 public class MimeResponseTests
 {
     private const string Envelope = "<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\"><s:Body><XResponse xmlns=\"http://CIS/BIR/PUBL/2014/07\"><XResult>&lt;root&gt;&lt;dane&gt;&lt;A&gt;1&lt;/A&gt;&lt;/dane&gt;&lt;/root&gt;</XResult></XResponse></s:Body></s:Envelope>";
@@ -215,7 +215,7 @@ public class MimeResponseTests
     [InlineData("search-empty")]
     [InlineData("getvalue-empty")]
     [InlineData("fault-sender-500")]
-    public void Parses_the_recorded_search_fixture(string name)
+    public void Parses_every_recorded_fixture(string name)
     {
         // every recorded answer, with the Content-Type read the way BirTransport reads it: the raw header of a real HttpClient response
         // (the fixtures hold both spellings: with spaces after ';' as .NET re-serialises it, and the curl-style one without)
