@@ -407,15 +407,23 @@ public class RegonClientSearchTests
         return (client, server, limiter, clock);
     }
 
-    // Moves the fake clock on while the call waits for the per-second window.
-    private static async Task<T> WithClockAsync<T>(Task<T> task, FakeTimeProvider clock)
+    // Moves the fake clock on by one second while a call is blocked on the full per-second window, or when nothing has moved
+    // for a while (a waiter that set its timer just after an advance). A slow test host therefore adds few spare seconds,
+    // which could otherwise push earlier calls out of the minute window.
+    private static async Task<T> WithClockAsync<T>(Task<T> task, FakeTimeProvider clock, RegonRateLimiter limiter)
     {
-        for (var step = 0; step < 1000 && !task.IsCompleted; step++)
+        var lastWeight = -1;
+        var idle = 0;
+        for (var step = 0; step < 10000 && !task.IsCompleted; step++)
         {
             await Task.WhenAny(task, Task.Delay(TimeSpan.FromMilliseconds(10), TestContext.Current.CancellationToken));
-            if (!task.IsCompleted)
+            var weight = limiter.WeightInLastHour;
+            idle = weight == lastWeight ? idle + 1 : 0;
+            lastWeight = weight;
+            if (!task.IsCompleted && (limiter.CallsInLastSecond >= 3 || idle >= 5))
             {
                 clock.Advance(TimeSpan.FromSeconds(1));
+                idle = 0;
             }
         }
 
@@ -464,7 +472,7 @@ public class RegonClientSearchTests
     {
         var (client, server, limiter, clock) = StrictestClient();
 
-        var result = await WithClockAsync(client.FindByNipsAsync(ValidNips(119), TestContext.Current.CancellationToken), clock);
+        var result = await WithClockAsync(client.FindByNipsAsync(ValidNips(119), TestContext.Current.CancellationToken), clock, limiter);
 
         Assert.Equal(119, result.Value.Count);
         Assert.Equal(1, server.Count("Zaloguj"));
@@ -488,7 +496,7 @@ public class RegonClientSearchTests
         Assert.Equal(TimeSpan.FromMinutes(1), exception.RetryAfter);
 
         // 99 fit
-        var result = await WithClockAsync(client.FindByNipsAsync(ValidNips(99), TestContext.Current.CancellationToken), clock);
+        var result = await WithClockAsync(client.FindByNipsAsync(ValidNips(99), TestContext.Current.CancellationToken), clock, limiter);
         Assert.Equal(99, result.Value.Count);
         Assert.Equal(120, limiter.WeightInLastMinute);
     }
@@ -522,7 +530,7 @@ public class RegonClientSearchTests
     {
         var (client, server, limiter, clock) = StrictestClient();
 
-        var result = await WithClockAsync(client.FindByKrsNumbersAsync(KrsNumbers(119), TestContext.Current.CancellationToken), clock);
+        var result = await WithClockAsync(client.FindByKrsNumbersAsync(KrsNumbers(119), TestContext.Current.CancellationToken), clock, limiter);
 
         Assert.Equal(119, result.Value.Count);
         Assert.Equal(119, server.Count("DaneSzukajPodmioty"));
