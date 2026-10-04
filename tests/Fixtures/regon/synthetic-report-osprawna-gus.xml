@@ -1,0 +1,59 @@
+<root>
+  <dane>
+    <praw_regon9>000331501</praw_regon9>
+    <praw_nip>5261040828</praw_nip>
+    <praw_statusNip />
+    <praw_nazwa>GŁÓWNY URZĄD STATYSTYCZNY</praw_nazwa>
+    <praw_nazwaSkrocona>GUS</praw_nazwaSkrocona>
+    <praw_numerWRejestrzeEwidencji>0000135115</praw_numerWRejestrzeEwidencji>
+    <praw_dataWpisuDoRejestruEwidencji>1990-01-02</praw_dataWpisuDoRejestruEwidencji>
+    <praw_dataPowstania>1975-12-15</praw_dataPowstania>
+    <praw_dataRozpoczeciaDzialalnosci>1975-12-15</praw_dataRozpoczeciaDzialalnosci>
+    <praw_dataWpisuDoRegon>1990-01-02</praw_dataWpisuDoRegon>
+    <praw_dataZawieszeniaDzialalnosci />
+    <praw_dataWznowieniaDzialalnosci />
+    <praw_dataZaistnieniaZmiany />
+    <praw_dataZakonczeniaDzialalnosci />
+    <praw_dataSkresleniaZRegon />
+    <praw_dataOrzeczeniaOUpadlosci />
+    <praw_dataZakonczeniaPostepowaniaUpadlosciowego />
+    <praw_adSiedzKraj_Symbol>PL</praw_adSiedzKraj_Symbol>
+    <praw_adSiedzWojewodztwo_Symbol>14</praw_adSiedzWojewodztwo_Symbol>
+    <praw_adSiedzPowiat_Symbol>65</praw_adSiedzPowiat_Symbol>
+    <praw_adSiedzGmina_Symbol>108</praw_adSiedzGmina_Symbol>
+    <praw_adSiedzKodPocztowy>00925</praw_adSiedzKodPocztowy>
+    <praw_adSiedzMiejscowoscPoczty_Symbol>0918123</praw_adSiedzMiejscowoscPoczty_Symbol>
+    <praw_adSiedzMiejscowosc_Symbol>0918123</praw_adSiedzMiejscowosc_Symbol>
+    <praw_adSiedzUlica_Symbol>99999</praw_adSiedzUlica_Symbol>
+    <praw_adSiedzNumerNieruchomosci>208</praw_adSiedzNumerNieruchomosci>
+    <praw_adSiedzNumerLokalu />
+    <praw_adSiedzNietypoweMiejsceLokalizacji />
+    <praw_numerTelefonu>6083000</praw_numerTelefonu>
+    <praw_numerWewnetrznyTelefonu />
+    <praw_numerFaksu />
+    <praw_adresEmail />
+    <praw_adresStronyinternetowej>stat.gov.pl</praw_adresStronyinternetowej>
+    <praw_adSiedzKraj_Nazwa>POLSKA</praw_adSiedzKraj_Nazwa>
+    <praw_adSiedzWojewodztwo_Nazwa>MAZOWIECKIE</praw_adSiedzWojewodztwo_Nazwa>
+    <praw_adSiedzPowiat_Nazwa>m. st. Warszawa</praw_adSiedzPowiat_Nazwa>
+    <praw_adSiedzGmina_Nazwa>Śródmieście</praw_adSiedzGmina_Nazwa>
+    <praw_adSiedzMiejscowosc_Nazwa>Warszawa</praw_adSiedzMiejscowosc_Nazwa>
+    <praw_adSiedzMiejscowoscPoczty_Nazwa>Warszawa</praw_adSiedzMiejscowoscPoczty_Nazwa>
+    <praw_adSiedzUlica_Nazwa>ul. Test-Krucza</praw_adSiedzUlica_Nazwa>
+    <praw_podstawowaFormaPrawna_Symbol>125</praw_podstawowaFormaPrawna_Symbol>
+    <praw_szczegolnaFormaPrawna_Symbol />
+    <praw_formaFinansowania_Symbol>1</praw_formaFinansowania_Symbol>
+    <praw_formaWlasnosci_Symbol>1</praw_formaWlasnosci_Symbol>
+    <praw_organZalozycielski_Symbol>050000000</praw_organZalozycielski_Symbol>
+    <praw_organRejestrowy_Symbol />
+    <praw_rodzajRejestruEwidencji_Symbol>000</praw_rodzajRejestruEwidencji_Symbol>
+    <praw_podstawowaFormaPrawna_Nazwa>PAŃSTWOWA JEDNOSTKA BUDŻETOWA</praw_podstawowaFormaPrawna_Nazwa>
+    <praw_szczegolnaFormaPrawna_Nazwa />
+    <praw_formaFinansowania_Nazwa>JEDNOSTKA BUDŻETOWA</praw_formaFinansowania_Nazwa>
+    <praw_formaWlasnosci_Nazwa>WŁASNOŚĆ SKARBU PAŃSTWA</praw_formaWlasnosci_Nazwa>
+    <praw_organZalozycielski_Nazwa>ORGAN TESTOWY</praw_organZalozycielski_Nazwa>
+    <praw_organRejestrowy_Nazwa />
+    <praw_rodzajRejestruEwidencji_Nazwa>BRAK REJESTRU</praw_rodzajRejestruEwidencji_Nazwa>
+    <praw_liczbaJednLokalnych>1</praw_liczbaJednLokalnych>
+  </dane>
+</root>

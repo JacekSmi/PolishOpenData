@@ -1,0 +1,17 @@
+<root>
+  <dane>
+    <fiz_regon9>999999990</fiz_regon9>
+    <fiz_nip>9999999999</fiz_nip>
+    <fiz_nazwisko>KOWALSKI</fiz_nazwisko>
+    <fiz_imie1>JAN</fiz_imie1>
+    <fiz_dataWpisuPodmiotuDoRegon>2005-03-01</fiz_dataWpisuPodmiotuDoRegon>
+    <fiz_dataZaistnieniaZmiany>2019-06-01</fiz_dataZaistnieniaZmiany>
+    <fiz_podstawowaFormaPrawna_Symbol>214</fiz_podstawowaFormaPrawna_Symbol>
+    <fiz_podstawowaFormaPrawna_Nazwa>OSOBY FIZYCZNE PROWADZĄCE DZIAŁALNOŚĆ GOSPODARCZĄ</fiz_podstawowaFormaPrawna_Nazwa>
+    <fiz_dzialalnoscCeidg>1</fiz_dzialalnoscCeidg>
+    <fiz_dzialalnoscRolnicza>1</fiz_dzialalnoscRolnicza>
+    <fiz_dzialalnoscPozostala>0</fiz_dzialalnoscPozostala>
+    <fiz_dzialalnoscSkreslonaDo20141108>0</fiz_dzialalnoscSkreslonaDo20141108>
+    <fiz_liczbaJednLokalnych>1</fiz_liczbaJednLokalnych>
+  </dane>
+</root>

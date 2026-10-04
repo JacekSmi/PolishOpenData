@@ -1,0 +1,18 @@
+<root>
+  <dane>
+    <lokpraw_regon14>00033150100017</lokpraw_regon14>
+    <lokpraw_nazwa>ODDZIAŁ TESTOWY 1</lokpraw_nazwa>
+    <lokpraw_adSiedzKodPocztowy>00925</lokpraw_adSiedzKodPocztowy>
+    <lokpraw_adSiedzMiejscowosc_Nazwa>Warszawa</lokpraw_adSiedzMiejscowosc_Nazwa>
+    <lokpraw_dataPowstania>1990-01-02</lokpraw_dataPowstania>
+    <lokpraw_dataZakonczeniaDzialalnosci />
+  </dane>
+  <dane>
+    <lokpraw_regon14>00033150100024</lokpraw_regon14>
+    <lokpraw_nazwa>ODDZIAŁ TESTOWY 2</lokpraw_nazwa>
+    <lokpraw_adSiedzKodPocztowy>80001</lokpraw_adSiedzKodPocztowy>
+    <lokpraw_adSiedzMiejscowosc_Nazwa>Gdańsk</lokpraw_adSiedzMiejscowosc_Nazwa>
+    <lokpraw_dataPowstania>2001-05-10</lokpraw_dataPowstania>
+    <lokpraw_dataZakonczeniaDzialalnosci>2020-01-31</lokpraw_dataZakonczeniaDzialalnosci>
+  </dane>
+</root>

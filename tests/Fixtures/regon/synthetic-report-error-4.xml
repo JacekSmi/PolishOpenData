@@ -1,0 +1,10 @@
+<root>
+  <dane>
+    <ErrorCode>4</ErrorCode>
+    <ErrorMessagePl>Nie znaleziono wpisu dla podanych kryteriów wyszukiwania.</ErrorMessagePl>
+    <ErrorMessageEn>No data found for the specified search criteria.</ErrorMessageEn>
+    <pRegon>000331501</pRegon>
+    <Typ_podmiotu>P</Typ_podmiotu>
+    <Raport>BIR12OsPrawna</Raport>
+  </dane>
+</root>

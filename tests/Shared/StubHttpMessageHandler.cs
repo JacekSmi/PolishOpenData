@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -68,6 +69,32 @@ internal sealed class StubHttpMessageHandler : HttpMessageHandler
 
     public static HttpResponseMessage Empty(HttpStatusCode status) => new(status);
 
+    /// <summary>
+    /// Replays a recorded BIR answer: the status and the raw Content-Type come from <c>regon/&lt;name&gt;.headers</c>,
+    /// the body from <c>regon/&lt;name&gt;.mtom</c>. Shared only because the Regon tests need it; the folder is fixed on purpose.
+    /// </summary>
+    public static HttpResponseMessage Mtom(string name)
+    {
+        var (status, contentType) = ReadHeaders(name);
+        return MtomBytes(status, Fixture.ReadBytes("regon/" + name + ".mtom"), contentType);
+    }
+
+    /// <summary>Like <see cref="Mtom(string)"/> with an explicit status instead of the recorded one.</summary>
+    public static HttpResponseMessage Mtom(HttpStatusCode status, string name) =>
+        MtomBytes(status, Fixture.ReadBytes("regon/" + name + ".mtom"), ReadHeaders(name).ContentType);
+
+    /// <summary>A response with the given bytes whose Content-Type is stored verbatim, so the code under test reads exactly the header string that was recorded.</summary>
+    public static HttpResponseMessage MtomBytes(HttpStatusCode status, byte[] body, string contentType)
+    {
+        var content = new ByteArrayContent(body);
+        content.Headers.TryAddWithoutValidation("Content-Type", contentType);
+        return new HttpResponseMessage(status) { Content = content };
+    }
+
+    /// <summary>An HTML error page such as the one IIS sends for an unsupported media type.</summary>
+    public static HttpResponseMessage Html(HttpStatusCode status, string body) =>
+        new(status) { Content = new StringContent(body, Encoding.UTF8, "text/html") };
+
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
         var body = request.Content is null ? Array.Empty<byte>() : await ReadBodyAsync(request.Content, cancellationToken);
@@ -83,6 +110,14 @@ internal sealed class StubHttpMessageHandler : HttpMessageHandler
         }
 
         return _responder(request);
+    }
+
+    // The two-line format is pinned by FixtureFramingTests: "HTTP <status>" and "Content-Type: <raw value>".
+    private static (HttpStatusCode Status, string ContentType) ReadHeaders(string name)
+    {
+        var lines = Fixture.Read("regon/" + name + ".headers").TrimEnd('\n').Split('\n');
+        var status = (HttpStatusCode)int.Parse(lines[0].Split(' ')[1], NumberStyles.None, CultureInfo.InvariantCulture);
+        return (status, lines[1].Substring("Content-Type: ".Length));
     }
 
     private static Task<byte[]> ReadBodyAsync(HttpContent content, CancellationToken cancellationToken) =>

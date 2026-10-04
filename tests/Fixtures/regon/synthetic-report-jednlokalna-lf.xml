@@ -1,0 +1,13 @@
+<root>
+  <dane>
+    <lokfiz_regon14>99999999000026</lokfiz_regon14>
+    <lokfiz_nazwa>JAN KOWALSKI</lokfiz_nazwa>
+    <lokfiz_silosID>1</lokfiz_silosID>
+    <lokfiz_silos_Nazwa>CEIDG</lokfiz_silos_Nazwa>
+    <lokfiz_dataPowstania>2006-01-10</lokfiz_dataPowstania>
+    <lokfiz_adSiedzKodPocztowy>00001</lokfiz_adSiedzKodPocztowy>
+    <lokfiz_adSiedzMiejscowosc_Nazwa>Warszawa</lokfiz_adSiedzMiejscowosc_Nazwa>
+    <lokfiz_numerwRejestrzeEwidencji>654321</lokfiz_numerwRejestrzeEwidencji>
+    <lokfizC_NiePodjetoDzialalnosci>false</lokfizC_NiePodjetoDzialalnosci>
+  </dane>
+</root>
