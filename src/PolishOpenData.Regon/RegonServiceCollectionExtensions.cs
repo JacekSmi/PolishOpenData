@@ -38,7 +38,7 @@ public static class RegonServiceCollectionExtensions
     public static IHttpClientBuilder AddRegonClient(this IServiceCollection services, Action<RegonClientOptions>? configure = null)
     {
         ArgumentNullException.ThrowIfNull(services);
-        // The typed client is transient, so the session and the limiter are singletons (spec section 0, first gap).
+        // The typed client is transient, so the session and the limiter are singletons.
         var options = new RegonClientOptions();
         configure?.Invoke(options);
         services.TryAddSingleton(TimeProvider.System);

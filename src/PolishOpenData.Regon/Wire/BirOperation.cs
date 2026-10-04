@@ -24,7 +24,7 @@ internal enum BirSearchField
     Krsy,
 }
 
-/// <summary>Wire names of the operations (api-facts.md section 4.1: GetValue lives in another namespace than the rest).</summary>
+/// <summary>Wire names of the operations (GUS BIR1.2 manual: GetValue lives in another namespace than the rest).</summary>
 internal static class BirOperations
 {
     public static string Name(BirOperation operation) => operation switch

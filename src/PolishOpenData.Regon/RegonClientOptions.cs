@@ -67,7 +67,7 @@ public sealed class RegonClientOptions
     /// </summary>
     public TimeSpan MaxRateLimitWait { get; set; } = TimeSpan.FromSeconds(5);
 
-    // GUS's published test key (GUS-Regon-UslugaBIRver1.2 manual p.5; research-gus-bir/api-facts.md section 3). Environment.Test always uses it and ignores UserKey.
+    // GUS's published test key (GUS BIR1.2 manual, p. 5). Environment.Test always uses it and ignores UserKey.
     internal const string TestUserKey = "abcde12345abcde12345";
 
     internal static readonly Uri ProductionAddress = new("https://wyszukiwarkaregon.stat.gov.pl/wsBIR/UslugaBIRzewnPubl.svc");

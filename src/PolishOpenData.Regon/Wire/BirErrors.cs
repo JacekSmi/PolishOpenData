@@ -24,7 +24,7 @@ internal sealed class BirError
     public string? MessageEn { get; }
 }
 
-/// <summary>Maps BIR error rows, SOAP faults and failed HTTP responses to the exceptions of the library (api-facts.md sections 8.1 and 8.3).</summary>
+/// <summary>Maps BIR error rows, SOAP faults and failed HTTP responses to the exceptions of the library (the error codes and faults of the GUS BIR1.2 manual).</summary>
 internal static class BirErrors
 {
     public const int NotFound = 4;

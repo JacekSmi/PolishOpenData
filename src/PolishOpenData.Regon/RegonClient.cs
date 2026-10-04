@@ -24,7 +24,7 @@ namespace PolishOpenData.Bir;
 /// </remarks>
 public sealed class RegonClient : IRegonClient
 {
-    // research-gus-bir/api-facts.md 5.3 (parameter table): a batch search takes at most 20 identifiers.
+    // GUS BIR1.2 manual (search parameters): a batch search takes at most 20 identifiers.
     private const int MaxBatchSize = 20;
     private readonly BirService _service;
     private readonly BirSession _session;
@@ -125,7 +125,7 @@ public sealed class RegonClient : IRegonClient
         var entries = new List<RegonBatchEntry>(ids.Count);
         foreach (var id in ids)
         {
-            // api-facts.md 5.3 (row fields): a search row has no KRS field, so a Krsy batch could not be matched back to the requested numbers; one Krs search per number.
+            // A search row has no KRS field (GUS BIR1.2 manual, search result fields), so a Krsy batch could not be matched back to the requested numbers; one Krs search per number.
             var rows = await _service.SearchAsync(BirSearchField.Krs, id, 1, cancellationToken).ConfigureAwait(false);
             entries.Add(new RegonBatchEntry(id, MapEntities(rows)));
         }
@@ -181,7 +181,7 @@ public sealed class RegonClient : IRegonClient
     /// <inheritdoc/>
     public async Task<RegonResult<DateOnly?>> GetDataDateAsync(CancellationToken cancellationToken = default)
     {
-        // api-facts.md 5.6 and 10: StanDanych is dd-MM-yyyy on the test environment although the manual says 19 characters; ParseDataDate
+        // StanDanych is dd-MM-yyyy on the test environment (observed) although the GUS BIR1.2 manual says 19 characters; ParseDataDate
         // accepts both shapes and gives null for any other text.
         var text = await _service.GetValueAsync("StanDanych", cancellationToken).ConfigureAwait(false);
         var date = RegonMapper.ParseDataDate(text);
@@ -197,7 +197,7 @@ public sealed class RegonClient : IRegonClient
     public Task LogoutAsync(CancellationToken cancellationToken = default) => _service.LogoutAsync(cancellationToken);
 
     // One report is fetched once per call, even when the silo rows of one natural person need it: a sole trader has up to three
-    // search rows, one per silo, which share the general report (research-gus-bir/api-facts.md 5.3 and 5.4, rows 1 to 5).
+    // search rows, one per silo, which share the general report (GUS BIR1.2 manual: search results and full reports).
     private async Task<List<RegonDetails>> DetailsForAsync(List<RegonEntity> entities, RegonInclude include, CancellationToken cancellationToken)
     {
         var cache = new Dictionary<string, IReadOnlyList<BirRow>>(StringComparer.Ordinal);
@@ -261,8 +261,8 @@ public sealed class RegonClient : IRegonClient
         return coreRows;
     }
 
-    // BIR121JednLokalnaOsPrawnej exists from 2026-01 (research-gus-bir/api-facts.md 5.4, row 13a) and the test environment may not
-    // serve it (spec section 0, the gap about BIR121: UNVERIFIED): on GUS error 5 (api-facts.md 8.1) use the older report and remember that in
+    // BIR121JednLokalnaOsPrawnej exists from 2026-01 (GUS BIR1.2 manual) and the test environment may not
+    // serve it (not verified): on GUS error 5 (invalid report name) use the older report and remember that in
     // the shared session, so the next call does not try again.
     private async Task<IReadOnlyList<BirRow>> FetchCoreAsync(RegonEntity entity, RegonReport report, Dictionary<string, IReadOnlyList<BirRow>> cache, CancellationToken cancellationToken)
     {
@@ -305,7 +305,7 @@ public sealed class RegonClient : IRegonClient
         return rows;
     }
 
-    // The PKD report of a natural person lists every silo (api-facts.md 5.4, row 6; each row names its silo): keep the rows of this
+    // The PKD report of a natural person lists every silo (each row names its silo): keep the rows of this
     // entity's silo (a row without a silo belongs to all).
     private static List<RegonPkd> MapPkds(IReadOnlyList<BirRow> rows, RegonEntity entity)
     {
@@ -359,7 +359,7 @@ public sealed class RegonClient : IRegonClient
     }
 
     // Sends the identifiers in chunks of at most 20 (every id counts toward the minute and hour limits) and files each
-    // answered row under the identifier it carries; GUS leaves unknown identifiers out, so some ids get no row (api-facts.md 5.3, [OBS call 7]).
+    // answered row under the identifier it carries; GUS leaves unknown identifiers out, so some ids get no row (observed behaviour of the GUS service).
     private async Task SearchInChunksAsync(
         List<string> ids,
         BirSearchField field,

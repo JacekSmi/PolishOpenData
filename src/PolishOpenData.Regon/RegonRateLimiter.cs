@@ -74,7 +74,7 @@ internal sealed class RegonRateLimiter
         }
     }
 
-    /// <summary>The three limits of a window. Published by GUS: research-gus-bir/api-facts.md section 9.</summary>
+    /// <summary>The three limits of a window. Published by GUS in the BIR1.2 manual.</summary>
     internal readonly struct Limits
     {
         public Limits(int perSecond, int perMinute, int perHour)

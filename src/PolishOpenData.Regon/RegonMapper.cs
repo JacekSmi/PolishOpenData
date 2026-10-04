@@ -13,7 +13,7 @@ namespace PolishOpenData.Bir;
 /// </summary>
 internal static class RegonMapper
 {
-    // StanDanych: "dd-MM-yyyy" on the test service, documented as 19 characters (research-gus-bir/api-facts.md section 5.6 and 10).
+    // StanDanych: "dd-MM-yyyy" on the test service, documented as 19 characters in the GUS BIR1.2 manual.
     private static readonly string[] DataDateFormats =
     [
         "dd-MM-yyyy",
@@ -204,7 +204,7 @@ internal static class RegonMapper
         return merged;
     }
 
-    /// <summary>A report date: exactly <c>yyyy-MM-dd</c> (research-gus-bir/api-facts.md section 10); anything else is <c>null</c>.</summary>
+    /// <summary>A report date: exactly <c>yyyy-MM-dd</c> (GUS BIR1.2 manual); anything else is <c>null</c>.</summary>
     public static DateOnly? ParseDate(string? value)
     {
         if (value is null)
@@ -301,7 +301,7 @@ internal static class RegonMapper
         value is not null && Nip.TryParse(value, out var nip) ? nip : null;
 
     // "1" and "true" are true, "0" and "false" are false, case-insensitive; fiz_dzialalnoscCeidg is an int, fizC_NiePodjetoDzialalnosci an xs:boolean
-    // whose wire form is not known (research-gus-bir/api-facts.md section 10).
+    // whose wire form is not known (GUS BIR1.2 manual).
     private static bool? ParseFlag(string? value)
     {
         if (value is null)

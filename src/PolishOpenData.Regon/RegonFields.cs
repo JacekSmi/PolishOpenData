@@ -103,7 +103,7 @@ internal static class RegonFields
 
     // Raw only on purpose (they stay in RegonDetails.Fields and RegonRecord.Fields): contact data (*_numerTelefonu,
     // *_numerWewnetrznyTelefonu, *_numerFaksu, *_adresEmail, *_adresEmail2, *_adresStronyinternetowej) and the person-name
-    // fields fiz_imie1, fiz_imie2 and fiz_nazwisko (data minimisation, decision D8); the funding, ownership, specific legal
+    // fields fiz_imie1, fiz_imie2 and fiz_nazwisko (data minimisation); the funding, ownership, specific legal
     // form, founding organ and registry organ codes and names; *_adSiedzKraj_Nazwa and *_adSiedzNietypoweMiejsceLokalizacji;
     // *_dataZaistnieniaZmiany*; *_dataZakonczeniaPostepowaniaUpadlosciowego; fizC_dataSkresleniaZRejestruEwidencji; and the
     // silo symbol and name text fields (fiz_Silos_Symbol, lokfiz_Silos_Symbol, lokfiz_silos_Symbol, lokfiz_silos_Nazwa).

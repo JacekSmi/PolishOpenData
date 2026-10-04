@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace PolishOpenData.Bir;
 
 /// <summary>Chooses which BIR1.2 full reports describe an entity, from the <c>Typ</c> and <c>SilosID</c> of its search row.</summary>
-// The table of reports is research-gus-bir/api-facts.md 5.4: a wrong choice (a legal-person report for a sole trader) answers ErrorCode 4.
+// The table of reports is in the GUS BIR1.2 manual: a wrong choice (a legal-person report for a sole trader) answers ErrorCode 4.
 internal static class RegonReportSelector
 {
     private static readonly RegonReport[] None = [];

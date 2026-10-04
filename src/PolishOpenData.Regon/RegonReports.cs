@@ -2,7 +2,7 @@ using System;
 
 namespace PolishOpenData.Bir;
 
-// The report names and the REGON length each report needs: research-gus-bir/api-facts.md section 5.4 (table of the 17 reports).
+// The report names and the REGON length each report needs: the GUS BIR1.2 manual (table of the 17 reports).
 internal static class RegonReports
 {
     /// <summary>The report name GUS expects in <c>pNazwaRaportu</c>.</summary>

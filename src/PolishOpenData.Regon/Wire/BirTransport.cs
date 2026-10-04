@@ -117,7 +117,7 @@ internal sealed class BirTransport
         return result ?? throw HttpHelpers.UnreadableResponse("GUS REGON returned a response with no result element.", response, body);
     }
 
-    // Content-Type is built like the prototype that talked to the live service (dotnet-approach.md section 3.1):
+    // Content-Type is built the way the live service was observed to accept it:
     // application/soap+xml; charset=utf-8; action="<wsa:Action>".
     // No Accept header (it has no effect), no Expect: 100-continue. The sid goes in the "sid" header only; the key only in the Zaloguj body.
     private static HttpRequestMessage CreateMessage(BirRequest request, string? sid)

@@ -12,9 +12,9 @@ using PolishOpenData.Internal;
 namespace PolishOpenData.Bir;
 
 /// <summary>
-/// The BIR operations with session handling, the request limiter and the error rules (spec section 2 "Session"). One
+/// The BIR operations with session handling, the request limiter and the error rules. One
 /// instance per client; the session and the limiter are shared by every client of the process. A dead session answers
-/// with an empty result (research-gus-bir/dotnet-approach.md section 3.6): the service logs in again once and retries
+/// with an empty result (observed behaviour of the GUS service): the service logs in again once and retries
 /// once, never in a loop and without a <c>GetValue</c> probe.
 /// </summary>
 internal sealed class BirService
@@ -184,7 +184,7 @@ internal sealed class BirService
         return result;
     }
 
-    // An empty ZalogujResult is a rejected key (research-gus-bir/api-facts.md section 5.1): never retried, never echoed.
+    // An empty ZalogujResult is a rejected key (observed behaviour of the GUS service): never retried, never echoed.
     private async Task<string> LoginAsync(CancellationToken cancellationToken)
     {
         await _limiter.AcquireAsync(1, cancellationToken).ConfigureAwait(false);
