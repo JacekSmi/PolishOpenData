@@ -70,7 +70,8 @@ public sealed class RegonTestEnvironmentLiveTests
     }
 
     // The typed core of a legal person's report: if GUS renames one of these fields, the mapper returns null for it without
-    // any other failure, so the live test has to notice.
+    // any other failure, so the live test has to notice. The test environment is a stale copy of the register, so only fields
+    // that it fills for GUS are asserted (it has praw_dataPowstania but leaves praw_dataWpisuDoRegon empty).
     internal static void AssertGusDetails(RegonResult<IReadOnlyList<RegonDetails>> details, RegonEnvironment environment)
     {
         Assert.Equal(environment, details.Environment);
@@ -80,7 +81,7 @@ public sealed class RegonTestEnvironmentLiveTests
         Assert.NotNull(d.LegalFormCode);
         Assert.NotNull(d.Address.City);
         Assert.NotNull(d.Address.PostalCode);
-        Assert.NotNull(d.RegonEntryDate);
+        Assert.NotNull(d.FormationDate);
     }
 
     internal static void AssertGusReport(RegonResult<IReadOnlyList<RegonRecord>> report, RegonEnvironment environment)
