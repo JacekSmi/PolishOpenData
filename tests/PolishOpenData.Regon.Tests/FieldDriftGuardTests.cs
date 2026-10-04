@@ -11,8 +11,8 @@ namespace PolishOpenData.Bir.Tests;
 // The drift guard: the 427 field occurrences of the 17 BIR12 reports (tests/Fixtures/regon/bir12-field-names.tsv) must each be either
 // read by a table of RegonFields or on its list of deliberately raw-only fields, and nothing stale may stay in the tables. When GUS adds,
 // renames or drops a field, the TSV is updated and these tests say which table needs a line.
-// The TSV was reconstructed from the BIR11 schemas plus the documented BIR12 differences, not copied from the BIR12 XSDs
-// (GUS BIR1.2 manual; the field list is tests/Fixtures/regon/bir12-field-names.tsv); see tests/Fixtures/README.md.
+// The TSV was checked against the element names of the official BIR1.2 report XSDs (GUS documentation version 1.4) on
+// 2026-10-04 and equals them; see tests/Fixtures/README.md.
 public class FieldDriftGuardTests
 {
     // fields per report, as in tests/Fixtures/regon/bir12-field-names.tsv (sum 427)
