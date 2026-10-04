@@ -15,6 +15,7 @@ public class RegonRecordedReportTests
     private const string GusRegon = "000331501";
 
     private static FakeBirServer RecordedServer() => new FakeBirServer()
+        .RecordedLogin()
         .Search("Regon", GusRegon, "search-regon-gus")
         .Report(GusRegon, "BIR12OsPrawna", "report-osprawna-gus")
         .GetValue("StanDanych", "getvalue-standanych");
@@ -51,6 +52,7 @@ public class RegonRecordedReportTests
         var result = await client.GetDetailsAsync(row, RegonInclude.None, TestContext.Current.CancellationToken);
 
         Assert.Equal(["Zaloguj", "DaneSzukajPodmioty", "DanePobierzPelnyRaport"], server.Calls.Select(c => c.Operation));
+        Assert.All(server.Calls.Skip(1), c => Assert.Equal("0123456789abcdefghij", c.Sid));   // the sid of the recorded login
         Assert.Equal(RegonEnvironment.Test, result.Environment);
         var details = Assert.Single(result.Value);
         Assert.Equal(RegonEntityType.LegalPerson, details.Type);

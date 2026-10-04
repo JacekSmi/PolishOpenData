@@ -65,6 +65,7 @@ internal sealed class FakeBirServer
     private readonly HashSet<string> _validSids = new(StringComparer.Ordinal);
     private int _logins;
     private bool _rejectKey;
+    private string? _recordedLoginSid;
 
     public FakeBirServer() => Handler = new StubHttpMessageHandler(Handle);
 
@@ -118,6 +119,24 @@ internal sealed class FakeBirServer
 
     /// <summary>Routes <c>GetValue(<paramref name="parameter"/>)</c> to a fixture (see <see cref="Search"/>), for example a recorded answer.</summary>
     public FakeBirServer GetValue(string parameter, string fixture) => AddRoute(GetValueKey(parameter), "GetValue", fixture);
+
+    /// <summary>
+    /// Makes every login answer the recorded <c>zaloguj-ok</c> bytes as stored, and accepts the sid that answer carries
+    /// (the same sid for every login).
+    /// </summary>
+    public FakeBirServer RecordedLogin()
+    {
+        const string Open = "<ZalogujResult>";
+        var text = Fixture.Read("regon/zaloguj-ok.mtom");
+        var start = text.IndexOf(Open, StringComparison.Ordinal) + Open.Length;
+        var sid = text.Substring(start, text.IndexOf("</ZalogujResult>", start, StringComparison.Ordinal) - start);
+        lock (_gate)
+        {
+            _recordedLoginSid = sid;
+        }
+
+        return this;
+    }
 
     /// <summary>Makes every login answer an empty result, as the service does for a key it does not know.</summary>
     public FakeBirServer RejectKey()
@@ -221,6 +240,13 @@ internal sealed class FakeBirServer
         string? sid = null;
         lock (_gate)
         {
+            if (!_rejectKey && _recordedLoginSid is not null)
+            {
+                _logins++;
+                _validSids.Add(_recordedLoginSid);
+                return StubHttpMessageHandler.Mtom("zaloguj-ok");
+            }
+
             if (!_rejectKey)
             {
                 _logins++;
