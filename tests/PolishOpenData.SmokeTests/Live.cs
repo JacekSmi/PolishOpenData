@@ -13,7 +13,7 @@ using Xunit.v3;
 namespace PolishOpenData.SmokeTests;
 
 /// <summary>
-/// Gate and shared settings for the live tests, which call the real KRS and Biała Lista APIs. They run only with
+/// Gate and shared settings for the live tests, which call the real KRS, Biała Lista and GUS BIR (REGON) APIs. They run only with
 /// <c>POLISHOPENDATA_SMOKE=1</c>: the weekly <c>nightly-smoke</c> workflow sets it, and so can you, locally.
 /// <para>
 /// Cost of one full run (all live tests), per IP address:
@@ -22,6 +22,8 @@ namespace PolishOpenData.SmokeTests;
 /// <item><term>Biała Lista searches (each NIP or REGON counts, also inside a batch)</term><description>4 (NIP, REGON, 2-NIP batch) / 1 / 1 = 6, sent as 5 requests</description></item>
 /// <item><term>Biała Lista checks</term><description>1 / 1 / 0 = 2</description></item>
 /// <item><term>KRS requests</term><description>5 to 9 (current, full, not-found in P and S, change feed of 1 to 5 weekdays) / 1 / 1 = 7 to 11</description></item>
+/// <item><term>GUS BIR test environment requests (published test key, no secret)</term><description>5 / 0 / 0 = 5</description></item>
+/// <item><term>GUS BIR production requests (needs <c>POLISHOPENDATA_REGON_KEY</c>, owner-run, skipped otherwise)</term><description>4 / 0 / 0 = 4</description></item>
 /// </list>
 /// The change feed asks for an earlier weekday only while the feeds it got were empty (a public holiday, or a feed not
 /// yet published). The MCP tests share one server session, so its cache answers repeated lookups without new upstream
@@ -37,6 +39,13 @@ namespace PolishOpenData.SmokeTests;
 /// locally a few times a day is fine; do not run it in a loop. A test that hits a limit is skipped, not failed.
 /// </para>
 /// <para>
+/// GUS BIR (REGON): <c>RegonTestEnvironmentLiveTests</c> uses GUS's public test environment and its published test key, so it needs
+/// no secret and runs in the weekly workflow. <c>RegonLiveTests</c> calls the production service and runs only when
+/// <see cref="RegonKeyVariable"/> holds the owner's own key; CI never sets it (the production key must not go into GitHub secrets).
+/// GUS logs the IP address, time and content of every request and forbids enumerating identifiers and holding several accounts
+/// for one entity: run the production test sparingly, never in a loop.
+/// </para>
+/// <para>
 /// bash: <c>POLISHOPENDATA_SMOKE=1 dotnet test --project tests/PolishOpenData.SmokeTests -c Release</c><br/>
 /// PowerShell: <c>$env:POLISHOPENDATA_SMOKE='1'; try { dotnet test --project tests/PolishOpenData.SmokeTests -c Release } finally { Remove-Item Env:POLISHOPENDATA_SMOKE }</c><br/>
 /// The published-package test runs <c>dotnet dnx PolishOpenData.Mcp --yes</c> (latest on nuget.org); set
@@ -48,6 +57,9 @@ internal static class Live
 {
     /// <summary>The environment variable that enables the live tests (value <c>1</c>).</summary>
     public const string GateVariable = "POLISHOPENDATA_SMOKE";
+
+    /// <summary>The environment variable that holds your own GUS production key for <c>RegonLiveTests</c>; the test is skipped without it.</summary>
+    public const string RegonKeyVariable = "POLISHOPENDATA_REGON_KEY";
 
     /// <summary>Upper bound for one live test (ms). HttpClient.Timeout does not cover reading a body after the headers.</summary>
     public const int TestTimeout = 120_000;

@@ -5,6 +5,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\PolishOpenData.Krs\PolishOpenData.Krs.csproj" />
     <ProjectReference Include="..\..\src\PolishOpenData.BialaLista\PolishOpenData.BialaLista.csproj" />
+    <ProjectReference Include="..\..\src\PolishOpenData.Regon\PolishOpenData.Regon.csproj" />
     <ProjectReference Include="..\..\src\PolishOpenData.Mcp\PolishOpenData.Mcp.csproj" />
   </ItemGroup>
   <ItemGroup>

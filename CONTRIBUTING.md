@@ -11,7 +11,7 @@ Requirements: .NET 10 SDK (see `global.json`). On Windows the Core, Shared, Krs,
 
 ## Live tests
 
-`tests/PolishOpenData.SmokeTests` checks the libraries, the MCP server (in process, over the MCP protocol) and the published MCP package (`dotnet dnx PolishOpenData.Mcp --yes`, over stdio) against the real KRS and Biała Lista APIs, with ORLEN S.A. as the known subject. Without `POLISHOPENDATA_SMOKE=1` every test is skipped.
+`tests/PolishOpenData.SmokeTests` checks the libraries, the MCP server (in process, over the MCP protocol) and the published MCP package (`dotnet dnx PolishOpenData.Mcp --yes`, over stdio) against the real KRS, Biała Lista and GUS BIR (REGON) APIs, with ORLEN S.A. as the known subject for KRS and Biała Lista and GUS itself for REGON. Without `POLISHOPENDATA_SMOKE=1` every test is skipped.
 
 ```bash
 POLISHOPENDATA_SMOKE=1 dotnet test --project tests/PolishOpenData.SmokeTests -c Release
@@ -30,15 +30,19 @@ One run costs, per IP address:
 | Biała Lista searches (each NIP or REGON counts, also inside a batch) | 4 | 1 | 1 | **6** (5 requests) |
 | Biała Lista checks | 1 | 1 | 0 | **2** |
 | KRS requests | 5 (up to 9) | 1 | 1 | **7** (up to 11) |
+| GUS BIR test environment requests (published test key, no secret) | 5 | 0 | 0 | **5** |
+| GUS BIR production requests (needs `POLISHOPENDATA_REGON_KEY`, owner-run, skipped otherwise) | 4 | 0 | 0 | **4** |
 
 These are the counts when every call succeeds. The change feed test asks for an earlier weekday, up to 5 in all, only while the feeds it got were empty (a public holiday, or a feed not yet published). Failed calls are not cached, so a cancelled or failed search is sent again by the next test that needs it: a run with failures spends at most 9 searches. The MCP server never retries Biała Lista; its KRS client retries transient failures (5xx, 408, 429, connection errors and 10-second attempt timeouts), which can add KRS requests.
+
+The GUS test-environment test needs no secret and counts against GUS's limits for the test service (3 requests per second, 120 per minute): 5 requests are far inside them. The production test runs only when `POLISHOPENDATA_REGON_KEY` holds your own key and is never run by CI: the production key does not go into GitHub secrets, and GUS forbids several accounts for one entity. GUS logs the IP address, time and content of every request and forbids enumerating identifiers, so run the production test sparingly, never in a loop.
 
 Biała Lista allows 100 searches and 5,000 checks per IP address per day, and exceeding either blocks the IP until midnight Warsaw time, including your own searches on podatki.gov.pl. Running the live tests locally a few times a day is fine; don't run them in a loop. A test that reaches a limit is skipped, not failed. The same table is in the `Live` class.
 
 ## Rules
 
 - Unit tests never call the network. They replay recorded responses from `tests/Fixtures/`.
-- Live tests (`tests/PolishOpenData.SmokeTests`) call the real registries and run only with `POLISHOPENDATA_SMOKE=1`; see [Live tests](#live-tests) for their cost. The weekly `nightly-smoke` workflow runs them and opens an issue labelled `smoke-failure` when a registry changes. GitHub disables scheduled workflows in a public repository after 60 days without repository activity; if that happens, re-enable it with `gh workflow enable nightly-smoke`.
+- Live tests (`tests/PolishOpenData.SmokeTests`) call the real registries and run only with `POLISHOPENDATA_SMOKE=1`; see [Live tests](#live-tests) for their cost. The weekly `nightly-smoke` workflow runs them (including the GUS test-environment REGON test, but never the production one) and opens an issue labelled `smoke-failure` when a registry changes. GitHub disables scheduled workflows in a public repository after 60 days without repository activity; if that happens, re-enable it with `gh workflow enable nightly-smoke`.
 - New fixtures must be redacted before committing: keep the ministry's masks (such as `F*****`) as returned; replace any unmasked name of a natural person with `JAN`/`KOWALSKI`; replace free-text fields that can contain names or PESEL numbers (KRS `rodzajProkury`, `umowaStatut` text) with `[REDACTED]`, and likewise the names of notaries or proxies inside other free text, such as the dzial6 merger/split descriptions (`opisPolaczeniaPodzialuPrzeksztalcenia`). Sources and the redaction already applied are listed in [`tests/Fixtures/README.md`](tests/Fixtures/README.md).
 - The `PolishOpenData.Regon` fixtures live in `tests/Fixtures/regon/` and `.gitattributes` marks them `-text`: the recorded `.mtom` files are byte copies of GUS responses whose CRLF framing must survive, so copy them with `cp`, never through an editor, and keep `.gitattributes` committed before you add one. Recorded fixtures hold legal entities only (GUS itself); natural persons appear only as hand-made `synthetic-*` files with `JAN`/`KOWALSKI` and the identifiers of GUS's test database. Sources are in [`tests/Fixtures/README.md`](tests/Fixtures/README.md).
 - Warnings are errors; code uses invariant culture and ordinal comparisons; every async test passes `TestContext.Current.CancellationToken`.
