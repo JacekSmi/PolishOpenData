@@ -3,12 +3,12 @@ using System;
 namespace PolishOpenData.Bir;
 
 /// <summary>
-/// An answer from the GUS REGON register together with where and when it came from. GUS asks re-users of its data to
-/// state the source, the time the information was created and obtained, and that it was processed: the source is the
-/// REGON register (GUS, service BIR), <see cref="DataAsOf"/> is when the data of GUS was current, <see cref="RetrievedAt"/>
-/// is when this library obtained it, and the library maps the fields of GUS into the types of this package.
+/// A GUS REGON answer together with where and when it came from. GUS asks those who reuse its data to name the source, the
+/// time the information was obtained and the fact that it was processed: <see cref="Environment"/> names the source service,
+/// <see cref="RetrievedAt"/> is the time this client assembled the result, <see cref="DataAsOf"/> is the date of the register
+/// data when it is known, and every value was mapped from GUS's XML by this library.
 /// </summary>
-/// <typeparam name="T">The kind of value.</typeparam>
+/// <typeparam name="T">The payload: the rows, the details, the records or the date.</typeparam>
 public sealed class RegonResult<T>
 {
     internal RegonResult(T value, RegonEnvironment environment, DateTimeOffset retrievedAt, DateOnly? dataAsOf)
@@ -28,13 +28,13 @@ public sealed class RegonResult<T>
     /// </summary>
     public RegonEnvironment Environment { get; }
 
-    /// <summary>When this library assembled the result, by the clock it was given (UTC on <see cref="TimeProvider.System"/>).</summary>
+    /// <summary>The time on this client's clock when the result was assembled, which is when the data were obtained from GUS.</summary>
     public DateTimeOffset RetrievedAt { get; }
 
     /// <summary>
-    /// The date of the GUS data (<c>StanDanych</c>), or <c>null</c> when it is not known. It is known only after
-    /// <c>IRegonClient.GetDataDateAsync</c> has been called by a client that shares the session of this one; the
-    /// library never fetches it on its own, because that would cost a request in every call.
+    /// The date of the register data (<c>StanDanych</c>), or <c>null</c> while it is not known. It is known once
+    /// <see cref="IRegonClient.GetDataDateAsync"/> has been called through any client that shares the session; it is never
+    /// fetched implicitly, because that would cost a request in every call.
     /// </summary>
     public DateOnly? DataAsOf { get; }
 }

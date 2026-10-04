@@ -33,11 +33,12 @@ public enum RegonRateLimit
 public sealed class RegonClientOptions
 {
     /// <summary>
-    /// Your own GUS BIR user key. There is no default, and the library never reads environment variables: pass the
-    /// key from user secrets, a vault or a variable of your choice. The key is never logged, never put in a URL or an
-    /// exception message and never printed by <c>ToString()</c>. Required with <see cref="RegonEnvironment.Production"/>.
-    /// Ignored with <see cref="RegonEnvironment.Test"/>, which always uses GUS's published test key; your key is never
-    /// sent to the test service.
+    /// Your own GUS BIR user key. There is no default, and the library never reads environment variables: pass the key from
+    /// user secrets, a vault or a variable of your choice. The key is sent only inside the login request to GUS; it is never
+    /// logged, never put in a URL or a header, never part of an exception message and never printed by <c>ToString()</c>.
+    /// Required with <see cref="RegonEnvironment.Production"/>: a client built without it throws
+    /// <see cref="InvalidOperationException"/> that names this property. Ignored with <see cref="RegonEnvironment.Test"/>,
+    /// which always uses GUS's published test key; your key is never sent to the test service.
     /// </summary>
     public string? UserKey { get; set; }
 

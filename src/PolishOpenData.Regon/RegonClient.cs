@@ -13,12 +13,12 @@ namespace PolishOpenData.Bir;
 /// <para>
 /// The login session and the request limiter are shared state: GUS counts requests per application instance, and a
 /// session id is valid only from the IP address that created it. Register the client once per process with
-/// <c>AddRegonClient</c>, which keeps one session and one limiter in singletons (the typed client itself is transient).
+/// <see cref="RegonServiceCollectionExtensions.AddRegonClient"/>, which keeps one session and one limiter in singletons (the typed client itself is transient).
 /// A client created with the public constructor gets a private session and a private limiter that never see requests
 /// made by other instances.
 /// </para>
 /// <para>
-/// The client never logs out by itself; call <c>LogoutAsync</c> when the process stops. It sets no HTTP timeout: the
+/// The client never logs out by itself; call <see cref="IRegonClient.LogoutAsync"/> when the process stops. It sets no HTTP timeout: the
 /// timeout of the <see cref="HttpClient"/> you pass in applies.
 /// </para>
 /// </remarks>
