@@ -207,7 +207,7 @@ public sealed class RegonClient : IRegonClient
             var coreRows = await FetchCoreRowsAsync(entity, cache, cancellationToken).ConfigureAwait(false);
             if (coreRows is null)
             {
-                continue;   // no report for this type or silo, or GUS has none: nothing to describe
+                continue;   // no core report for this type or silo, or GUS has none: the row is left out (documented on GetDetailsAsync)
             }
 
             IReadOnlyList<RegonPkd>? pkd = null;

@@ -192,6 +192,7 @@ public class RegonModelTests
         Assert.Null(details.HasCeidgActivity);
         Assert.NotNull(details.Fields);
         Assert.Empty(details.Fields);
+        Assert.True(Assert.IsAssignableFrom<ICollection<KeyValuePair<string, string>>>(details.Fields).IsReadOnly);   // the shared default cannot be filled through a cast
         Assert.Equal(string.Empty, entity.Name);
         Assert.NotNull(entity.Address);
         Assert.Null(entity.Regon);

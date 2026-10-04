@@ -33,7 +33,7 @@ public interface IRegonClient
 {
     /// <summary>
     /// Finds the register rows for a NIP. One NIP can match several rows: one per activity type ("silo") of a sole
-    /// trader, and local units. The list is empty when GUS has no entity with this NIP.
+    /// trader. The list is empty when GUS has no entity with this NIP.
     /// </summary>
     /// <exception cref="ArgumentException"><paramref name="nip"/> is empty (<c>default(Nip)</c>).</exception>
     /// <exception cref="RegonAuthenticationException">GUS did not accept the configured key. This is never retried.</exception>
@@ -150,10 +150,21 @@ public interface IRegonClient
     /// units and the partners of a civil partnership.
     /// </summary>
     /// <remarks>
+    /// <para>
+    /// A row is left out when GUS does not return one of its core reports (it answers "not found" for the report) or when
+    /// its type or silo has no core report (an unknown type or silo). The list can therefore be shorter than the search
+    /// result, and empty although the search matched.
+    /// </para>
+    /// <para>
     /// The report to fetch depends on the type and silo of the entity, so this call first searches. Cost in requests (each
     /// counts toward the limits): a legal person needs a login (once per session), the search and one report, plus one for
     /// every included list; a sole trader with one silo needs the search, the general report and one activity report, and
-    /// each further silo adds one activity report (the general report is fetched once).
+    /// each further silo adds one activity report (the general report is fetched once). A local unit of a legal person is
+    /// read with the newer report <c>BIR121JednLokalnaOsPrawnej</c>; when GUS answers that report with ErrorCode 5, the
+    /// older report is fetched as well (one more request) and the session remembers it, so later calls ask for the older
+    /// report directly. <see cref="RegonInclude.Partners"/> costs one request per legal person and gives an empty list both
+    /// for an entity that is not a civil partnership (GUS ErrorCode 21) and for a partnership without partners (ErrorCode 22).
+    /// </para>
     /// </remarks>
     /// <param name="regon">The REGON of an entity (9 digits) or of a local unit (14 digits).</param>
     /// <param name="include">The optional lists to fetch; each costs one more request. Included lists that do not apply to the entity (partners of a sole trader, local units of a local unit) stay <c>null</c>.</param>
@@ -171,8 +182,15 @@ public interface IRegonClient
 
     /// <summary>
     /// Returns the full report of an entity that a search already found, without searching again (one request less than
-    /// the overload that takes a REGON). The list holds one <see cref="RegonDetails"/>, or none when GUS has no report for it.
+    /// the overload that takes a REGON). The list holds one <see cref="RegonDetails"/>, or none when GUS does not return
+    /// one of its core reports or its silo has no core report.
     /// </summary>
+    /// <remarks>
+    /// The costs are those of the other overload without the search: one request per core report and per included list,
+    /// one more when the <c>BIR121JednLokalnaOsPrawnej</c> report of a legal person's local unit falls back to the older
+    /// report (GUS ErrorCode 5), and <see cref="RegonInclude.Partners"/> gives an empty list both for an entity that is not a
+    /// civil partnership (ErrorCode 21) and for a partnership without partners (ErrorCode 22).
+    /// </remarks>
     /// <param name="entity">A row returned by one of the search methods.</param>
     /// <param name="include">The optional lists to fetch; each costs one more request.</param>
     /// <param name="cancellationToken">Cancellation.</param>

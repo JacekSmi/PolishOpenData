@@ -14,8 +14,10 @@ public static class RegonServiceCollectionExtensions
     /// <remarks>
     /// <para>
     /// The typed client is transient, so the session and the limiter live in singletons: every resolved client shares one
-    /// login and one request budget. Call this once per process; the singletons, and the options, belong to the first
-    /// registration. <paramref name="configure"/> runs immediately, and the options are read once when a client is
+    /// login and one request budget. Call this once per process. If it is called again, the singletons keep the settings of
+    /// the first call (the session with its <see cref="RegonClientOptions.SessionLifetime"/>, the limiter with its
+    /// <see cref="RegonClientOptions.RateLimit"/> and <see cref="RegonClientOptions.MaxRateLimitWait"/>), while the typed client
+    /// is built with the options of the last call (the last registration wins). <paramref name="configure"/> runs immediately, and the options are read once when a client is
     /// resolved: a production client without <see cref="RegonClientOptions.UserKey"/> throws
     /// <see cref="InvalidOperationException"/> on the first resolve. The key comes from you (user secrets, a vault, an
     /// environment variable you choose); this library never reads the environment.

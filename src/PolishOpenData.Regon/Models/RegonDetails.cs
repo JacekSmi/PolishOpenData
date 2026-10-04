@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace PolishOpenData.Bir;
 
@@ -182,6 +183,12 @@ public sealed class RegonDetails
     /// <summary>The partners of a civil partnership; <c>null</c> unless <see cref="RegonInclude.Partners"/> was requested and applies.</summary>
     public IReadOnlyList<RegonPartner>? Partners { get; init; }
 
-    /// <summary>Every non-empty field of the core reports by its GUS name, for example <c>praw_numerTelefonu</c>. Contact data and person names are here and nowhere else.</summary>
-    public IReadOnlyDictionary<string, string> Fields { get; init; } = new Dictionary<string, string>();
+    /// <summary>
+    /// Every non-empty field of the core reports by its GUS name, for example <c>praw_numerTelefonu</c>. The contact data and
+    /// the person names of this entity are here only, not in typed properties (partners have their own <see cref="RegonPartner"/>).
+    /// Empty by default.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> Fields { get; init; } = EmptyFields;
+
+    private static readonly IReadOnlyDictionary<string, string> EmptyFields = new ReadOnlyDictionary<string, string>(new Dictionary<string, string>());
 }
