@@ -74,6 +74,17 @@ public class HttpHelpersTests
     }
 
     [Fact]
+    public async Task Capped_read_returns_a_short_body_whole_and_stops_one_byte_past_the_cap()
+    {
+        using var small = new ByteArrayContent([1, 2, 3]);
+        Assert.Equal(new byte[] { 1, 2, 3 }, await small.ReadBytesAsync(3, TestContext.Current.CancellationToken));
+
+        using var endless = new StreamContent(new EndlessStream());
+        var body = await endless.ReadBytesAsync(100_000, TestContext.Current.CancellationToken);
+        Assert.Equal(100_001, body.Length);
+    }
+
+    [Fact]
     public void Reads_retry_after_delta()
     {
         using var response = new HttpResponseMessage((HttpStatusCode)429);
@@ -165,4 +176,24 @@ public class HttpHelpersTests
             return true;
         }
     }
+}
+
+/// <summary>A non-seekable stream of zeros with no end and no length, like a chunked body that never stops.</summary>
+internal sealed class EndlessStream : Stream
+{
+    public override bool CanRead => true;
+    public override bool CanSeek => false;
+    public override bool CanWrite => false;
+    public override long Length => throw new NotSupportedException();
+    public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+    public override void Flush() { }
+    public override int Read(byte[] buffer, int offset, int count)
+    {
+        Array.Clear(buffer, offset, count);
+        return count;
+    }
+
+    public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+    public override void SetLength(long value) => throw new NotSupportedException();
+    public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
 }

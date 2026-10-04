@@ -70,7 +70,7 @@ internal sealed class BirTransport
                 null);
         }
 
-        var body = await response.Content.ReadBytesAsync(cancellationToken).ConfigureAwait(false);
+        var body = await response.Content.ReadBytesAsync(MaxResponseBytes, cancellationToken).ConfigureAwait(false);
         if (body.Length > MaxResponseBytes)
         {
             throw new PolishOpenDataApiException(

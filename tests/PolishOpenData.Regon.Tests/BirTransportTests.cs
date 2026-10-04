@@ -151,6 +151,36 @@ public class BirTransportTests
         Assert.Equal(HttpStatusCode.OK, exception.StatusCode);
     }
 
+    [Fact]
+    public async Task Body_without_content_length_is_cut_off_at_the_cap()
+    {
+        var (transport, _) = Create(_ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(new EndlessZeroStream()) });
+
+        var exception = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => transport.SendAsync(SearchRequest(), DummySid, TestContext.Current.CancellationToken));
+
+        Assert.Contains("more than 67108864 bytes", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.OK, exception.StatusCode);
+    }
+
+    private sealed class EndlessZeroStream : System.IO.Stream
+    {
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override void Flush() { }
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            Array.Clear(buffer, offset, count);
+            return count;
+        }
+
+        public override long Seek(long offset, System.IO.SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("has space")]
