@@ -365,8 +365,31 @@ public class RegonMapperTests
         Assert.Equal("Uprawy testowe", pkd[1].Name);
         Assert.Equal(RegonSilo.Agricultural, pkd[1].Silo);
         Assert.Equal("2007", pkd[1].Version);
-        Assert.Equal(RegonSilo.Unknown, RegonMapper.MapPkd(Row(("fiz_pkd_Kod", "6201Z"), ("fiz_SilosID", "x"))).Silo);
+        Assert.Equal(RegonSilo.Unknown, RegonMapper.MapPkd(Row(("fiz_pkdKod", "6201Z"), ("fiz_SilosID", "x"))).Silo);
         Assert.Equal(string.Empty, RegonMapper.MapPkd(Row()).Code);
+    }
+
+    // The natural-person PKD reports use the BIR1.2 names of the official XSDs (fiz_pkdKod, lokfiz_pkdKod, ...); the live test
+    // environment sends these names too.
+    [Fact]
+    public void Maps_natural_person_pkd_rows_with_the_official_names()
+    {
+        var fiz = RegonMapper.MapPkd(Row(
+            ("fiz_pkdWersja", "2025"), ("fiz_pkdKod", "6201Z"), ("fiz_pkdNazwa", "Działalność testowa C"),
+            ("fiz_pkdPrzewazajace", "1"), ("fiz_SilosID", "1"), ("fiz_SilosSymbol", "CEIDG")));
+        var lokfiz = RegonMapper.MapPkd(Row(
+            ("lokfiz_pkdWersja", "2007"), ("lokfiz_pkdKod", "0111Z"), ("lokfiz_pkdNazwa", "Uprawy testowe"),
+            ("lokfiz_pkdPrzewazajace", "0"), ("lokfiz_SilosSymbol", "ROLN")));
+
+        Assert.Equal("6201Z", fiz.Code);
+        Assert.Equal("Działalność testowa C", fiz.Name);
+        Assert.True(fiz.IsPrimary);
+        Assert.Equal("2025", fiz.Version);
+        Assert.Equal(RegonSilo.Ceidg, fiz.Silo);
+        Assert.Equal("0111Z", lokfiz.Code);
+        Assert.Equal("Uprawy testowe", lokfiz.Name);
+        Assert.False(lokfiz.IsPrimary);
+        Assert.Equal("2007", lokfiz.Version);
     }
 
     [Fact]

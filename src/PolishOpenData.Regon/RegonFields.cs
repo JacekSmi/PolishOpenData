@@ -67,9 +67,9 @@ internal static class RegonFields
     public static readonly string[] AddressPostalCode = ["praw_adSiedzKodPocztowy", "fiz_adSiedzKodPocztowy", "lokpraw_adSiedzKodPocztowy", "lokfiz_adSiedzKodPocztowy"];
     public static readonly string[] AddressBuildingNumber = ["praw_adSiedzNumerNieruchomosci", "fiz_adSiedzNumerNieruchomosci", "lokpraw_adSiedzNumerNieruchomosci", "lokfiz_adSiedzNumerNieruchomosci"];
     public static readonly string[] AddressApartmentNumber = ["praw_adSiedzNumerLokalu", "fiz_adSiedzNumerLokalu", "lokpraw_adSiedzNumerLokalu", "lokfiz_adSiedzNumerLokalu"];
-    public static readonly string[] PkdCode = ["praw_pkdKod", "fiz_pkd_Kod", "lokpraw_pkdKod", "lokfiz_pkd_Kod"];
-    public static readonly string[] PkdName = ["praw_pkdNazwa", "fiz_pkd_Nazwa", "lokpraw_pkdNazwa", "lokfiz_pkd_Nazwa"];
-    public static readonly string[] PkdPrimary = ["praw_pkdPrzewazajace", "fiz_pkd_Przewazajace", "lokpraw_pkdPrzewazajace", "lokfiz_pkd_Przewazajace"];
+    public static readonly string[] PkdCode = ["praw_pkdKod", "fiz_pkdKod", "lokpraw_pkdKod", "lokfiz_pkdKod"];
+    public static readonly string[] PkdName = ["praw_pkdNazwa", "fiz_pkdNazwa", "lokpraw_pkdNazwa", "lokfiz_pkdNazwa"];
+    public static readonly string[] PkdPrimary = ["praw_pkdPrzewazajace", "fiz_pkdPrzewazajace", "lokpraw_pkdPrzewazajace", "lokfiz_pkdPrzewazajace"];
     public static readonly string[] PkdVersion = ["praw_pkdWersja", "fiz_pkdWersja", "lokpraw_pkdWersja", "lokfiz_pkdWersja"];
     public static readonly string[] PkdSiloId = ["fiz_SilosID"];
     public static readonly string[] LocalUnitSiloId = ["lokfiz_silosID"];
@@ -106,13 +106,13 @@ internal static class RegonFields
     // fields fiz_imie1, fiz_imie2 and fiz_nazwisko (data minimisation); the funding, ownership, specific legal
     // form, founding organ and registry organ codes and names; *_adSiedzKraj_Nazwa and *_adSiedzNietypoweMiejsceLokalizacji;
     // *_dataZaistnieniaZmiany*; *_dataZakonczeniaPostepowaniaUpadlosciowego; fizC_dataSkresleniaZRejestruEwidencji; and the
-    // silo symbol and name text fields (fiz_Silos_Symbol, lokfiz_Silos_Symbol, lokfiz_silos_Symbol, lokfiz_silos_Nazwa).
+    // silo symbol and name text fields (fiz_SilosSymbol, lokfiz_SilosSymbol, lokfiz_silos_Symbol, lokfiz_silos_Nazwa).
     // The field names are those of tests/Fixtures/regon/bir12-field-names.tsv.
     /// <summary>Report field names that are deliberately not typed; they stay available in <c>RegonDetails.Fields</c> / <c>RegonRecord.Fields</c>.</summary>
     public static readonly HashSet<string> RawOnly = new(StringComparer.Ordinal)
     {
         "fizC_OrganRejestrowy_Nazwa", "fizC_OrganRejestrowy_Symbol", "fizC_dataSkresleniaZRejestruEwidencji",
-        "fizP_OrganRejestrowy_Nazwa", "fizP_OrganRejestrowy_Symbol", "fiz_Silos_Symbol",
+        "fizP_OrganRejestrowy_Nazwa", "fizP_OrganRejestrowy_Symbol", "fiz_SilosSymbol",
         "fiz_adSiedzKraj_Nazwa", "fiz_adSiedzNietypoweMiejsceLokalizacji", "fiz_adresEmail",
         "fiz_adresEmail2", "fiz_adresStronyinternetowej", "fiz_dataZaistnieniaZmiany",
         "fiz_dataZaistnieniaZmianyDzialalnosci", "fiz_dataZakonczeniaPostepowaniaUpadlosciowego", "fiz_formaFinansowania_Nazwa",
@@ -121,7 +121,7 @@ internal static class RegonFields
         "fiz_numerFaksu", "fiz_numerTelefonu", "fiz_numerWewnetrznyTelefonu",
         "fiz_szczegolnaFormaPrawna_Nazwa", "fiz_szczegolnaFormaPrawna_Symbol", "lokfiz_FormaFinansowania_Nazwa",
         "lokfiz_FormaFinansowania_Symbol", "lokfiz_OrganRejestrowy_Nazwa", "lokfiz_OrganRejestrowy_Symbol",
-        "lokfiz_Silos_Symbol", "lokfiz_adSiedzKraj_Nazwa", "lokfiz_adSiedzNietypoweMiejsceLokalizacji",
+        "lokfiz_SilosSymbol", "lokfiz_adSiedzKraj_Nazwa", "lokfiz_adSiedzNietypoweMiejsceLokalizacji",
         "lokfiz_dataZaistnieniaZmiany", "lokfiz_silos_Nazwa", "lokfiz_silos_Symbol",
         "lokpraw_adSiedzKraj_Nazwa", "lokpraw_adSiedzNietypoweMiejsceLokalizacji", "lokpraw_dataZaistnieniaZmiany",
         "lokpraw_formaFinansowania_Nazwa", "lokpraw_formaFinansowania_Symbol", "lokpraw_organRejestrowy_Nazwa",

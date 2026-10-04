@@ -1,18 +1,18 @@
 <root>
   <dane>
-    <fiz_pkd_Kod>6201Z</fiz_pkd_Kod>
-    <fiz_pkd_Nazwa>Działalność testowa C</fiz_pkd_Nazwa>
-    <fiz_pkd_Przewazajace>1</fiz_pkd_Przewazajace>
+    <fiz_pkdKod>6201Z</fiz_pkdKod>
+    <fiz_pkdNazwa>Działalność testowa C</fiz_pkdNazwa>
+    <fiz_pkdPrzewazajace>1</fiz_pkdPrzewazajace>
     <fiz_SilosID>1</fiz_SilosID>
-    <fiz_Silos_Symbol>CEIDG</fiz_Silos_Symbol>
+    <fiz_SilosSymbol>CEIDG</fiz_SilosSymbol>
     <fiz_pkdWersja>2025</fiz_pkdWersja>
   </dane>
   <dane>
-    <fiz_pkd_Kod>0111Z</fiz_pkd_Kod>
-    <fiz_pkd_Nazwa>Uprawy testowe</fiz_pkd_Nazwa>
-    <fiz_pkd_Przewazajace>1</fiz_pkd_Przewazajace>
+    <fiz_pkdKod>0111Z</fiz_pkdKod>
+    <fiz_pkdNazwa>Uprawy testowe</fiz_pkdNazwa>
+    <fiz_pkdPrzewazajace>1</fiz_pkdPrzewazajace>
     <fiz_SilosID>2</fiz_SilosID>
-    <fiz_Silos_Symbol>ROLN</fiz_Silos_Symbol>
+    <fiz_SilosSymbol>ROLN</fiz_SilosSymbol>
     <fiz_pkdWersja>2007</fiz_pkdWersja>
   </dane>
 </root>
