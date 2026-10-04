@@ -1,1 +1,2 @@
 * text=auto
+tests/Fixtures/regon/** -text
