@@ -7,7 +7,7 @@ dotnet build -c Release
 dotnet test -c Release
 ```
 
-Requirements: .NET 10 SDK (see `global.json`). On Windows the Core, Shared, Krs and BialaLista tests also run on .NET Framework 4.7.2. Tests use xUnit v3 on Microsoft Testing Platform (`dotnet test --project tests/<Project>` runs one project).
+Requirements: .NET 10 SDK (see `global.json`). On Windows the Core, Shared, Krs, BialaLista and Regon tests also run on .NET Framework 4.7.2. Tests use xUnit v3 on Microsoft Testing Platform (`dotnet test --project tests/<Project>` runs one project).
 
 ## Live tests
 
@@ -40,6 +40,7 @@ Biała Lista allows 100 searches and 5,000 checks per IP address per day, and ex
 - Unit tests never call the network. They replay recorded responses from `tests/Fixtures/`.
 - Live tests (`tests/PolishOpenData.SmokeTests`) call the real registries and run only with `POLISHOPENDATA_SMOKE=1`; see [Live tests](#live-tests) for their cost. The weekly `nightly-smoke` workflow runs them and opens an issue labelled `smoke-failure` when a registry changes. GitHub disables scheduled workflows in a public repository after 60 days without repository activity; if that happens, re-enable it with `gh workflow enable nightly-smoke`.
 - New fixtures must be redacted before committing: keep the ministry's masks (such as `F*****`) as returned; replace any unmasked name of a natural person with `JAN`/`KOWALSKI`; replace free-text fields that can contain names or PESEL numbers (KRS `rodzajProkury`, `umowaStatut` text) with `[REDACTED]`, and likewise the names of notaries or proxies inside other free text, such as the dzial6 merger/split descriptions (`opisPolaczeniaPodzialuPrzeksztalcenia`). Sources and the redaction already applied are listed in [`tests/Fixtures/README.md`](tests/Fixtures/README.md).
+- The `PolishOpenData.Regon` fixtures live in `tests/Fixtures/regon/` and `.gitattributes` marks them `-text`: the recorded `.mtom` files are byte copies of GUS responses whose CRLF framing must survive, so copy them with `cp`, never through an editor, and keep `.gitattributes` committed before you add one. Recorded fixtures hold legal entities only (GUS itself); natural persons appear only as hand-made `synthetic-*` files with `JAN`/`KOWALSKI` and the identifiers of GUS's test database. Sources are in [`tests/Fixtures/README.md`](tests/Fixtures/README.md).
 - Warnings are errors; code uses invariant culture and ordinal comparisons; every async test passes `TestContext.Current.CancellationToken`.
 
 ## Updating the KW court table
@@ -57,4 +58,4 @@ One-time setup by the repository owner. Do steps 2, 3 and 5 only after the repos
 4. GitHub repository secret `NUGET_USER` = the nuget.org profile name (not the e-mail address).
 5. GitHub → Settings → Advanced Security → enable **Private vulnerability reporting** (`SECURITY.md` relies on it).
 
-Package validation compares each library package with the release named by `PackageValidationBaselineVersion` in `src/Directory.Build.props` (currently 1.1.0), so an accidental breaking change fails `dotnet pack`. After a release is on nuget.org, raise it to that version. The MCP tool package is not compared: the .NET SDK turns package validation off for tool packages.
+Package validation compares each library package with the release named by `PackageValidationBaselineVersion` in `src/Directory.Build.props` (currently 1.1.0), so an accidental breaking change fails `dotnet pack`. After a release is on nuget.org, raise it to that version. The MCP tool package is not compared: the .NET SDK turns package validation off for tool packages. `PolishOpenData.Regon` overrides `PackageValidationBaselineVersion` with an empty value in its own project file, because no release of it exists yet to compare with: after 1.2.0 is on nuget.org, raise the baseline in `src/Directory.Build.props` to 1.2.0 and delete that override.

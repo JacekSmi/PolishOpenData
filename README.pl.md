@@ -1,6 +1,6 @@
 # PolishOpenData
 
-**Biblioteki .NET i serwer MCP dla polskich rejestrów publicznych** — dane firm z KRS, Biała Lista podatników VAT ze sprawdzaniem rachunków oraz walidacja offline NIP, REGON, numeru KRS, NRB i numeru księgi wieczystej (KW).
+**Biblioteki .NET i serwer MCP dla polskich rejestrów publicznych** — dane firm z KRS, Biała Lista podatników VAT ze sprawdzaniem rachunków, klient rejestru GUS REGON (tylko biblioteka) oraz walidacja offline NIP, REGON, numeru KRS, NRB i numeru księgi wieczystej (KW).
 
 🇬🇧 [English version](https://github.com/JacekSmi/PolishOpenData/blob/main/README.md)
 
@@ -13,7 +13,8 @@
 | `PolishOpenData.Core` | Typy wartości offline: `Nip`, `Regon`, `KrsNumber`, `Nrb`, `KwNumber` (+ oficjalna tabela kodów sądów) |
 | `PolishOpenData.Krs` | API KRS: odpis aktualny i pełny, podmioty wykreślone, dzienny biuletyn zmian, podsumowanie |
 | `PolishOpenData.BialaLista` | Wykaz podatników VAT: status, sprawdzenie rachunku z identyfikatorem zapytania, zapytania zbiorcze, ochrona limitu dziennego |
-| `PolishOpenData.Mcp` | Serwer MCP udostępniający powyższe asystentom AI |
+| `PolishOpenData.Regon` | GUS REGON (BIR1.2): wyszukiwanie po NIP/REGON/KRS, zapytania zbiorcze po 20, pełne raporty, sesja i ogranicznik zapytań; wymaga własnego, bezpłatnego klucza GUS |
+| `PolishOpenData.Mcp` | Serwer MCP dla asystentów AI: dane firmy, Biała Lista i sprawdzanie rachunku, odpisy KRS, walidacja numerów |
 
 Biblioteki działają na .NET 10 oraz .NET Framework / starszych .NET (netstandard2.0) — także w dodatkach do systemów ERP.
 
@@ -63,6 +64,45 @@ Console.WriteLine("Identyfikator zapytania: " + check.RequestId);
 
 Ponawianie zapytań (retry) jest wyłączone dla Białej Listy: każda próba ponowienia to kolejne zapytanie, którego nie liczy powyższy strażnik limitu, a po wyczerpaniu dziennego limitu Biała Lista blokuje cały adres IP (nie tylko ten proces) do północy. Zarejestruj `AddBialaListaClient` raz na proces i współdziel powstałego klienta (albo jeden wspólny `BialaListaQuotaTracker`) — klient utworzony bez DI i bez współdzielonego licznika dostaje własny, prywatny licznik, który nie widzi zapytań innych instancji.
 
+## Szybki start: GUS REGON
+
+`PolishOpenData.Regon` to klient usługi BIR1.2 w GUS: wyszukiwanie po NIP, REGON lub numerze KRS, zapytania zbiorcze po 20 identyfikatorów oraz pełne raporty osób prawnych, przedsiębiorców jednoosobowych i jednostek lokalnych. Wymaga własnego klucza (bezpłatnego: napisz na `regon_bir@stat.gov.pl`); publiczne środowisko testowe GUS działa bez klucza, ale udostępnia starą, zanonimizowaną kopię rejestru.
+
+```bash
+dotnet add package PolishOpenData.Regon
+```
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using PolishOpenData;
+using PolishOpenData.Bir;
+using System.Linq;
+
+var services = new ServiceCollection();
+services.AddRegonClient(o => o.UserKey = Environment.GetEnvironmentVariable("MOJA_APLIKACJA_KLUCZ_REGON")); // klucz z własnej konfiguracji
+// Publiczne środowisko testowe GUS nie wymaga klucza: services.AddRegonClient(o => o.Environment = RegonEnvironment.Test);
+using var provider = services.BuildServiceProvider();
+var regon = provider.GetRequiredService<IRegonClient>();
+
+var found = await regon.FindByNipAsync(Nip.Parse("526-104-08-28"));
+var entity = found.Value[0];
+Console.WriteLine($"{entity.Name}, {entity.Address.City} (REGON {entity.Regon})");
+
+var details = (await regon.GetDetailsAsync(entity, RegonInclude.Pkd)).Value[0];
+Console.WriteLine($"{details.LegalFormName}; główne PKD {details.Pkd!.First(p => p.IsPrimary).Code}");
+Console.WriteLine($"Źródło: GUS REGON ({found.Environment}), pobrano {found.RetrievedAt:u}");
+
+await regon.LogoutAsync();
+```
+
+Domyślnie klient ogranicza się do najostrzejszego okna GUS (3 wywołania na sekundę, 120 identyfikatorów na minutę, 6000 identyfikatorów na godzinę; zapytanie zbiorcze do 20 identyfikatorów to jedno wywołanie dla limitu na sekundę, a limity na minutę i na godzinę liczą identyfikatory) i utrzymuje jedną sesję logowania. Zarejestruj `AddRegonClient` raz na proces i współdziel klienta: GUS liczy zapytania na instancję aplikacji, a sesja działa tylko z adresu IP, który ją utworzył. Wywołaj `LogoutAsync`, gdy proces się kończy; klient nigdy nie robi tego sam. Klient utworzony bez DI dostaje własną, prywatną sesję i własny ogranicznik.
+
+Ponawianie zapytań (retry) jest wyłączone także dla REGON, tak jak dla Białej Listy: ponowienie wykonane przez handler odporności to kolejne zapytanie do GUS, którego ogranicznik nie policzy, a błąd SOAP (Fault), który oznacza, że zapytanie było błędne, przychodzi jako HTTP 500 i też zostałby ponowiony. Jeśli dodajesz `AddStandardResilienceHandler`, wyłącz w nim ponowienia, jak w przykładzie z Białą Listą.
+
+**Klucze i środowisko testowe.** Biblioteka działa w modelu „przynieś własny klucz”: nie zawiera produkcyjnego klucza, nigdy nie czyta zmiennych środowiskowych i nigdy nie zapisuje ani nie wypisuje Twojego klucza. Instrukcja techniczna GUS ogranicza sposób obsługi kluczy w oprogramowaniu rozpowszechnianym wśród innych użytkowników (rozdział 3.6.3), więc zanim zaczniesz rozpowszechniać aplikację korzystającą z tej biblioteki, sprawdź zasady GUS. `RegonEnvironment.Test` wybiera publiczną usługę testową GUS i jej opublikowany klucz testowy (skonfigurowany `UserKey` jest tam pomijany i nigdy nie trafia do usługi testowej, więc możesz zostawić własny klucz w konfiguracji i tylko przełączyć środowisko); każdy wynik podaje środowisko, z którego pochodzi (`RegonResult.Environment`), więc zanonimizowane dane testowe (głównie z 2014 r.) nie wyglądają na aktualne.
+
+**Koszt.** Szczegóły kosztują zapytania: osoba prawna to logowanie, wyszukanie i jeden raport (3 zapytania), każda opcjonalna lista (`RegonInclude.Pkd`, `LocalUnits`, `Partners`) to kolejne zapytanie, a przedsiębiorca jednoosobowy potrzebuje raportu ogólnego oraz jednego raportu na rodzaj działalności. `RegonResult.DataAsOf` jest wypełnione dopiero po wywołaniu `GetDataDateAsync` (jedno zapytanie).
+
 ## Serwer MCP
 
 Wymaga [.NET 10 SDK](https://dotnet.microsoft.com/download). Bez kluczy API.
@@ -85,11 +125,14 @@ Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_acco
 - Biała Lista pozwala na ok. 100 wyszukiwań i 5000 sprawdzeń dziennie z jednego adresu IP; przekroczenie blokuje IP do północy, także w wyszukiwarce ministerstwa.
 - KRS maskuje osoby fizyczne w polach strukturalnych. Serwer MCP nigdy nie przekazuje asystentom AI wolnotekstowego pola prokury (`rodzajProkury`) ani surowych sekcji KRS, a z pól wolnotekstowych, które zwraca (sposób reprezentacji, udziały wspólników), usuwa numery przypominające PESEL (11 cyfr albo 6 + 5 cyfr rozdzielonych jedną spacją lub łącznikiem, o ile nie są częścią dłuższego ciągu cyfr). Biblioteki zwracają dane w postaci opublikowanej przez rejestr: `KrsCurrentExtract` zawiera `rodzajProkury`, a `ToSummary()` przekazuje sposób reprezentacji i udziały bez zmian — przed wyświetleniem lub zapisaniem oczyść je we własnym zakresie.
 - Biała Lista z mocy ustawy publikuje imiona i nazwiska przedsiębiorców jednoosobowych, reprezentantów, prokurentów i wspólników, a dla części z nich numer PESEL. Biblioteka zwraca je tak, jak zostały opublikowane; serwer MCP zwraca tylko nazwę podatnika i jeden adres (dla jednoosobowej działalności — imię i nazwisko właściciela oraz, gdy nie podano adresu działalności, adres zamieszkania).
+- GUS zapisuje adres IP, czas i treść każdego zapytania do REGON. Nie wyliczaj kolejnych identyfikatorów (GUS tego zabrania i odcina dostęp), nie miej kilku kluczy dla jednego podmiotu i mieść się w limitach; ogranicznik klienta domyślnie stosuje najostrzejsze okno (limit na sekundę liczy wywołania, więc zapytanie zbiorcze do 20 identyfikatorów to jedno wywołanie; limity na minutę i na godzinę liczą identyfikatory).
+- Biblioteka REGON zwraca dane tak, jak zostały opublikowane. Firma przedsiębiorcy jednoosobowego jest z mocy prawa jego imieniem i nazwiskiem, a adres może być adresem zamieszkania; GUS nie publikuje numerów PESEL. Instrukcja mówi, że numery telefonu i faksu przedsiębiorców jednoosobowych nie są przekazywane osobom trzecim; czy tak jest dziś dla każdego pola, nie sprawdzono, a w grudniu 2026 r. zmienia się prawo, więc sprawdź, co zapisujesz (`RegonDetails.Fields` zawiera każde pole, które przysłał GUS). Nazwy mogą zawierać HTML lub fragmenty podobne do SQL (GUS przed tym ostrzega): traktuj je jako dane niezaufane.
+- Podawaj źródło i czas danych z REGON: `RegonResult` zawiera środowisko (`Production` albo `Test`), czas pobrania oraz, po wywołaniu `GetDataDateAsync`, datę danych. GUS prosi tych, którzy wykorzystują jego dane ponownie, o wskazanie źródła i czasu oraz o informację, że dane zostały przetworzone.
 - Bez scrapingu, bez masowego pobierania, bez łączenia działek z numerami ksiąg wieczystych.
 
 ## Możliwe kolejne kroki
 
-Pomysły, nie zobowiązania: wyszukiwanie w GUS REGON (BIR), sprawdzanie offline na podstawie pliku płaskiego Białej Listy oraz dane nieruchomości (działki ULDK, geokoder GUGiK, ceny transakcyjne). Jeśli któryś z nich by Ci się przydał, [otwórz issue](https://github.com/JacekSmi/PolishOpenData/issues), aby dać znać.
+Pomysły, nie zobowiązania: sprawdzanie offline na podstawie pliku płaskiego Białej Listy oraz dane nieruchomości (działki ULDK, geokoder GUGiK, ceny transakcyjne). Rozważamy narzędzie REGON w serwerze MCP, ale tylko jeśli GUS potwierdzi zasady dotyczące kluczy użytkowników. Jeśli któryś z nich by Ci się przydał, [otwórz issue](https://github.com/JacekSmi/PolishOpenData/issues), aby dać znać.
 
 ## Współpraca i licencja
 
