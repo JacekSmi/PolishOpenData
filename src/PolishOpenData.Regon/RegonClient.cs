@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -129,7 +130,223 @@ public sealed class RegonClient : IRegonClient
         return Wrap<IReadOnlyList<RegonBatchEntry>>(entries);
     }
 
-    private static BirService CreateService(HttpClient httpClient, RegonClientOptions options, BirSession session, RegonRateLimiter limiter) =>
+        /// <inheritdoc/>
+    public async Task<RegonResult<IReadOnlyList<RegonDetails>>> GetDetailsAsync(Regon regon, RegonInclude include = RegonInclude.None, CancellationToken cancellationToken = default)
+    {
+        RequireValue(regon.IsEmpty, nameof(regon));
+        var rows = await _service.SearchAsync(BirSearchField.Regon, regon.ToString(), 1, cancellationToken).ConfigureAwait(false);
+        var details = await DetailsForAsync(MapEntities(rows), include, cancellationToken).ConfigureAwait(false);
+        return Wrap<IReadOnlyList<RegonDetails>>(details);
+    }
+
+    /// <inheritdoc/>
+    public async Task<RegonResult<IReadOnlyList<RegonDetails>>> GetDetailsAsync(RegonEntity entity, RegonInclude include = RegonInclude.None, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+        if (entity.Regon is null || entity.Type == RegonEntityType.Unknown)
+        {
+            throw new ArgumentException("The entity needs a REGON and a known type; pass a row returned by a search.", nameof(entity));
+        }
+
+        var details = await DetailsForAsync([entity], include, cancellationToken).ConfigureAwait(false);
+        return Wrap<IReadOnlyList<RegonDetails>>(details);
+    }
+
+    /// <inheritdoc/>
+    public async Task<RegonResult<IReadOnlyList<RegonRecord>>> GetReportAsync(Regon regon, RegonReport report, CancellationToken cancellationToken = default)
+    {
+        RequireValue(regon.IsEmpty, nameof(regon));
+        var wireName = RegonReports.WireName(report);
+        var length = RegonReports.RegonLength(report);
+        if (length != 0 && regon.Length != length)
+        {
+            throw new ArgumentException(
+                "The report " + wireName + " needs a " + length.ToString(CultureInfo.InvariantCulture) + "-digit REGON.",
+                nameof(regon));
+        }
+
+        var rows = await _service.ReportAsync(regon.ToString(), wireName, cancellationToken).ConfigureAwait(false);
+        var records = new List<RegonRecord>(rows.Count);
+        foreach (var row in rows)
+        {
+            records.Add(RegonMapper.MapRecord(row));
+        }
+
+        return Wrap<IReadOnlyList<RegonRecord>>(records);
+    }
+
+    /// <inheritdoc/>
+    public async Task<RegonResult<DateOnly?>> GetDataDateAsync(CancellationToken cancellationToken = default)
+    {
+        // api-facts.md 5.6 and 10: StanDanych is dd-MM-yyyy on the test environment although the manual says 19 characters; ParseDataDate
+        // accepts both shapes and gives null for any other text.
+        var text = await _service.GetValueAsync("StanDanych", cancellationToken).ConfigureAwait(false);
+        var date = RegonMapper.ParseDataDate(text);
+        if (date is not null)
+        {
+            _session.DataAsOf = date;
+        }
+
+        return new RegonResult<DateOnly?>(date, _environment, _timeProvider.GetUtcNow(), date ?? _session.DataAsOf);
+    }
+
+    /// <inheritdoc/>
+    public Task LogoutAsync(CancellationToken cancellationToken = default) => _service.LogoutAsync(cancellationToken);
+
+    // One report is fetched once per call, even when the silo rows of one natural person need it: a sole trader has up to three
+    // search rows, one per silo, which share the general report (research-gus-bir/api-facts.md 5.3 and 5.4, rows 1 to 5).
+    private async Task<List<RegonDetails>> DetailsForAsync(List<RegonEntity> entities, RegonInclude include, CancellationToken cancellationToken)
+    {
+        var cache = new Dictionary<string, IReadOnlyList<BirRow>>(StringComparer.Ordinal);
+        var details = new List<RegonDetails>(entities.Count);
+        foreach (var entity in entities)
+        {
+            var coreRows = await FetchCoreRowsAsync(entity, cache, cancellationToken).ConfigureAwait(false);
+            if (coreRows is null)
+            {
+                continue;   // no report for this type or silo, or GUS has none: nothing to describe
+            }
+
+            IReadOnlyList<RegonPkd>? pkd = null;
+            if ((include & RegonInclude.Pkd) != RegonInclude.None && RegonReportSelector.PkdReport(entity.Type) is { } pkdReport)
+            {
+                var rows = await FetchAsync(entity, pkdReport, cache, cancellationToken).ConfigureAwait(false);
+                pkd = MapPkds(rows, entity);
+            }
+
+            IReadOnlyList<RegonLocalUnit>? localUnits = null;
+            if ((include & RegonInclude.LocalUnits) != RegonInclude.None && RegonReportSelector.LocalUnitsReport(entity.Type) is { } unitsReport)
+            {
+                var rows = await FetchAsync(entity, unitsReport, cache, cancellationToken).ConfigureAwait(false);
+                localUnits = MapLocalUnits(rows, entity);
+            }
+
+            IReadOnlyList<RegonPartner>? partners = null;
+            if ((include & RegonInclude.Partners) != RegonInclude.None && RegonReportSelector.PartnersReport(entity.Type) is { } partnersReport)
+            {
+                var rows = await FetchAsync(entity, partnersReport, cache, cancellationToken).ConfigureAwait(false);
+                partners = MapPartners(rows);
+            }
+
+            details.Add(RegonMapper.MapDetails(entity.Type, entity.Silo, coreRows, pkd, localUnits, partners));
+        }
+
+        return details;
+    }
+
+    // The first row of every core report, in report order; null when one of them is missing.
+    private async Task<List<BirRow>?> FetchCoreRowsAsync(RegonEntity entity, Dictionary<string, IReadOnlyList<BirRow>> cache, CancellationToken cancellationToken)
+    {
+        var reports = RegonReportSelector.CoreReports(entity.Type, entity.Silo);
+        if (reports.Count == 0)
+        {
+            return null;
+        }
+
+        var coreRows = new List<BirRow>(reports.Count);
+        foreach (var report in reports)
+        {
+            var rows = await FetchCoreAsync(entity, report, cache, cancellationToken).ConfigureAwait(false);
+            if (rows.Count == 0)
+            {
+                return null;
+            }
+
+            coreRows.Add(rows[0]);
+        }
+
+        return coreRows;
+    }
+
+    // BIR121JednLokalnaOsPrawnej exists from 2026-01 (research-gus-bir/api-facts.md 5.4, row 13a) and the test environment may not
+    // serve it (spec section 0, the gap about BIR121: UNVERIFIED): on GUS error 5 (api-facts.md 8.1) use the older report and remember that in
+    // the shared session, so the next call does not try again.
+    private async Task<IReadOnlyList<BirRow>> FetchCoreAsync(RegonEntity entity, RegonReport report, Dictionary<string, IReadOnlyList<BirRow>> cache, CancellationToken cancellationToken)
+    {
+        if (RegonReportSelector.Fallback(report) is not { } fallback)
+        {
+            return await FetchAsync(entity, report, cache, cancellationToken).ConfigureAwait(false);
+        }
+
+        if (_session.Bir121Supported == false)
+        {
+            return await FetchAsync(entity, fallback, cache, cancellationToken).ConfigureAwait(false);
+        }
+
+        try
+        {
+            var rows = await FetchAsync(entity, report, cache, cancellationToken).ConfigureAwait(false);
+            _session.Bir121Supported = true;
+            return rows;
+        }
+        catch (PolishOpenDataApiException exception) when (string.Equals(exception.ErrorCode, "5", StringComparison.Ordinal))
+        {
+            var rows = await FetchAsync(entity, fallback, cache, cancellationToken).ConfigureAwait(false);
+            _session.Bir121Supported = false;
+            return rows;
+        }
+    }
+
+    private async Task<IReadOnlyList<BirRow>> FetchAsync(RegonEntity entity, RegonReport report, Dictionary<string, IReadOnlyList<BirRow>> cache, CancellationToken cancellationToken)
+    {
+        var regon = RegonReportSelector.RegonFor(entity, report);
+        var wireName = RegonReports.WireName(report);
+        var key = regon + "|" + wireName;
+        if (cache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
+        var rows = await _service.ReportAsync(regon, wireName, cancellationToken).ConfigureAwait(false);
+        cache[key] = rows;
+        return rows;
+    }
+
+    // The PKD report of a natural person lists every silo (api-facts.md 5.4, row 6; each row names its silo): keep the rows of this
+    // entity's silo (a row without a silo belongs to all).
+    private static List<RegonPkd> MapPkds(IReadOnlyList<BirRow> rows, RegonEntity entity)
+    {
+        var list = new List<RegonPkd>(rows.Count);
+        foreach (var row in rows)
+        {
+            var pkd = RegonMapper.MapPkd(row);
+            if (entity.Type != RegonEntityType.NaturalPerson || pkd.Silo is null || pkd.Silo == entity.Silo)
+            {
+                list.Add(pkd);
+            }
+        }
+
+        return list;
+    }
+
+    // The same filter for the local units of a natural person (a unit with an unknown silo is kept).
+    private static List<RegonLocalUnit> MapLocalUnits(IReadOnlyList<BirRow> rows, RegonEntity entity)
+    {
+        var list = new List<RegonLocalUnit>(rows.Count);
+        foreach (var row in rows)
+        {
+            var unit = RegonMapper.MapLocalUnit(row);
+            if (entity.Type != RegonEntityType.NaturalPerson || unit.Silo == RegonSilo.Unknown || unit.Silo == entity.Silo)
+            {
+                list.Add(unit);
+            }
+        }
+
+        return list;
+    }
+
+    private static List<RegonPartner> MapPartners(IReadOnlyList<BirRow> rows)
+    {
+        var list = new List<RegonPartner>(rows.Count);
+        foreach (var row in rows)
+        {
+            list.Add(RegonMapper.MapPartner(row));
+        }
+
+        return list;
+    }
+
+private static BirService CreateService(HttpClient httpClient, RegonClientOptions options, BirSession session, RegonRateLimiter limiter) =>
         new(new BirTransport(httpClient), options.ResolveAddress(), options.ResolveUserKey(), session, limiter);
 
     private async Task<RegonResult<IReadOnlyList<RegonEntity>>> SearchOneAsync(BirSearchField field, string value, CancellationToken cancellationToken)
