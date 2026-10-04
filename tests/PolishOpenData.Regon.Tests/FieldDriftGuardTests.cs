@@ -80,6 +80,19 @@ public class FieldDriftGuardTests
         Assert.Equal(entries.Count, entries.Select(entry => entry.Report + "\t" + entry.Field).Distinct(StringComparer.Ordinal).Count());
     }
 
+    // tests/Fixtures/regon/observed-field-names-test-env.tsv holds the field names (no values) the GUS test environment sent on
+    // 2026-10-04 for 000331501, 999999990 and 021625560; each must be a field of the same report in the field list.
+    [Fact]
+    public void Observed_live_field_names_are_in_the_field_list()
+    {
+        var known = new HashSet<string>(ReadTsv().Select(entry => entry.Report + "\t" + entry.Field), StringComparer.Ordinal);
+        var observed = Fixture.Read("regon/observed-field-names-test-env.tsv").Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+        Assert.Equal(97, observed.Length);
+        var missing = observed.Where(line => !known.Contains(line)).ToArray();
+        Assert.True(missing.Length == 0, "Names seen live that the field list does not have: " + string.Join(", ", missing));
+    }
+
     [Fact]
     public void Every_field_is_mapped_or_raw_only()
     {

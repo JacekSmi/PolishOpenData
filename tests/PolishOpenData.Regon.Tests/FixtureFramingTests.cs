@@ -20,6 +20,8 @@ public class FixtureFramingTests
     [InlineData("search-empty", 659, "57efb2f2f5e8773fc63a049d6d12bf168efc4c9049505316b74bc8e74d5207d2", "3fbb7e1d09b8cc61b21613b19b3b70b96828601cd8e6c08f16fff171e4839a6a")]
     [InlineData("getvalue-empty", 601, "6a057dc63a84cda9da79c68afb430cfecc622ac0bb1244d4fc31dfa87ff36258", "c01e2c1d490e2077f0f740c93b2a58fa8510995299b1e6ea247a6f35afba4ef4")]
     [InlineData("fault-sender-500", 896, "fda9e9946bb84eab50860ba6b7a0d752c170031fb8c8f013304ecc0e9539207a", "b1e3b13fd8cdd9966a8e38b0ec991b7eef3353fe6af93a08ae32f063b0721d0e")]
+    [InlineData("report-osprawna-gus", 5155, "75e025da6bd06fb2add92f3b39207d270c3d36fd1f8b525ddc809637e9199819", "732727f5116a7027a8fdfc8d6d4db475d6bc97c4c7339a718718952ddc077cab")]
+    [InlineData("getvalue-standanych", 627, "5037a6816df235bdf32e9850703eadbe6bf74c47b235049c9d518c0bb387b1a8", "77666628811409eab724040f1cf7556f2bd79691ccdc7177f3d3844d26c9080c")]
     public void Recorded_fixtures_have_the_captured_sizes_and_hashes(string name, int size, string mtomSha256, string headersSha256)
     {
         var mtom = Fixture.ReadBytes("regon/" + name + ".mtom");
@@ -42,8 +44,9 @@ public class FixtureFramingTests
     [Fact]
     public void Mtom_fixtures_keep_crlf_framing()
     {
+        // the eight recorded answers: six from the first capture, plus the full report and the data date recorded on 2026-10-04
         var files = Directory.GetFiles(FixtureFolder, "*.mtom");
-        Assert.True(files.Length >= 6, "expected the six recorded fixtures, found " + files.Length);
+        Assert.True(files.Length == 8, "expected the eight recorded fixtures, found " + files.Length);
         foreach (var file in files)
         {
             var text = Encoding.UTF8.GetString(File.ReadAllBytes(file));
@@ -80,7 +83,8 @@ public class FixtureFramingTests
         var strict = new UTF8Encoding(false, true);
         var files = new List<string>(Directory.GetFiles(FixtureFolder, "synthetic-*"));
         files.Add(Path.Combine(FixtureFolder, "bir12-field-names.tsv"));
-        Assert.True(files.Count >= 23, "expected the synthetic fixtures and the field list, found " + files.Count);
+        files.Add(Path.Combine(FixtureFolder, "observed-field-names-test-env.tsv"));
+        Assert.True(files.Count >= 24, "expected the synthetic fixtures and the field list, found " + files.Count);
         foreach (var file in files)
         {
             var text = strict.GetString(File.ReadAllBytes(file));
@@ -145,6 +149,29 @@ public class FixtureFramingTests
         {
             Assert.DoesNotContain("\r", File.ReadAllText(file), StringComparison.Ordinal);
         }
+    }
+
+    // The field names seen live on the test environment (no values): report<TAB>name, LF only, 97 lines in 5 reports.
+    [Fact]
+    public void Observed_field_name_list_has_97_lf_lines()
+    {
+        var text = new UTF8Encoding(false, true).GetString(File.ReadAllBytes(Path.Combine(FixtureFolder, "observed-field-names-test-env.tsv")));
+        Assert.DoesNotContain("\r", text, StringComparison.Ordinal);
+        Assert.EndsWith("\n", text, StringComparison.Ordinal);
+        var lines = text.TrimEnd('\n').Split('\n');
+        Assert.Equal(97, lines.Length);
+
+        var reports = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var line in lines)
+        {
+            var cells = line.Split('\t');
+            Assert.Equal(2, cells.Length);
+            Assert.NotEmpty(cells[0]);
+            Assert.NotEmpty(cells[1]);
+            reports.Add(cells[0]);
+        }
+
+        Assert.Equal(5, reports.Count);
     }
 
     [Fact]

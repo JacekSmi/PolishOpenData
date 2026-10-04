@@ -116,6 +116,9 @@ internal sealed class FakeBirServer
         return AddRoute(GetValueKey("KomunikatKod"), () => Ok("GetValue", "0"));
     }
 
+    /// <summary>Routes <c>GetValue(<paramref name="parameter"/>)</c> to a fixture (see <see cref="Search"/>), for example a recorded answer.</summary>
+    public FakeBirServer GetValue(string parameter, string fixture) => AddRoute(GetValueKey(parameter), "GetValue", fixture);
+
     /// <summary>Makes every login answer an empty result, as the service does for a key it does not know.</summary>
     public FakeBirServer RejectKey()
     {

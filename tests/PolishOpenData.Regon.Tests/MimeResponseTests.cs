@@ -215,6 +215,8 @@ public class MimeResponseTests
     [InlineData("search-empty")]
     [InlineData("getvalue-empty")]
     [InlineData("fault-sender-500")]
+    [InlineData("report-osprawna-gus")]
+    [InlineData("getvalue-standanych")]
     public void Parses_every_recorded_fixture(string name)
     {
         // every recorded answer, with the Content-Type read the way BirTransport reads it: the raw header of a real HttpClient response
@@ -232,6 +234,27 @@ public class MimeResponseTests
         Assert.StartsWith("<s:Envelope ", root, StringComparison.Ordinal);
         Assert.EndsWith("</s:Envelope>", root, StringComparison.Ordinal);
         Assert.DoesNotContain("--uuid:", root, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("report-osprawna-gus", "DanePobierzPelnyRaportResponse")]
+    [InlineData("getvalue-standanych", "GetValueResponse")]
+    public void Parses_the_recorded_content_type_without_spaces_after_the_semicolons(string name, string responseElement)
+    {
+        // the live service sends multipart/related; type="...";start="...";boundary="...";start-info="..." (no space after
+        // the later semicolons); the line is fed exactly as the .headers file recorded it, without HttpClient in between
+        var contentType = Fixture.Read("regon/" + name + ".headers").Split('\n')[1].Substring("Content-Type: ".Length);
+        Assert.Contains("\";start=\"<http://tempuri.org/0>\";boundary=\"uuid:", contentType, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"; ", contentType, StringComparison.Ordinal);
+
+        var package = MimeResponse.Parse(Fixture.ReadBytes("regon/" + name + ".mtom"), contentType);
+
+        Assert.Equal(1, package.PartCount);
+        Assert.Equal("utf-8", package.Charset);
+        var root = Text(package.Root);
+        Assert.StartsWith("<s:Envelope ", root, StringComparison.Ordinal);
+        Assert.Contains("<" + responseElement + " xmlns=", root, StringComparison.Ordinal);
+        Assert.EndsWith("</s:Envelope>", root, StringComparison.Ordinal);
     }
 
     [Fact]
