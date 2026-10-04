@@ -250,7 +250,7 @@ internal static class MimeResponse
         return part;
     }
 
-    /// <summary>Splits "type/subtype; a=b; c=\"d;e\"" into the media type and its (case-insensitive) parameters; handles quoted values.</summary>
+    /// <summary>Splits "type/subtype; a=b; c=\"d;e\"" into the media type and its (case-insensitive) parameters; handles quoted values. An unterminated quoted value throws <see cref="FormatException"/>.</summary>
     public static (string MediaType, Dictionary<string, string> Parameters) ParseContentType(string? header)
     {
         var parameters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -289,6 +289,11 @@ internal static class MimeResponse
                     }
 
                     sb.Append(header[i++]);
+                }
+
+                if (i >= header.Length)
+                {
+                    throw new FormatException("The quoted value of the Content-Type parameter '" + name + "' is not terminated.");
                 }
 
                 i++;   // closing quote

@@ -64,7 +64,7 @@ public class FixtureFramingTests
         var strict = new UTF8Encoding(false, true);
         var files = new List<string>(Directory.GetFiles(FixtureFolder, "synthetic-*"));
         files.Add(Path.Combine(FixtureFolder, "bir12-field-names.tsv"));
-        Assert.True(files.Count >= 22, "expected the synthetic fixtures and the field list, found " + files.Count);
+        Assert.True(files.Count >= 23, "expected the synthetic fixtures and the field list, found " + files.Count);
         foreach (var file in files)
         {
             var text = strict.GetString(File.ReadAllBytes(file));
@@ -124,7 +124,7 @@ public class FixtureFramingTests
     public void Synthetic_fixtures_are_lf_only()
     {
         var files = Directory.GetFiles(FixtureFolder, "synthetic-*");
-        Assert.True(files.Length >= 21, "expected the 21 synthetic fixtures, found " + files.Length);
+        Assert.True(files.Length >= 22, "expected the 22 synthetic fixtures, found " + files.Length);
         foreach (var file in files)
         {
             Assert.DoesNotContain("\r", File.ReadAllText(file), StringComparison.Ordinal);

@@ -56,6 +56,28 @@ public class RegonServiceCollectionExtensionsTests
     }
 
     [Fact]
+    public async Task Configured_production_key_reaches_the_login_of_the_typed_client()
+    {
+        // production with a dummy key: the fake handler answers, nothing reaches GUS
+        const string key = "dummy-key-not-a-secret";
+        var server = new FakeBirServer().Search("Nip", "5261040828", "search-regon-gus");
+        var services = new ServiceCollection();
+        services.AddRegonClient(o =>
+        {
+            o.UserKey = key;
+            o.RateLimit = RegonRateLimit.Off;
+        }).ConfigurePrimaryHttpMessageHandler(() => server.Handler);
+        using var provider = services.BuildServiceProvider();
+
+        var result = await provider.GetRequiredService<IRegonClient>().FindByNipAsync(Nip.Parse("5261040828"), TestContext.Current.CancellationToken);
+
+        Assert.Equal(RegonEnvironment.Production, result.Environment);
+        var login = Assert.Single(server.Calls, c => c.Operation == "Zaloguj");
+        Assert.Equal(key, login.Arg("pKluczUzytkownika"));
+        Assert.Equal("https://wyszukiwarkaregon.stat.gov.pl/wsBIR/UslugaBIRzewnPubl.svc", login.WsaTo);
+    }
+
+    [Fact]
     public void Configure_runs_eagerly()
     {
         var ran = false;

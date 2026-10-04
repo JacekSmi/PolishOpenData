@@ -43,7 +43,7 @@ public interface IRegonClient
     /// a wrong <see cref="RegonClientOptions.BaseAddress"/>).
     /// </exception>
     /// <exception cref="QuotaExceededException">The local request limiter refuses the call (see <see cref="RegonClientOptions.RateLimit"/>).</exception>
-    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, or a 5xx answer from GUS.</exception>
+    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, a 5xx answer or a SOAP receiver fault from GUS.</exception>
     Task<RegonResult<IReadOnlyList<RegonEntity>>> FindByNipAsync(Nip nip, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -58,7 +58,7 @@ public interface IRegonClient
     /// a wrong <see cref="RegonClientOptions.BaseAddress"/>).
     /// </exception>
     /// <exception cref="QuotaExceededException">The local request limiter refuses the call (see <see cref="RegonClientOptions.RateLimit"/>).</exception>
-    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, or a 5xx answer from GUS.</exception>
+    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, a 5xx answer or a SOAP receiver fault from GUS.</exception>
     Task<RegonResult<IReadOnlyList<RegonEntity>>> FindByRegonAsync(Regon regon, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -72,15 +72,19 @@ public interface IRegonClient
     /// a wrong <see cref="RegonClientOptions.BaseAddress"/>).
     /// </exception>
     /// <exception cref="QuotaExceededException">The local request limiter refuses the call (see <see cref="RegonClientOptions.RateLimit"/>).</exception>
-    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, or a 5xx answer from GUS.</exception>
+    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, a 5xx answer or a SOAP receiver fault from GUS.</exception>
     Task<RegonResult<IReadOnlyList<RegonEntity>>> FindByKrsAsync(KrsNumber krs, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Finds the register rows for any number of NIPs, sent to GUS in batches of at most 20 identifiers. The result has one
+    /// Finds the register rows for a list of NIPs, sent to GUS in batches of at most 20 identifiers. The result has one
     /// entry per distinct requested NIP, in request order (duplicates are dropped); an entry is empty when GUS did not
     /// answer for it, because GUS silently leaves unknown identifiers out; rows that match none of the requested NIPs are
     /// ignored. Every identifier counts toward the per-minute and per-hour limits; a batch counts as one call toward the
-    /// per-second limit.
+    /// per-second limit. A call is checked as a whole before its first request: when its identifiers (plus one for a login it needs) do not fit
+    /// into what is left of the per-minute or per-hour window of <see cref="RegonClientOptions.RateLimit"/>, it throws
+    /// <see cref="QuotaExceededException"/> and sends nothing. Under the default <see cref="RegonRateLimit.Strictest"/>
+    /// (120 per minute) one call may therefore carry at most 119 distinct identifiers (120 with a live session, fewer when other
+    /// calls used the last minute); <see cref="RegonRateLimit.Off"/> sets no local ceiling.
     /// </summary>
     /// <exception cref="ArgumentNullException"><paramref name="nips"/> is null.</exception>
     /// <exception cref="ArgumentException"><paramref name="nips"/> is empty or contains an empty identifier.</exception>
@@ -90,16 +94,20 @@ public interface IRegonClient
     /// something that is not readable, or rejected the request itself (a SOAP sender fault, or HTTP 400 or 415, usually
     /// a wrong <see cref="RegonClientOptions.BaseAddress"/>).
     /// </exception>
-    /// <exception cref="QuotaExceededException">The local request limiter refuses the call (see <see cref="RegonClientOptions.RateLimit"/>).</exception>
-    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, or a 5xx answer from GUS.</exception>
+    /// <exception cref="QuotaExceededException">The local request limiter refuses the call (see <see cref="RegonClientOptions.RateLimit"/>), before any request when the batch as a whole does not fit.</exception>
+    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, a 5xx answer or a SOAP receiver fault from GUS.</exception>
     Task<RegonResult<IReadOnlyList<RegonBatchEntry>>> FindByNipsAsync(IReadOnlyCollection<Nip> nips, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Finds the register rows for any number of REGONs. The 9-digit and the 14-digit numbers are sent separately, each in
+    /// Finds the register rows for a list of REGONs. The 9-digit and the 14-digit numbers are sent separately, each in
     /// batches of at most 20 identifiers. The result has one entry per distinct requested REGON, in request order
     /// (duplicates are dropped); an entry is empty when GUS did not answer for it, because GUS silently leaves unknown
     /// identifiers out; rows that match none of the requested REGONs are ignored. Every identifier counts toward the per-minute
-    /// and per-hour limits; a batch counts as one call toward the per-second limit.
+    /// and per-hour limits; a batch counts as one call toward the per-second limit. A call is checked as a whole before its first request: when its identifiers (plus one for a login it needs) do not fit
+    /// into what is left of the per-minute or per-hour window of <see cref="RegonClientOptions.RateLimit"/>, it throws
+    /// <see cref="QuotaExceededException"/> and sends nothing. Under the default <see cref="RegonRateLimit.Strictest"/>
+    /// (120 per minute) one call may therefore carry at most 119 distinct identifiers (120 with a live session, fewer when other
+    /// calls used the last minute); <see cref="RegonRateLimit.Off"/> sets no local ceiling.
     /// </summary>
     /// <exception cref="ArgumentNullException"><paramref name="regons"/> is null.</exception>
     /// <exception cref="ArgumentException"><paramref name="regons"/> is empty or contains an empty identifier.</exception>
@@ -109,15 +117,19 @@ public interface IRegonClient
     /// something that is not readable, or rejected the request itself (a SOAP sender fault, or HTTP 400 or 415, usually
     /// a wrong <see cref="RegonClientOptions.BaseAddress"/>).
     /// </exception>
-    /// <exception cref="QuotaExceededException">The local request limiter refuses the call (see <see cref="RegonClientOptions.RateLimit"/>).</exception>
-    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, or a 5xx answer from GUS.</exception>
+    /// <exception cref="QuotaExceededException">The local request limiter refuses the call (see <see cref="RegonClientOptions.RateLimit"/>), before any request when the batch as a whole does not fit.</exception>
+    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, a 5xx answer or a SOAP receiver fault from GUS.</exception>
     Task<RegonResult<IReadOnlyList<RegonBatchEntry>>> FindByRegonsAsync(IReadOnlyCollection<Regon> regons, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Finds the register rows for any number of KRS numbers, with one search per distinct number, one after the other: a
+    /// Finds the register rows for a list of KRS numbers, with one search per distinct number, one after the other: a
     /// search row carries no KRS number, so a batch search could not be matched back to the requested numbers. GUS counts
     /// each identifier of a batch like a single request, so this costs the same quota as a batch. The result has one entry
-    /// per distinct requested KRS number, in request order; an entry is empty when GUS has no entity with that number.
+    /// per distinct requested KRS number, in request order; an entry is empty when GUS has no entity with that number. A call is checked as a whole before its first request: when its identifiers (plus one for a login it needs) do not fit
+    /// into what is left of the per-minute or per-hour window of <see cref="RegonClientOptions.RateLimit"/>, it throws
+    /// <see cref="QuotaExceededException"/> and sends nothing. Under the default <see cref="RegonRateLimit.Strictest"/>
+    /// (120 per minute) one call may therefore carry at most 119 distinct identifiers (120 with a live session, fewer when other
+    /// calls used the last minute); <see cref="RegonRateLimit.Off"/> sets no local ceiling.
     /// </summary>
     /// <exception cref="ArgumentNullException"><paramref name="krsNumbers"/> is null.</exception>
     /// <exception cref="ArgumentException"><paramref name="krsNumbers"/> is empty or contains an empty identifier.</exception>
@@ -127,8 +139,8 @@ public interface IRegonClient
     /// something that is not readable, or rejected the request itself (a SOAP sender fault, or HTTP 400 or 415, usually
     /// a wrong <see cref="RegonClientOptions.BaseAddress"/>).
     /// </exception>
-    /// <exception cref="QuotaExceededException">The local request limiter refuses the call (see <see cref="RegonClientOptions.RateLimit"/>).</exception>
-    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, or a 5xx answer from GUS.</exception>
+    /// <exception cref="QuotaExceededException">The local request limiter refuses the call (see <see cref="RegonClientOptions.RateLimit"/>), before any request when the batch as a whole does not fit.</exception>
+    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, a 5xx answer or a SOAP receiver fault from GUS.</exception>
     Task<RegonResult<IReadOnlyList<RegonBatchEntry>>> FindByKrsNumbersAsync(IReadOnlyCollection<KrsNumber> krsNumbers, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -154,7 +166,7 @@ public interface IRegonClient
     /// a wrong <see cref="RegonClientOptions.BaseAddress"/>).
     /// </exception>
     /// <exception cref="QuotaExceededException">The local request limiter refuses the call (see <see cref="RegonClientOptions.RateLimit"/>).</exception>
-    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, or a 5xx answer from GUS.</exception>
+    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, a 5xx answer or a SOAP receiver fault from GUS.</exception>
     Task<RegonResult<IReadOnlyList<RegonDetails>>> GetDetailsAsync(Regon regon, RegonInclude include = RegonInclude.None, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -173,7 +185,7 @@ public interface IRegonClient
     /// a wrong <see cref="RegonClientOptions.BaseAddress"/>).
     /// </exception>
     /// <exception cref="QuotaExceededException">The local request limiter refuses the call (see <see cref="RegonClientOptions.RateLimit"/>).</exception>
-    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, or a 5xx answer from GUS.</exception>
+    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, a 5xx answer or a SOAP receiver fault from GUS.</exception>
     Task<RegonResult<IReadOnlyList<RegonDetails>>> GetDetailsAsync(RegonEntity entity, RegonInclude include = RegonInclude.None, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -193,7 +205,7 @@ public interface IRegonClient
     /// a wrong <see cref="RegonClientOptions.BaseAddress"/>).
     /// </exception>
     /// <exception cref="QuotaExceededException">The local request limiter refuses the call (see <see cref="RegonClientOptions.RateLimit"/>).</exception>
-    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, or a 5xx answer from GUS.</exception>
+    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, a 5xx answer or a SOAP receiver fault from GUS.</exception>
     Task<RegonResult<IReadOnlyList<RegonRecord>>> GetReportAsync(Regon regon, RegonReport report, CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -209,11 +221,11 @@ public interface IRegonClient
     /// a wrong <see cref="RegonClientOptions.BaseAddress"/>).
     /// </exception>
     /// <exception cref="QuotaExceededException">The local request limiter refuses the call (see <see cref="RegonClientOptions.RateLimit"/>).</exception>
-    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, or a 5xx answer from GUS.</exception>
+    /// <exception cref="System.Net.Http.HttpRequestException">A transport failure, a 5xx answer or a SOAP receiver fault from GUS.</exception>
     Task<RegonResult<DateOnly?>> GetDataDateAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Ends the GUS session, if there is one. Best effort: transport and GUS errors are swallowed (cancellation is not),
+    /// Ends the GUS session, if there is one. Best effort: transport and GUS errors, an <see cref="System.Net.Http.HttpClient.Timeout"/> included, are swallowed (cancellation through <paramref name="cancellationToken"/> is not),
     /// and the next call logs in again. The client never logs out by itself, because it cannot know when you are done;
     /// call this when the process stops. Sessions that are not ended expire at GUS after about an hour.
     /// </summary>

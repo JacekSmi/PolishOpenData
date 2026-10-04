@@ -185,6 +185,17 @@ public class BirReaderTests
     }
 
     [Fact]
+    public void Rows_survive_a_raw_control_character()
+    {
+        // the envelope's &#x1F; unescapes to a raw U+001F in the inner result, which XmlReader refuses whatever its settings
+        var rows = BirReader.ReadRows("<root><dane><Nazwa>A\u001FB</Nazwa><Miejscowosc>Warszawa\u0008</Miejscowosc></dane></root>");
+
+        var row = Assert.Single(rows);
+        Assert.Equal("A\u001FB", row["Nazwa"]);
+        Assert.Equal("Warszawa\u0008", row["Miejscowosc"]);
+    }
+
+    [Fact]
     public void Dtd_is_prohibited()
     {
         var withDtd = "<!DOCTYPE root [<!ENTITY e \"x\">]><root><dane><A>&e;</A></dane></root>";

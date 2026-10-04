@@ -96,6 +96,12 @@ internal sealed class BirService
         throw BirErrors.ToException(error, request.Operation, HttpHelpers.Truncate(result));
     }
 
+    /// <summary>
+    /// Refuses a batch of <paramref name="identifiers"/> before its first request when it cannot fit into what is left of the
+    /// per-minute or per-hour window (counting the login it would need), instead of failing part way and losing what it fetched.
+    /// </summary>
+    public void EnsureBatchCapacity(int identifiers) => _limiter.EnsureCapacity(identifiers, _session.HasFreshSid ? 0 : 1);
+
     /// <summary>One <c>GetValue</c> call; the text is trimmed. An empty answer after the retry throws.</summary>
     public async Task<string> GetValueAsync(string parameterName, CancellationToken cancellationToken)
     {
@@ -133,6 +139,10 @@ internal sealed class BirService
         catch (PolishOpenDataApiException)
         {
             // best effort: also covers QuotaExceededException from the local limiter
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            // best effort: HttpClient.Timeout surfaces as TaskCanceledException; the caller's own cancellation is not swallowed
         }
     }
 

@@ -115,9 +115,26 @@ public class BirErrorsTests
 
         var exception = BirErrors.ForFault(fault, HttpStatusCode.InternalServerError, "snippet");
 
-        Assert.IsType<HttpRequestException>(exception);
-        Assert.Equal("GUS REGON answered HTTP 500.", exception.Message);
-        Assert.Null(exception.InnerException);
+        var http = Assert.IsType<HttpRequestException>(exception);
+        Assert.Equal("GUS REGON answered HTTP 500 with a SOAP receiver fault (s:Receiver): Server too busy.", http.Message);
+        Assert.Same(fault, http.InnerException);
+#if NET
+        Assert.Equal(HttpStatusCode.InternalServerError, http.StatusCode);
+#endif
+    }
+
+    [Fact]
+    public void Receiver_fault_with_a_success_status_names_the_fault()
+    {
+        var fault = new SoapFaultException("s:Receiver", "a:InternalServiceFault", "Internal error.");
+
+        var exception = BirErrors.ForFault(fault, HttpStatusCode.OK, "snippet");
+
+        var http = Assert.IsType<HttpRequestException>(exception);
+        Assert.Contains("SOAP receiver fault (s:Receiver/a:InternalServiceFault): Internal error.", http.Message, StringComparison.Ordinal);
+#if NET
+        Assert.Equal(HttpStatusCode.OK, http.StatusCode);
+#endif
     }
 
     [Fact]
@@ -162,9 +179,12 @@ public class BirErrorsTests
     {
         var exception = BirErrors.ForHttpFailure((HttpStatusCode)status, "text/html", Encoding.UTF8.GetBytes("<html>down</html>"), null);
 
-        Assert.IsType<HttpRequestException>(exception);
-        Assert.Equal("GUS REGON answered HTTP " + status + ".", exception.Message);
-        Assert.Null(exception.InnerException);
+        var http = Assert.IsType<HttpRequestException>(exception);
+        Assert.Equal("GUS REGON answered HTTP " + status + ".", http.Message);
+        Assert.Null(http.InnerException);
+#if NET
+        Assert.Equal((HttpStatusCode)status, http.StatusCode);
+#endif
     }
 
     [Fact]

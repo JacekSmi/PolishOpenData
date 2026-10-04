@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Time.Testing;
 using PolishOpenData.Tests.Shared;
@@ -106,6 +107,47 @@ public class RegonClientSearchTests
 
         Assert.Single(result.Value);
         Assert.Equal("0000028860", server.Calls[1].Arg("Krs"));
+    }
+
+    [Fact]
+    public async Task A_control_character_in_a_field_does_not_fail_the_answer()
+    {
+        // WCF writes a control character of the inner result as a character reference in the envelope: &#x1F; on the wire.
+        var wire = Encoding.UTF8.GetString(RegonTestResponses.Mtom("DaneSzukajPodmioty", RegonTestResponses.Inner("synthetic-search-control-char")));
+        Assert.Contains("SPÓŁKA&#x1F;TESTOWA", wire, StringComparison.Ordinal);
+        var server = new FakeBirServer().Search("Regon", "142396858", "synthetic-search-control-char");
+        var client = CreateClient(server);
+
+        var result = await client.FindByRegonAsync(Regon.Parse("142396858"), TestContext.Current.CancellationToken);
+
+        var entity = Assert.Single(result.Value);
+        Assert.Equal("SPÓŁKA\u001FTESTOWA SP. Z O.O.", entity.Name);
+        Assert.Equal(Regon.Parse("142396858"), entity.Regon);
+        Assert.Equal(RegonEntityType.LegalPerson, entity.Type);
+        Assert.Equal("Warszawa", entity.Address.City);
+        Assert.Equal("ul. Test-Domaniewska", entity.Address.Street);
+        Assert.Equal("39", entity.Address.BuildingNumber);
+    }
+
+    [Fact]
+    public async Task Test_environment_sends_the_published_test_key_and_never_the_configured_one()
+    {
+        const string ownKey = "dummy-key-not-a-secret";
+        var server = new FakeBirServer().Search("Nip", GusNip, "search-regon-gus");
+        var client = CreateClient(server, options: new RegonClientOptions { Environment = RegonEnvironment.Test, UserKey = ownKey, RateLimit = RegonRateLimit.Off });
+
+        await client.FindByNipAsync(Nip.Parse(GusNip), TestContext.Current.CancellationToken);
+
+        var login = Assert.Single(server.Calls, c => c.Operation == "Zaloguj");
+        Assert.Equal(RegonClientOptions.TestUserKey, login.Arg("pKluczUzytkownika"));
+        Assert.All(server.Handler.Requests, request =>
+        {
+            Assert.DoesNotContain(ownKey, request.BodyText, StringComparison.Ordinal);
+            Assert.DoesNotContain(ownKey, request.Uri.ToString(), StringComparison.Ordinal);
+            Assert.DoesNotContain(ownKey, request.ContentType ?? string.Empty, StringComparison.Ordinal);
+            Assert.DoesNotContain(ownKey, request.UserAgent ?? string.Empty, StringComparison.Ordinal);
+            Assert.DoesNotContain(ownKey, request.Sid ?? string.Empty, StringComparison.Ordinal);
+        });
     }
 
     [Fact]
@@ -350,6 +392,141 @@ public class RegonClientSearchTests
 
         Assert.Equal(20, result.Value.Count);
         Assert.Equal(started, clock.GetUtcNow());   // nothing waited: the fake clock was never advanced
+    }
+
+    // A client on the default Strictest limiter (3 per second, 120 per minute) whose searches all answer with the batch fixture.
+    private static (RegonClient Client, FakeBirServer Server, RegonRateLimiter Limiter, FakeTimeProvider Clock) StrictestClient()
+    {
+        var server = new FakeBirServer().Respond(static call => call.Operation == "DaneSzukajPodmioty"
+            ? RegonTestResponses.Response(HttpStatusCode.OK, RegonTestResponses.Mtom("DaneSzukajPodmioty", RegonTestResponses.Inner("synthetic-search-batch-nips")))
+            : null);
+        var clock = Clock();
+        var session = new BirSession(clock, TimeSpan.FromMinutes(30));
+        var limiter = new RegonRateLimiter(clock, RegonRateLimit.Strictest, TimeSpan.FromSeconds(5));
+        var client = new RegonClient(new HttpClient(server.Handler), TestOptions(RegonRateLimit.Strictest), clock, session, limiter);
+        return (client, server, limiter, clock);
+    }
+
+    // Moves the fake clock on while the call waits for the per-second window.
+    private static async Task<T> WithClockAsync<T>(Task<T> task, FakeTimeProvider clock)
+    {
+        for (var step = 0; step < 1000 && !task.IsCompleted; step++)
+        {
+            await Task.WhenAny(task, Task.Delay(TimeSpan.FromMilliseconds(10), TestContext.Current.CancellationToken));
+            if (!task.IsCompleted)
+            {
+                clock.Advance(TimeSpan.FromSeconds(1));
+            }
+        }
+
+        return await task;
+    }
+
+    // Valid REGONs of the given length: a counter followed by the one check digit that the parser accepts.
+    private static List<Regon> ValidRegons(int count, int length)
+    {
+        var regons = new List<Regon>();
+        for (var n = 1; regons.Count < count; n++)
+        {
+            // a 14-digit REGON extends a valid 9-digit one (GUS's own) by a four-digit unit number and a check digit
+            var prefix = length == 9 ? "10" + n.ToString("D6", CultureInfo.InvariantCulture) : GusRegon + n.ToString("D4", CultureInfo.InvariantCulture);
+            for (var check = 0; check < 10; check++)
+            {
+                if (Regon.TryParse(prefix + check.ToString(CultureInfo.InvariantCulture), out var regon))
+                {
+                    regons.Add(regon);
+                    break;
+                }
+            }
+        }
+
+        return regons;
+    }
+
+    private static List<KrsNumber> KrsNumbers(int count) =>
+        Enumerable.Range(1, count).Select(static i => KrsNumber.Parse(i.ToString("D10", CultureInfo.InvariantCulture))).ToList();
+
+    [Fact(Timeout = 30_000)]
+    public async Task Batch_that_cannot_fit_the_minute_window_is_refused_before_any_request()
+    {
+        // 120 NIPs plus the login make 121, over the 120 per minute of Strictest: nothing is sent, so no quota is spent.
+        var (client, server, limiter, _) = StrictestClient();
+
+        var exception = await Assert.ThrowsAsync<QuotaExceededException>(() => client.FindByNipsAsync(ValidNips(120), TestContext.Current.CancellationToken));
+
+        Assert.Empty(server.Calls);
+        Assert.Equal(0, limiter.WeightInLastMinute);
+        Assert.Contains("119", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact(Timeout = 30_000)]
+    public async Task Batch_that_fits_the_minute_window_passes()
+    {
+        var (client, server, limiter, clock) = StrictestClient();
+
+        var result = await WithClockAsync(client.FindByNipsAsync(ValidNips(119), TestContext.Current.CancellationToken), clock);
+
+        Assert.Equal(119, result.Value.Count);
+        Assert.Equal(1, server.Count("Zaloguj"));
+        Assert.Equal(6, server.Count("DaneSzukajPodmioty"));
+        Assert.Equal(120, limiter.WeightInLastMinute);
+    }
+
+    [Fact(Timeout = 30_000)]
+    public async Task Batch_with_a_live_session_is_checked_against_what_is_left_of_the_minute()
+    {
+        var (client, server, limiter, clock) = StrictestClient();
+        await client.FindByNipsAsync(ValidNips(20), TestContext.Current.CancellationToken);   // login and one chunk: 21 used
+        var sent = server.Calls.Count;
+
+        // 100 more need no login and would make 121
+        var exception = await Assert.ThrowsAsync<QuotaExceededException>(() => client.FindByNipsAsync(ValidNips(100), TestContext.Current.CancellationToken));
+
+        Assert.Equal(sent, server.Calls.Count);
+        Assert.Contains("per-minute", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(clock.GetUtcNow().AddMinutes(1), exception.ResetsAt);
+        Assert.Equal(TimeSpan.FromMinutes(1), exception.RetryAfter);
+
+        // 99 fit
+        var result = await WithClockAsync(client.FindByNipsAsync(ValidNips(99), TestContext.Current.CancellationToken), clock);
+        Assert.Equal(99, result.Value.Count);
+        Assert.Equal(120, limiter.WeightInLastMinute);
+    }
+
+    [Fact(Timeout = 30_000)]
+    public async Task Regon_batch_is_checked_as_a_whole_before_any_request()
+    {
+        var (client, server, _, _) = StrictestClient();
+        // 100 nine-digit and 20 fourteen-digit REGONs go out in separate loops; the check covers both together: 1 + 120 > 120
+        var regons = ValidRegons(100, 9);
+        regons.AddRange(ValidRegons(20, 14));
+
+        await Assert.ThrowsAsync<QuotaExceededException>(() => client.FindByRegonsAsync(regons, TestContext.Current.CancellationToken));
+
+        Assert.Empty(server.Calls);
+    }
+
+    [Fact(Timeout = 30_000)]
+    public async Task Krs_batch_that_cannot_fit_the_minute_window_is_refused_before_any_request()
+    {
+        var (client, server, _, _) = StrictestClient();
+
+        var exception = await Assert.ThrowsAsync<QuotaExceededException>(() => client.FindByKrsNumbersAsync(KrsNumbers(120), TestContext.Current.CancellationToken));
+
+        Assert.Empty(server.Calls);
+        Assert.Contains("119", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact(Timeout = 30_000)]
+    public async Task Krs_batch_that_fits_the_minute_window_passes()
+    {
+        var (client, server, limiter, clock) = StrictestClient();
+
+        var result = await WithClockAsync(client.FindByKrsNumbersAsync(KrsNumbers(119), TestContext.Current.CancellationToken), clock);
+
+        Assert.Equal(119, result.Value.Count);
+        Assert.Equal(119, server.Count("DaneSzukajPodmioty"));
+        Assert.Equal(120, limiter.WeightInLastMinute);
     }
 
     [Fact]

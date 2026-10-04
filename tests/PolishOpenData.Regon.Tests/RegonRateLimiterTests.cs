@@ -285,6 +285,58 @@ public class RegonRateLimiterTests
         Assert.Equal(10, limiter.WeightInLastMinute);
     }
 
+    // Ten callers at once: three record at start, three after 1 s, three after 2 s and the last after 3 s.
+    private static async Task<(int Passed, int Refused)> RunTenConcurrentCallersAsync(TimeSpan maxWait, CancellationToken cancellationToken)
+    {
+        var (limiter, clock) = Create(maxWait: maxWait);
+        var calls = Enumerable.Range(0, 10).Select(_ => limiter.AcquireAsync(1, cancellationToken)).ToArray();
+        var all = Task.WhenAll(calls);
+        for (var step = 0; step < 20 && !calls.All(c => c.IsCompleted); step++)
+        {
+            clock.Advance(TimeSpan.FromSeconds(1));
+            await Task.WhenAny(all, Task.Delay(TimeSpan.FromMilliseconds(50), cancellationToken));
+        }
+
+        var passed = 0;
+        var refused = 0;
+        foreach (var call in calls)
+        {
+            await AssertCompletesAsync(call.ContinueWith(static _ => { }, TaskScheduler.Default), cancellationToken);
+            if (call.Status == TaskStatus.RanToCompletion)
+            {
+                passed++;
+            }
+            else
+            {
+                Assert.IsType<QuotaExceededException>(call.Exception!.InnerException);
+                refused++;
+            }
+        }
+
+        Assert.Equal(passed, limiter.WeightInLastMinute);
+        return (passed, refused);
+    }
+
+    [Fact]
+    public async Task MaxRateLimitWait_bounds_the_total_wait_of_a_call()
+    {
+        // With a maximum of 1 s the callers of the third second would wait 2 s in all: they are refused.
+        var (passed, refused) = await RunTenConcurrentCallersAsync(TimeSpan.FromSeconds(1), TestContext.Current.CancellationToken);
+
+        Assert.Equal(6, passed);
+        Assert.Equal(4, refused);
+    }
+
+    [Fact]
+    public async Task Callers_within_MaxRateLimitWait_all_pass()
+    {
+        // With the default maximum of 5 s the callers of the third and fourth second still pass.
+        var (passed, refused) = await RunTenConcurrentCallersAsync(TimeSpan.FromSeconds(5), TestContext.Current.CancellationToken);
+
+        Assert.Equal(10, passed);
+        Assert.Equal(0, refused);
+    }
+
     [Fact]
     public async Task Zero_weight_is_rejected()
     {

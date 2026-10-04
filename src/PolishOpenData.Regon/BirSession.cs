@@ -17,6 +17,8 @@ internal sealed class BirSession : IDisposable
     private readonly object _lock = new();
     private string? _sid;
     private DateTimeOffset _loggedInAt;
+    private DateOnly? _dataAsOf;
+    private bool? _bir121Supported;
 
     public BirSession(TimeProvider timeProvider, TimeSpan lifetime)
     {
@@ -38,10 +40,48 @@ internal sealed class BirSession : IDisposable
     }
 
     /// <summary>The date of the GUS data (<c>StanDanych</c>) from the last <c>GetValue</c> that parsed; a best-effort cache.</summary>
-    public DateOnly? DataAsOf { get; set; }
+    /// <remarks>Read and written under the lock: the session is shared by every client, and a nullable struct can tear.</remarks>
+    public DateOnly? DataAsOf
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _dataAsOf;
+            }
+        }
+
+        set
+        {
+            lock (_lock)
+            {
+                _dataAsOf = value;
+            }
+        }
+    }
 
     /// <summary><c>null</c> = unknown; <c>false</c> after GUS answered ErrorCode 5 for <c>BIR121JednLokalnaOsPrawnej</c>; a best-effort cache.</summary>
-    public bool? Bir121Supported { get; set; }
+    public bool? Bir121Supported
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _bir121Supported;
+            }
+        }
+
+        set
+        {
+            lock (_lock)
+            {
+                _bir121Supported = value;
+            }
+        }
+    }
+
+    /// <summary>Whether a session id exists that <see cref="GetSidAsync"/> would use without logging in.</summary>
+    public bool HasFreshSid => TryGetFresh(out _);
 
     /// <summary>The current session id, logging in first when there is none or it is older than the lifetime. Concurrent callers share one login.</summary>
     public async Task<string> GetSidAsync(Func<CancellationToken, Task<string>> login, CancellationToken cancellationToken)

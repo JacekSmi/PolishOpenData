@@ -110,7 +110,8 @@ internal sealed class BirTransport
 
         if (!response.IsSuccessStatusCode)
         {
-            throw BirErrors.ForHttpFailure(response.StatusCode, contentType, body, HttpHelpers.GetRetryAfter(response));
+            // the body is a readable BIR answer (a login answer holds the sid): it is not quoted in the exception
+            throw BirErrors.ForHttpFailure(response.StatusCode, contentType, body, HttpHelpers.GetRetryAfter(response), attachSnippet: false);
         }
 
         return result ?? throw HttpHelpers.UnreadableResponse("GUS REGON returned a response with no result element.", response, body);

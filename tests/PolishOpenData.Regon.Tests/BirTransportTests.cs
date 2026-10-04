@@ -223,7 +223,18 @@ public class BirTransportTests
         var receiver = "<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\"><s:Body><s:Fault><s:Code><s:Value>s:Receiver</s:Value></s:Code><s:Reason><s:Text xml:lang=\"en\">busy</s:Text></s:Reason></s:Fault></s:Body></s:Envelope>";
         var (faulted, _) = Create(_ => RegonTestResponses.Response(HttpStatusCode.InternalServerError, RegonTestResponses.MtomEnvelope(receiver)));
         var first = await Assert.ThrowsAsync<HttpRequestException>(() => faulted.SendAsync(SearchRequest(), DummySid, TestContext.Current.CancellationToken));
-        Assert.Equal("GUS REGON answered HTTP 500.", first.Message);
+        Assert.Equal("GUS REGON answered HTTP 500 with a SOAP receiver fault (s:Receiver): busy.", first.Message);
+        Assert.IsType<SoapFaultException>(first.InnerException);
+
+        // the same fault with a success status: the message names the fault, not just the status
+        var (faultedOk, _) = Create(_ => RegonTestResponses.Response(HttpStatusCode.OK, RegonTestResponses.MtomEnvelope(receiver)));
+        var withOk = await Assert.ThrowsAsync<HttpRequestException>(() => faultedOk.SendAsync(SearchRequest(), DummySid, TestContext.Current.CancellationToken));
+        Assert.Contains("SOAP receiver fault (s:Receiver): busy", withOk.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(DummySid, withOk.ToString(), StringComparison.Ordinal);
+#if NET
+        Assert.Equal(HttpStatusCode.InternalServerError, first.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, withOk.StatusCode);
+#endif
 
         var (unavailable, _) = Create(_ => StubHttpMessageHandler.Html(HttpStatusCode.ServiceUnavailable, "<html>down</html>"));
         var second = await Assert.ThrowsAsync<HttpRequestException>(() => unavailable.SendAsync(SearchRequest(), DummySid, TestContext.Current.CancellationToken));
@@ -233,6 +244,46 @@ public class BirTransportTests
         var (broken, _) = Create(_ => StubHttpMessageHandler.Html(HttpStatusCode.InternalServerError, "<html>oops</html>"));
         var third = await Assert.ThrowsAsync<HttpRequestException>(() => broken.SendAsync(SearchRequest(), DummySid, TestContext.Current.CancellationToken));
         Assert.Equal("GUS REGON answered HTTP 500.", third.Message);
+    }
+
+    [Theory]
+    [InlineData(400)]
+    [InlineData(429)]
+    [InlineData(500)]
+    public async Task Failed_status_with_a_readable_login_answer_never_carries_the_sid(int status)
+    {
+        // a plain application/soap+xml Zaloguj answer holds the sid well inside the first 512 characters
+        var envelope = "<s:Envelope xmlns:s=\"http://www.w3.org/2003/05/soap-envelope\"><s:Body><ZalogujResponse xmlns=\"http://CIS/BIR/PUBL/2014/07\"><ZalogujResult>"
+            + DummySid + "</ZalogujResult></ZalogujResponse></s:Body></s:Envelope>";
+        var (plain, _) = Create(_ => new HttpResponseMessage((HttpStatusCode)status) { Content = new StringContent(envelope, Encoding.UTF8, "application/soap+xml") });
+        var (mtom, _) = Create(_ => RegonTestResponses.Response((HttpStatusCode)status, RegonTestResponses.Mtom("Zaloguj", DummySid)));
+
+        foreach (var transport in new[] { plain, mtom })
+        {
+            var exception = await Assert.ThrowsAnyAsync<Exception>(() => transport.SendAsync(BirRequest.Login(Endpoint, DummyKey), null, TestContext.Current.CancellationToken));
+
+            // the mapping by status stays as it is
+            switch (status)
+            {
+                case 400:
+                    Assert.Equal((HttpStatusCode)400, Assert.IsType<PolishOpenDataApiException>(exception).StatusCode);
+                    break;
+                case 429:
+                    Assert.IsType<QuotaExceededException>(exception);
+                    break;
+                default:
+                    Assert.IsType<HttpRequestException>(exception);
+                    break;
+            }
+
+            Assert.DoesNotContain(DummySid, exception.Message, StringComparison.Ordinal);
+            Assert.DoesNotContain(DummySid, exception.ToString(), StringComparison.Ordinal);
+            Assert.DoesNotContain(DummyKey, exception.ToString(), StringComparison.Ordinal);
+            if (exception is PolishOpenDataApiException api)
+            {
+                Assert.True(api.ResponseSnippet is null || !api.ResponseSnippet.Contains(DummySid), "the snippet carries the sid");
+            }
+        }
     }
 
     [Fact]

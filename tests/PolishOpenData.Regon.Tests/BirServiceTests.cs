@@ -270,6 +270,22 @@ public class BirServiceTests
     }
 
     [Fact]
+    public async Task Logout_swallows_an_http_client_timeout()
+    {
+        // HttpClient.Timeout surfaces as TaskCanceledException while the caller's token is not cancelled
+        var server = new FakeBirServer().Search("Nip", "5261040828", "search-regon-gus").Respond(call =>
+            string.Equals(call.Operation, "Wyloguj", StringComparison.Ordinal) ? throw new TaskCanceledException("The request was canceled due to the configured HttpClient.Timeout.") : null);
+        using var harness = new Harness(server);
+        var ct = TestContext.Current.CancellationToken;
+        await harness.Service.SearchAsync(BirSearchField.Nip, "5261040828", 1, ct);
+
+        await harness.Service.LogoutAsync(ct);
+
+        Assert.Equal(1, server.Count("Wyloguj"));
+        Assert.Null(harness.Session.CurrentSid);
+    }
+
+    [Fact]
     public async Task Logout_swallows_a_request_that_gus_rejects()
     {
         var server = new FakeBirServer().Search("Nip", "5261040828", "search-regon-gus").Respond(call =>

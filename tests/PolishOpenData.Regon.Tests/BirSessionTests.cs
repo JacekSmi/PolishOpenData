@@ -173,6 +173,38 @@ public class BirSessionTests
     }
 
     [Fact]
+    public async Task Data_date_is_never_read_torn_while_another_thread_writes_it()
+    {
+        // the session is shared by every client of the process; a DateOnly? read while it is written must be one of the written values
+        using var session = new BirSession(new FakeTimeProvider(Start), Lifetime);
+        var first = new DateOnly(2018, 10, 19);
+        var second = new DateOnly(2026, 12, 31);
+        using var stop = new CancellationTokenSource(TimeSpan.FromMilliseconds(300));
+        var writer = Task.Run(
+            () =>
+            {
+                for (var i = 0; !stop.IsCancellationRequested; i++)
+                {
+                    session.DataAsOf = (i % 3) switch { 0 => first, 1 => second, _ => null };
+                    session.Bir121Supported = (i % 3) switch { 0 => true, 1 => false, _ => null };
+                }
+            },
+            TestContext.Current.CancellationToken);
+
+        var reads = 0;
+        while (!stop.IsCancellationRequested)
+        {
+            var date = session.DataAsOf;
+            Assert.True(date is null || date == first || date == second, "torn read: " + date);
+            _ = session.Bir121Supported;
+            reads++;
+        }
+
+        await writer;
+        Assert.True(reads > 0);
+    }
+
+    [Fact]
     public async Task A_cancelled_wait_for_the_login_gate_throws()
     {
         using var session = new BirSession(new FakeTimeProvider(Start), Lifetime);

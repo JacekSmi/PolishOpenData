@@ -79,7 +79,9 @@ internal static class BirErrors
         ArgumentNullException.ThrowIfNull(fault);
         if (!fault.IsSender)
         {
-            return ServerFailure(status);
+            // the code and reason are GUS's own text about its failure; a request's key or sid is never part of them
+            var code = fault.Code + (fault.Subcode is null ? string.Empty : "/" + fault.Subcode);
+            return ServerFailure(status, " with a SOAP receiver fault (" + code + ")" + (fault.Reason.Length == 0 ? string.Empty : ": " + fault.Reason), fault);
         }
 
         var subcode = fault.Subcode is null ? string.Empty : " (" + fault.Subcode + ")";
@@ -91,8 +93,12 @@ internal static class BirErrors
             fault);
     }
 
-    /// <summary>A failed HTTP response whose body is not a SOAP answer: 429 is a quota error, other 5xx a server failure, everything else a rejected request.</summary>
-    public static Exception ForHttpFailure(HttpStatusCode status, string? contentType, byte[] body, TimeSpan? retryAfter)
+    /// <summary>
+    /// A failed HTTP response: 429 is a quota error, other 5xx a server failure, everything else a rejected request.
+    /// <paramref name="attachSnippet"/> is false when the body parsed as a BIR answer: such a body can be a login answer that
+    /// holds the session id, so only a body that did not parse (an HTML error page and the like) is quoted.
+    /// </summary>
+    public static Exception ForHttpFailure(HttpStatusCode status, string? contentType, byte[] body, TimeSpan? retryAfter, bool attachSnippet = true)
     {
         ArgumentNullException.ThrowIfNull(body);
         var number = (int)status;
@@ -103,7 +109,7 @@ internal static class BirErrors
 
         if (number >= 500)
         {
-            return ServerFailure(status);
+            return ServerFailure(status, string.Empty, null);
         }
 
         var message = "GUS REGON rejected the request (HTTP " + number.ToString(CultureInfo.InvariantCulture)
@@ -113,10 +119,19 @@ internal static class BirErrors
             message += " The request content type may be wrong; the service expects application/soap+xml with an action parameter.";
         }
 
-        return new PolishOpenDataApiException(message, status, null, HttpHelpers.Snippet(body));
+        return new PolishOpenDataApiException(message, status, null, attachSnippet ? HttpHelpers.Snippet(body) : null);
     }
 
-    // Plain HttpRequestException (no inner, no BIR types) so that resilience handlers and callers treat it like any 5xx.
-    private static HttpRequestException ServerFailure(HttpStatusCode status) =>
-        new("GUS REGON answered HTTP " + ((int)status).ToString(CultureInfo.InvariantCulture) + ".");
+    // An HttpRequestException, so that resilience handlers and callers treat it like any 5xx; on .NET it carries the status
+    // code, as the KRS and Biała Lista clients do. A receiver fault is the inner exception and its code and reason are in the message.
+    private static HttpRequestException ServerFailure(HttpStatusCode status, string detail, SoapFaultException? fault)
+    {
+        var message = "GUS REGON answered HTTP " + ((int)status).ToString(CultureInfo.InvariantCulture) + detail;
+        message += message[message.Length - 1] == '.' ? string.Empty : ".";
+#if NET
+        return new HttpRequestException(message, fault, status);
+#else
+        return new HttpRequestException(message, fault);
+#endif
+    }
 }

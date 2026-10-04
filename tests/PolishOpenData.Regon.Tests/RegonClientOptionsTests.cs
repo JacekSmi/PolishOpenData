@@ -19,6 +19,18 @@ public class RegonClientOptionsTests
         Assert.Contains("RegonClientOptions.UserKey", ex.Message, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(DummyKey + "\n")]
+    [InlineData(DummyKey + "\r\n")]
+    [InlineData("  " + DummyKey + "\t")]
+    public void Surrounding_whitespace_of_the_key_is_trimmed(string key)
+    {
+        // a key read from a secret store often ends with a line break; GUS keys hold no meaningful whitespace
+        var options = new RegonClientOptions { UserKey = key };
+
+        Assert.Equal(DummyKey, options.ResolveUserKey());
+    }
+
     [Fact]
     public void Production_with_a_key_uses_it_and_the_production_address()
     {

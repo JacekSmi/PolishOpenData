@@ -129,6 +129,19 @@ public class MimeResponseTests
     }
 
     [Fact]
+    public void Unterminated_quoted_parameter_is_a_format_error()
+    {
+        // in the outer Content-Type
+        var outer = Assert.Throws<FormatException>(() => MimeResponse.Parse(Bytes("--abc\r\n\r\n" + Envelope + "\r\n--abc--\r\n"), "multipart/related; boundary=\"abc"));
+        Assert.Contains("quoted", outer.Message, StringComparison.Ordinal);
+        Assert.Throws<FormatException>(() => MimeResponse.ParseContentType("a/b; c=\""));
+
+        // in the Content-Type of a part
+        var body = Bytes("--b\r\nContent-ID: <r>\r\nContent-Type: application/xop+xml; charset=\"utf-8\r\n\r\n" + Envelope + "\r\n--b--\r\n");
+        Assert.Throws<FormatException>(() => MimeResponse.Parse(body, "multipart/related; boundary=b"));
+    }
+
+    [Fact]
     public void No_parts_throws()
     {
         // only the closing delimiter

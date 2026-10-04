@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -47,25 +48,26 @@ internal static class BirReader
 {
     public const string XopNamespace = "http://www.w3.org/2004/08/xop/include";
 
-    private static XmlReaderSettings Settings(bool lenientCharacters) => new()
+    // CheckCharacters is off for both passes: WCF writes a control character of a GUS field as a character reference
+    // (&#x1F;) in the envelope, and a strict reader would refuse the whole answer. No security setting depends on it.
+    private static XmlReaderSettings Settings() => new()
     {
         DtdProcessing = DtdProcessing.Prohibit,
         XmlResolver = null,
         IgnoreComments = true,
         IgnoreProcessingInstructions = true,
-        CheckCharacters = !lenientCharacters,
-        MaxCharactersFromEntities = 0,
+        CheckCharacters = false,
     };
 
-    private static XmlReader Open(ArraySegment<byte> bytes, string? charset, bool lenient)
+    private static XmlReader Open(ArraySegment<byte> bytes, string? charset)
     {
         var stream = new MemoryStream(bytes.Array!, bytes.Offset, bytes.Count, writable: false);
         if (charset is null || string.Equals(charset, "utf-8", StringComparison.OrdinalIgnoreCase))
         {
-            return XmlReader.Create(stream, Settings(lenient));   // UTF-8 or a BOM
+            return XmlReader.Create(stream, Settings());   // UTF-8 or a BOM
         }
 
-        return XmlReader.Create(new StreamReader(stream, Encoding.GetEncoding(charset), false), Settings(lenient));
+        return XmlReader.Create(new StreamReader(stream, Encoding.GetEncoding(charset), false), Settings());
     }
 
     /// <summary>
@@ -74,7 +76,7 @@ internal static class BirReader
     /// </summary>
     public static string? ReadResult(SoapPackage package, string? resultElement, string resultNamespace)
     {
-        using var reader = Open(package.Root, package.Charset, lenient: false);
+        using var reader = Open(package.Root, package.Charset);
         while (reader.Read())
         {
             if (reader.NodeType != XmlNodeType.Element)
@@ -165,12 +167,14 @@ internal static class BirReader
 
     /// <summary>
     /// Parses the unescaped inner result <c>&lt;root&gt;&lt;dane&gt;...&lt;/dane&gt;&lt;/root&gt;</c> into one flat row per dane.
-    /// CheckCharacters is off, so a stray control character in a name does not fail the whole answer.
+    /// A stray control character in a name does not fail the whole answer: CheckCharacters is off, which accepts a character
+    /// reference such as <c>&amp;#x1F;</c>, and a raw control character (what the envelope's <c>&amp;#x1F;</c> unescapes to) is
+    /// first turned into such a reference, because the reader refuses a raw one whatever the settings.
     /// </summary>
     public static List<BirRow> ReadRows(string inner)
     {
         var rows = new List<BirRow>();
-        using var reader = XmlReader.Create(new StringReader(inner), Settings(lenientCharacters: true));
+        using var reader = XmlReader.Create(new StringReader(EscapeControlCharacters(inner)), Settings());
         BirRow? row = null;
         reader.Read();
         while (!reader.EOF)
@@ -199,5 +203,43 @@ internal static class BirReader
         }
 
         return rows;
+    }
+
+    // C0 control characters other than tab, line feed and carriage return are not allowed raw in XML 1.0.
+    private static bool IsRawControl(char c) => c < ' ' && c != '\t' && c != '\n' && c != '\r';
+
+    private static string EscapeControlCharacters(string text)
+    {
+        var first = -1;
+        for (var i = 0; i < text.Length; i++)
+        {
+            if (IsRawControl(text[i]))
+            {
+                first = i;
+                break;
+            }
+        }
+
+        if (first < 0)
+        {
+            return text;
+        }
+
+        var sb = new StringBuilder(text.Length + 16);
+        sb.Append(text, 0, first);
+        for (var i = first; i < text.Length; i++)
+        {
+            var c = text[i];
+            if (IsRawControl(c))
+            {
+                sb.Append("&#x").Append(((int)c).ToString("X", CultureInfo.InvariantCulture)).Append(';');
+            }
+            else
+            {
+                sb.Append(c);
+            }
+        }
+
+        return sb.ToString();
     }
 }

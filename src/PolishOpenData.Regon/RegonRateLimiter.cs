@@ -116,7 +116,7 @@ internal sealed class RegonRateLimiter
     }
 
     /// <summary>Waits until a call of this weight fits into every window, then records it.</summary>
-    /// <exception cref="QuotaExceededException">The minute or hour window is full, or the per-second wait would exceed the maximum.</exception>
+    /// <exception cref="QuotaExceededException">The minute or hour window is full, or the total per-second wait would exceed the maximum.</exception>
     public async Task AcquireAsync(int weight, CancellationToken cancellationToken)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(weight, 1);
@@ -126,6 +126,8 @@ internal sealed class RegonRateLimiter
             return;
         }
 
+        // MaxRateLimitWait bounds the whole wait of this call, not each single delay: waiters compete again after every delay.
+        var deadline = _timeProvider.GetUtcNow() + _maxWait;
         while (true)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -165,7 +167,7 @@ internal sealed class RegonRateLimiter
                 // them remain, so the entry that must leave the window last is the perSecond-th from the end.
                 var mustLeave = _entries[_entries.Count - limits.PerSecond];
                 wait = mustLeave.At + Second - now;
-                if (wait > _maxWait)
+                if (now + wait > deadline)
                 {
                     throw new QuotaExceededException(
                         "GUS REGON per-second request limit (" + limits.PerSecond.ToString(CultureInfo.InvariantCulture) +
@@ -180,6 +182,61 @@ internal sealed class RegonRateLimiter
             await DelayAsync(wait, cancellationToken).ConfigureAwait(false);
         }
     }
+
+    /// <summary>
+    /// Checks, without recording anything, that a batch of <paramref name="identifiers"/> (plus <paramref name="loginWeight"/>
+    /// for a login it will need) fits into what is left of the per-minute and per-hour windows now, so that a batch that would
+    /// be refused part way is refused before its first request. Concurrent callers are not reserved against.
+    /// </summary>
+    /// <exception cref="QuotaExceededException">The batch does not fit into the minute or the hour window.</exception>
+    public void EnsureCapacity(int identifiers, int loginWeight)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(identifiers, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(loginWeight, 0);
+        if (_mode == RegonRateLimit.Off)
+        {
+            return;
+        }
+
+        lock (_gate)
+        {
+            var now = Prune();
+            var limits = LimitsAt(_mode, now);
+            var weight = identifiers + loginWeight;
+            var ceiling = Math.Min(limits.PerMinute, limits.PerHour) - loginWeight;
+            var ceilingText = "one call may carry at most " + ceiling.ToString(CultureInfo.InvariantCulture) + " identifiers under RegonRateLimit."
+                + (_mode == RegonRateLimit.TimeOfDay ? "TimeOfDay at this hour" : "Strictest") + (loginWeight > 0 ? " when it has to log in first" : string.Empty) + ".";
+            if (weight > limits.PerMinute || weight > limits.PerHour)
+            {
+                throw new QuotaExceededException(
+                    "A batch of " + identifiers.ToString(CultureInfo.InvariantCulture) + " identifiers can never fit into the GUS REGON request limits ("
+                    + limits.PerMinute.ToString(CultureInfo.InvariantCulture) + " per minute): " + ceilingText + " Nothing was sent; split the batch.");
+            }
+
+            var minuteWeight = WeightSince(now - Minute);
+            if (minuteWeight + weight > limits.PerMinute)
+            {
+                var resetsAt = WindowResetsAt(now, Minute, minuteWeight + weight - limits.PerMinute);
+                throw BatchExceeded("per-minute", limits.PerMinute, identifiers, ceilingText, now, resetsAt);
+            }
+
+            if (_hourWeight + weight > limits.PerHour)
+            {
+                var resetsAt = WindowResetsAt(now, Hour, _hourWeight + weight - limits.PerHour);
+                throw BatchExceeded("per-hour", limits.PerHour, identifiers, ceilingText, now, resetsAt);
+            }
+        }
+    }
+
+    private static QuotaExceededException BatchExceeded(string window, int limit, int identifiers, string ceilingText, DateTimeOffset now, DateTimeOffset resetsAt) =>
+        new(
+            "GUS REGON " + window + " request limit (" + limit.ToString(CultureInfo.InvariantCulture) + "): a batch of "
+            + identifiers.ToString(CultureInfo.InvariantCulture) + " identifiers does not fit into what is left of it, so it is refused before its first request; "
+            + ceilingText,
+            null,
+            null,
+            resetsAt,
+            resetsAt - now);
 
     private static QuotaExceededException Exceeded(string window, int limit, DateTimeOffset now, DateTimeOffset resetsAt) =>
         new(

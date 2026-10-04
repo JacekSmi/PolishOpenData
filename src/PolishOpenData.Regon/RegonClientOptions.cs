@@ -38,7 +38,8 @@ public sealed class RegonClientOptions
     /// logged, never put in a URL or a header, never part of an exception message and never printed by <c>ToString()</c>.
     /// Required with <see cref="RegonEnvironment.Production"/>: a client built without it throws
     /// <see cref="InvalidOperationException"/> that names this property. Ignored with <see cref="RegonEnvironment.Test"/>,
-    /// which always uses GUS's published test key; your key is never sent to the test service.
+    /// which always uses GUS's published test key; your key is never sent to the test service. Whitespace around the key
+    /// (a trailing line break from a secret store, for example) is removed before it is sent; GUS keys contain none.
     /// </summary>
     public string? UserKey { get; set; }
 
@@ -60,8 +61,9 @@ public sealed class RegonClientOptions
     public RegonRateLimit RateLimit { get; set; }
 
     /// <summary>
-    /// The longest a call waits for the per-second window to clear before it fails with
-    /// <see cref="QuotaExceededException"/>. Default 5 seconds. Per-minute and per-hour exhaustion never waits.
+    /// The longest a request waits in total for the per-second window to clear before it fails with
+    /// <see cref="QuotaExceededException"/>; the limit covers the whole wait of the request, however many other callers it
+    /// queues behind. Default 5 seconds. Per-minute and per-hour exhaustion never waits.
     /// </summary>
     public TimeSpan MaxRateLimitWait { get; set; } = TimeSpan.FromSeconds(5);
 
@@ -86,7 +88,7 @@ public sealed class RegonClientOptions
 
         if (UserKey is { } key && !string.IsNullOrWhiteSpace(key))
         {
-            return key;
+            return key.Trim();   // a trailing line break from a secret store; GUS keys hold no meaningful whitespace
         }
 
         throw new InvalidOperationException(

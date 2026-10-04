@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -70,7 +71,37 @@ internal static class RegonTestResponses
     /// <summary>The text of <c>tests/Fixtures/regon/&lt;fixtureName&gt;.xml</c>, the inner result a synthetic fixture holds.</summary>
     public static string Inner(string fixtureName) => Fixture.Read("regon/" + fixtureName + ".xml");
 
-    // The service escapes & < > and writes a carriage return as &#xD; (never CDATA); a line feed stays raw.
-    private static string Escape(string text) =>
-        text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("\r", "&#xD;");
+    // The service escapes & < > and writes a carriage return as &#xD; (never CDATA); a line feed and a tab stay raw. Any other
+    // control character is written as a character reference (&#x1F;), the way WCF's text writer escapes it.
+    private static string Escape(string text)
+    {
+        var sb = new StringBuilder(text.Length);
+        foreach (var c in text)
+        {
+            switch (c)
+            {
+                case '&':
+                    sb.Append("&amp;");
+                    break;
+                case '<':
+                    sb.Append("&lt;");
+                    break;
+                case '>':
+                    sb.Append("&gt;");
+                    break;
+                case '\n':
+                case '\t':
+                    sb.Append(c);
+                    break;
+                case < ' ':
+                    sb.Append("&#x").Append(((int)c).ToString("X", CultureInfo.InvariantCulture)).Append(';');
+                    break;
+                default:
+                    sb.Append(c);
+                    break;
+            }
+        }
+
+        return sb.ToString();
+    }
 }

@@ -93,6 +93,7 @@ public sealed class RegonClient : IRegonClient
     public async Task<RegonResult<IReadOnlyList<RegonBatchEntry>>> FindByNipsAsync(IReadOnlyCollection<Nip> nips, CancellationToken cancellationToken = default)
     {
         var ids = DistinctIdentifiers(nips, static n => n.IsEmpty, static n => n.ToString(), nameof(nips));
+        _service.EnsureBatchCapacity(ids.Count);
         var found = new Dictionary<string, List<RegonEntity>>(StringComparer.Ordinal);
         await SearchInChunksAsync(ids, BirSearchField.Nipy, static e => e.Nip?.ToString(), found, cancellationToken).ConfigureAwait(false);
         return Wrap<IReadOnlyList<RegonBatchEntry>>(Entries(ids, found));
@@ -102,6 +103,7 @@ public sealed class RegonClient : IRegonClient
     public async Task<RegonResult<IReadOnlyList<RegonBatchEntry>>> FindByRegonsAsync(IReadOnlyCollection<Regon> regons, CancellationToken cancellationToken = default)
     {
         var ids = DistinctIdentifiers(regons, static r => r.IsEmpty, static r => r.ToString(), nameof(regons));
+        _service.EnsureBatchCapacity(ids.Count);
         var entityIds = new List<string>();
         var localUnitIds = new List<string>();
         foreach (var id in ids)
@@ -119,6 +121,7 @@ public sealed class RegonClient : IRegonClient
     public async Task<RegonResult<IReadOnlyList<RegonBatchEntry>>> FindByKrsNumbersAsync(IReadOnlyCollection<KrsNumber> krsNumbers, CancellationToken cancellationToken = default)
     {
         var ids = DistinctIdentifiers(krsNumbers, static k => k.IsEmpty, static k => k.ToString(), nameof(krsNumbers));
+        _service.EnsureBatchCapacity(ids.Count);
         var entries = new List<RegonBatchEntry>(ids.Count);
         foreach (var id in ids)
         {
@@ -130,7 +133,7 @@ public sealed class RegonClient : IRegonClient
         return Wrap<IReadOnlyList<RegonBatchEntry>>(entries);
     }
 
-        /// <inheritdoc/>
+    /// <inheritdoc/>
     public async Task<RegonResult<IReadOnlyList<RegonDetails>>> GetDetailsAsync(Regon regon, RegonInclude include = RegonInclude.None, CancellationToken cancellationToken = default)
     {
         RequireValue(regon.IsEmpty, nameof(regon));
@@ -346,7 +349,7 @@ public sealed class RegonClient : IRegonClient
         return list;
     }
 
-private static BirService CreateService(HttpClient httpClient, RegonClientOptions options, BirSession session, RegonRateLimiter limiter) =>
+    private static BirService CreateService(HttpClient httpClient, RegonClientOptions options, BirSession session, RegonRateLimiter limiter) =>
         new(new BirTransport(httpClient), options.ResolveAddress(), options.ResolveUserKey(), session, limiter);
 
     private async Task<RegonResult<IReadOnlyList<RegonEntity>>> SearchOneAsync(BirSearchField field, string value, CancellationToken cancellationToken)
