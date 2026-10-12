@@ -1,0 +1,38 @@
+<root>
+  <dane>
+    <Regon>000331501</Regon>
+    <Nip>5261040828</Nip>
+    <StatusNip />
+    <Nazwa>GŁÓWNY URZĄD STATYSTYCZNY</Nazwa>
+    <Wojewodztwo>MAZOWIECKIE</Wojewodztwo>
+    <Powiat>m. st. Warszawa</Powiat>
+    <Gmina>Śródmieście</Gmina>
+    <Miejscowosc>Warszawa</Miejscowosc>
+    <KodPocztowy>00-925</KodPocztowy>
+    <Ulica>ul. Test-Krucza</Ulica>
+    <NrNieruchomosci>208</NrNieruchomosci>
+    <NrLokalu />
+    <Typ>P</Typ>
+    <SilosID>6</SilosID>
+    <DataZakonczeniaDzialalnosci />
+    <MiejscowoscPoczty>Warszawa</MiejscowoscPoczty>
+  </dane>
+  <dane>
+    <Regon>123456785</Regon>
+    <Nip>1234563218</Nip>
+    <StatusNip />
+    <Nazwa>PRZYKŁADOWA SPÓŁKA TESTOWA</Nazwa>
+    <Wojewodztwo>MAZOWIECKIE</Wojewodztwo>
+    <Powiat>m. st. Warszawa</Powiat>
+    <Gmina>Śródmieście</Gmina>
+    <Miejscowosc>Warszawa</Miejscowosc>
+    <KodPocztowy>00-002</KodPocztowy>
+    <Ulica>ul. Test-Marszałkowska</Ulica>
+    <NrNieruchomosci>10</NrNieruchomosci>
+    <NrLokalu />
+    <Typ>P</Typ>
+    <SilosID>6</SilosID>
+    <DataZakonczeniaDzialalnosci />
+    <MiejscowoscPoczty>Warszawa</MiejscowoscPoczty>
+  </dane>
+</root>

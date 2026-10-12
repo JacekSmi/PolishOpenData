@@ -1,0 +1,7 @@
+<root>
+  <dane>
+    <ErrorCode>21</ErrorCode>
+    <DatabaseSearchResultPl>Podmiot nie jest spółką cywilną</DatabaseSearchResultPl>
+    <DatabaseSearchResultEn>The entity is not a civil partnership</DatabaseSearchResultEn>
+  </dane>
+</root>

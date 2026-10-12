@@ -1,0 +1,20 @@
+<root>
+  <dane>
+    <Regon>14239685800010</Regon>
+    <Nip />
+    <StatusNip />
+    <Nazwa>ODDZIAŁ TESTOWY W WARSZAWIE</Nazwa>
+    <Wojewodztwo>MAZOWIECKIE</Wojewodztwo>
+    <Powiat>m. st. Warszawa</Powiat>
+    <Gmina>Mokotów</Gmina>
+    <Miejscowosc>Warszawa</Miejscowosc>
+    <KodPocztowy>02-672</KodPocztowy>
+    <Ulica>ul. Test-Domaniewska</Ulica>
+    <NrNieruchomosci>39</NrNieruchomosci>
+    <NrLokalu />
+    <Typ>LP</Typ>
+    <SilosID>6</SilosID>
+    <DataZakonczeniaDzialalnosci />
+    <MiejscowoscPoczty>Warszawa</MiejscowoscPoczty>
+  </dane>
+</root>

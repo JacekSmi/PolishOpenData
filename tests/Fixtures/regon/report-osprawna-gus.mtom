@@ -1,0 +1,66 @@
+
+--uuid:2fca1166-b9cc-47b8-8f7a-25f04f269d5a+id=491406
+Content-ID: <http://tempuri.org/0>
+Content-Transfer-Encoding: 8bit
+Content-Type: application/xop+xml;charset=utf-8;type="application/soap+xml"
+
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing"><s:Header><a:Action s:mustUnderstand="1">http://CIS/BIR/PUBL/2014/07/IUslugaBIRzewnPubl/DanePobierzPelnyRaportResponse</a:Action></s:Header><s:Body><DanePobierzPelnyRaportResponse xmlns="http://CIS/BIR/PUBL/2014/07"><DanePobierzPelnyRaportResult>&lt;root&gt;&#xD;
+  &lt;dane&gt;&#xD;
+    &lt;praw_regon9&gt;000331501&lt;/praw_regon9&gt;&#xD;
+    &lt;praw_nip&gt;5261040828&lt;/praw_nip&gt;&#xD;
+    &lt;praw_statusNip /&gt;&#xD;
+    &lt;praw_nazwa&gt;GŁÓWNY URZĄD STATYSTYCZNY&lt;/praw_nazwa&gt;&#xD;
+    &lt;praw_nazwaSkrocona&gt;GUS&lt;/praw_nazwaSkrocona&gt;&#xD;
+    &lt;praw_numerWRejestrzeEwidencji /&gt;&#xD;
+    &lt;praw_dataWpisuDoRejestruEwidencji&gt;1975-12-15&lt;/praw_dataWpisuDoRejestruEwidencji&gt;&#xD;
+    &lt;praw_dataPowstania&gt;1975-12-15&lt;/praw_dataPowstania&gt;&#xD;
+    &lt;praw_dataRozpoczeciaDzialalnosci&gt;1975-12-15&lt;/praw_dataRozpoczeciaDzialalnosci&gt;&#xD;
+    &lt;praw_dataWpisuDoRegon /&gt;&#xD;
+    &lt;praw_dataZawieszeniaDzialalnosci /&gt;&#xD;
+    &lt;praw_dataWznowieniaDzialalnosci /&gt;&#xD;
+    &lt;praw_dataZaistnieniaZmiany&gt;2009-02-20&lt;/praw_dataZaistnieniaZmiany&gt;&#xD;
+    &lt;praw_dataZakonczeniaDzialalnosci /&gt;&#xD;
+    &lt;praw_dataSkresleniaZRegon /&gt;&#xD;
+    &lt;praw_dataOrzeczeniaOUpadlosci /&gt;&#xD;
+    &lt;praw_dataZakonczeniaPostepowaniaUpadlosciowego /&gt;&#xD;
+    &lt;praw_adSiedzKraj_Symbol&gt;PL&lt;/praw_adSiedzKraj_Symbol&gt;&#xD;
+    &lt;praw_adSiedzWojewodztwo_Symbol&gt;14&lt;/praw_adSiedzWojewodztwo_Symbol&gt;&#xD;
+    &lt;praw_adSiedzPowiat_Symbol&gt;65&lt;/praw_adSiedzPowiat_Symbol&gt;&#xD;
+    &lt;praw_adSiedzGmina_Symbol&gt;108&lt;/praw_adSiedzGmina_Symbol&gt;&#xD;
+    &lt;praw_adSiedzKodPocztowy&gt;00925&lt;/praw_adSiedzKodPocztowy&gt;&#xD;
+    &lt;praw_adSiedzMiejscowoscPoczty_Symbol&gt;0919810&lt;/praw_adSiedzMiejscowoscPoczty_Symbol&gt;&#xD;
+    &lt;praw_adSiedzMiejscowosc_Symbol&gt;0919810&lt;/praw_adSiedzMiejscowosc_Symbol&gt;&#xD;
+    &lt;praw_adSiedzUlica_Symbol&gt;10013&lt;/praw_adSiedzUlica_Symbol&gt;&#xD;
+    &lt;praw_adSiedzNumerNieruchomosci&gt;208&lt;/praw_adSiedzNumerNieruchomosci&gt;&#xD;
+    &lt;praw_adSiedzNumerLokalu /&gt;&#xD;
+    &lt;praw_adSiedzNietypoweMiejsceLokalizacji /&gt;&#xD;
+    &lt;praw_numerTelefonu&gt;6083000&lt;/praw_numerTelefonu&gt;&#xD;
+    &lt;praw_numerWewnetrznyTelefonu /&gt;&#xD;
+    &lt;praw_numerFaksu&gt;0226083863&lt;/praw_numerFaksu&gt;&#xD;
+    &lt;praw_adresEmail&gt;dgsek@stat.gov.pl&lt;/praw_adresEmail&gt;&#xD;
+    &lt;praw_adresStronyinternetowej&gt;www.stat.gov.pl&lt;/praw_adresStronyinternetowej&gt;&#xD;
+    &lt;praw_adSiedzKraj_Nazwa&gt;POLSKA&lt;/praw_adSiedzKraj_Nazwa&gt;&#xD;
+    &lt;praw_adSiedzWojewodztwo_Nazwa&gt;MAZOWIECKIE&lt;/praw_adSiedzWojewodztwo_Nazwa&gt;&#xD;
+    &lt;praw_adSiedzPowiat_Nazwa&gt;m. st. Warszawa&lt;/praw_adSiedzPowiat_Nazwa&gt;&#xD;
+    &lt;praw_adSiedzGmina_Nazwa&gt;Śródmieście&lt;/praw_adSiedzGmina_Nazwa&gt;&#xD;
+    &lt;praw_adSiedzMiejscowosc_Nazwa&gt;Warszawa&lt;/praw_adSiedzMiejscowosc_Nazwa&gt;&#xD;
+    &lt;praw_adSiedzMiejscowoscPoczty_Nazwa&gt;Warszawa&lt;/praw_adSiedzMiejscowoscPoczty_Nazwa&gt;&#xD;
+    &lt;praw_adSiedzUlica_Nazwa&gt;ul. Test-Krucza&lt;/praw_adSiedzUlica_Nazwa&gt;&#xD;
+    &lt;praw_podstawowaFormaPrawna_Symbol&gt;2&lt;/praw_podstawowaFormaPrawna_Symbol&gt;&#xD;
+    &lt;praw_szczegolnaFormaPrawna_Symbol&gt;401&lt;/praw_szczegolnaFormaPrawna_Symbol&gt;&#xD;
+    &lt;praw_formaFinansowania_Symbol&gt;2&lt;/praw_formaFinansowania_Symbol&gt;&#xD;
+    &lt;praw_formaWlasnosci_Symbol&gt;111&lt;/praw_formaWlasnosci_Symbol&gt;&#xD;
+    &lt;praw_organZalozycielski_Symbol&gt;050000000&lt;/praw_organZalozycielski_Symbol&gt;&#xD;
+    &lt;praw_organRejestrowy_Symbol /&gt;&#xD;
+    &lt;praw_rodzajRejestruEwidencji_Symbol&gt;000&lt;/praw_rodzajRejestruEwidencji_Symbol&gt;&#xD;
+    &lt;praw_podstawowaFormaPrawna_Nazwa&gt;JEDNOSTKA ORGANIZACYJNA NIEMAJĄCA OSOBOWOŚCI PRAWNEJ&lt;/praw_podstawowaFormaPrawna_Nazwa&gt;&#xD;
+    &lt;praw_szczegolnaFormaPrawna_Nazwa&gt;ORGANY WŁADZY, ADMINISTRACJI RZĄDOWEJ&lt;/praw_szczegolnaFormaPrawna_Nazwa&gt;&#xD;
+    &lt;praw_formaFinansowania_Nazwa&gt;JEDNOSTKA BUDŻETOWA&lt;/praw_formaFinansowania_Nazwa&gt;&#xD;
+    &lt;praw_formaWlasnosci_Nazwa&gt;WŁASNOŚĆ SKARBU PAŃSTWA&lt;/praw_formaWlasnosci_Nazwa&gt;&#xD;
+    &lt;praw_organZalozycielski_Nazwa&gt;PREZES GŁÓWNEGO URZĘDU STATYSTYCZNEGO&lt;/praw_organZalozycielski_Nazwa&gt;&#xD;
+    &lt;praw_organRejestrowy_Nazwa /&gt;&#xD;
+    &lt;praw_rodzajRejestruEwidencji_Nazwa&gt;PODMIOTY UTWORZONE Z MOCY USTAWY&lt;/praw_rodzajRejestruEwidencji_Nazwa&gt;&#xD;
+    &lt;praw_liczbaJednLokalnych&gt;0&lt;/praw_liczbaJednLokalnych&gt;&#xD;
+  &lt;/dane&gt;&#xD;
+&lt;/root&gt;</DanePobierzPelnyRaportResult></DanePobierzPelnyRaportResponse></s:Body></s:Envelope>
+--uuid:2fca1166-b9cc-47b8-8f7a-25f04f269d5a+id=491406--

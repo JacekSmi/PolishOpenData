@@ -1,0 +1,7 @@
+<root>
+  <dane>
+    <ErrorCode>22</ErrorCode>
+    <ErrorMessagePl>W rejestrze REGON brak jest wprowadzonych wspolników dla tej SC</ErrorMessagePl>
+    <ErrorMessageEn>No partners are recorded in REGON for this civil partnership</ErrorMessageEn>
+  </dane>
+</root>

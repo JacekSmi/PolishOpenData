@@ -1,0 +1,8 @@
+
+--uuid:f1ded9df-defa-4ae2-9557-bd6cd6a5bc84+id=240371
+Content-ID: <http://tempuri.org/0>
+Content-Transfer-Encoding: 8bit
+Content-Type: application/xop+xml;charset=utf-8;type="application/soap+xml"
+
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing"><s:Header><a:Action s:mustUnderstand="1">http://www.w3.org/2005/08/addressing/soap/fault</a:Action></s:Header><s:Body><s:Fault><s:Code><s:Value>s:Sender</s:Value><s:Subcode><s:Value>a:DestinationUnreachable</s:Value></s:Subcode></s:Code><s:Reason><s:Text xml:lang="en-US">The message with To 'urn:wrong-address' cannot be processed at the receiver, due to an AddressFilter mismatch at the EndpointDispatcher.  Check that the sender and receiver's EndpointAddresses agree.</s:Text></s:Reason></s:Fault></s:Body></s:Envelope>
+--uuid:f1ded9df-defa-4ae2-9557-bd6cd6a5bc84+id=240371--

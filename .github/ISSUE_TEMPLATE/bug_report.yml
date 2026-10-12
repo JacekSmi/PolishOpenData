@@ -16,6 +16,7 @@ body:
         - PolishOpenData.Core
         - PolishOpenData.Krs
         - PolishOpenData.BialaLista
+        - PolishOpenData.Regon
         - PolishOpenData.Mcp
     validations:
       required: true

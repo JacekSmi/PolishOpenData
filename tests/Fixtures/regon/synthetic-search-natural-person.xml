@@ -1,0 +1,37 @@
+<root>
+  <dane>
+    <Regon>999999990</Regon>
+    <Nip>9999999999</Nip>
+    <StatusNip />
+    <Nazwa>JAN KOWALSKI</Nazwa>
+    <Wojewodztwo>MAZOWIECKIE</Wojewodztwo>
+    <Powiat>m. st. Warszawa</Powiat>
+    <Gmina>Śródmieście</Gmina>
+    <Miejscowosc>Warszawa</Miejscowosc>
+    <KodPocztowy>00-001</KodPocztowy>
+    <Ulica>ul. Test-Prosta</Ulica>
+    <NrNieruchomosci>1</NrNieruchomosci>
+    <NrLokalu>2</NrLokalu>
+    <Typ>F</Typ>
+    <SilosID>1</SilosID>
+    <DataZakonczeniaDzialalnosci />
+    <MiejscowoscPoczty>Warszawa</MiejscowoscPoczty>
+  </dane>
+  <dane>
+    <Regon>999999990</Regon>
+    <Nip>9999999999</Nip>
+    <StatusNip />
+    <Nazwa>JAN KOWALSKI</Nazwa>
+    <Wojewodztwo>MAZOWIECKIE</Wojewodztwo>
+    <Powiat>piaseczyński</Powiat>
+    <Gmina>Piaseczno</Gmina>
+    <Miejscowosc>Piaseczno</Miejscowosc>
+    <KodPocztowy>05-500</KodPocztowy>
+    <NrNieruchomosci>7</NrNieruchomosci>
+    <NrLokalu />
+    <Typ>F</Typ>
+    <SilosID>2</SilosID>
+    <DataZakonczeniaDzialalnosci>2020-12-31</DataZakonczeniaDzialalnosci>
+    <MiejscowoscPoczty>Piaseczno</MiejscowoscPoczty>
+  </dane>
+</root>

@@ -1,0 +1,20 @@
+<root>
+  <dane>
+    <praw_pkdKod>8411Z</praw_pkdKod>
+    <praw_pkdNazwa>Działalność testowa A</praw_pkdNazwa>
+    <praw_pkdPrzewazajace>1</praw_pkdPrzewazajace>
+    <praw_pkdWersja>2007</praw_pkdWersja>
+  </dane>
+  <dane>
+    <praw_pkdKod>7220Z</praw_pkdKod>
+    <praw_pkdNazwa>Działalność testowa B</praw_pkdNazwa>
+    <praw_pkdPrzewazajace>0</praw_pkdPrzewazajace>
+    <praw_pkdWersja>2007</praw_pkdWersja>
+  </dane>
+  <dane>
+    <praw_pkdKod>6201Z</praw_pkdKod>
+    <praw_pkdNazwa>Działalność testowa C</praw_pkdNazwa>
+    <praw_pkdPrzewazajace>0</praw_pkdPrzewazajace>
+    <praw_pkdWersja>2025</praw_pkdWersja>
+  </dane>
+</root>

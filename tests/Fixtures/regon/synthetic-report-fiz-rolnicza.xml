@@ -1,0 +1,16 @@
+<root>
+  <dane>
+    <fiz_regon9>999999990</fiz_regon9>
+    <fiz_nazwa>JAN KOWALSKI</fiz_nazwa>
+    <fiz_dataPowstania>2008-04-01</fiz_dataPowstania>
+    <fiz_dataRozpoczeciaDzialalnosci>2008-04-01</fiz_dataRozpoczeciaDzialalnosci>
+    <fiz_dataZakonczeniaDzialalnosci>2020-12-31</fiz_dataZakonczeniaDzialalnosci>
+    <fiz_dataSkresleniaDzialalanosciZRegon>2020-12-31</fiz_dataSkresleniaDzialalanosciZRegon>
+    <fiz_adSiedzKodPocztowy>05500</fiz_adSiedzKodPocztowy>
+    <fiz_adSiedzNumerNieruchomosci>7</fiz_adSiedzNumerNieruchomosci>
+    <fiz_adSiedzWojewodztwo_Nazwa>MAZOWIECKIE</fiz_adSiedzWojewodztwo_Nazwa>
+    <fiz_adSiedzPowiat_Nazwa>piaseczyński</fiz_adSiedzPowiat_Nazwa>
+    <fiz_adSiedzGmina_Nazwa>Piaseczno</fiz_adSiedzGmina_Nazwa>
+    <fiz_adSiedzMiejscowosc_Nazwa>Piaseczno</fiz_adSiedzMiejscowosc_Nazwa>
+  </dane>
+</root>

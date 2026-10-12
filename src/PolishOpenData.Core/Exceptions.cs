@@ -28,7 +28,9 @@ public class PolishOpenDataException : Exception
 /// An upstream registry answered with a semantic error (a 4xx response or an error body), or with a success response
 /// that the library could not use, such as malformed JSON (then <see cref="StatusCode"/> is the 2xx status and
 /// <see cref="ResponseSnippet"/> holds the start of the body). Transport failures and 5xx responses are reported as
-/// <see cref="System.Net.Http.HttpRequestException"/> instead, so standard resilience handlers keep working.
+/// <see cref="System.Net.Http.HttpRequestException"/> instead, so standard resilience handlers keep working. The one
+/// exception is a SOAP Sender fault from the GUS REGON service, which arrives as HTTP 500 but means the request itself
+/// was wrong; it is reported as this exception with <see cref="IsTransient"/> false.
 /// </summary>
 public class PolishOpenDataApiException : PolishOpenDataException
 {

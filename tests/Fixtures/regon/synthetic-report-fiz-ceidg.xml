@@ -1,0 +1,34 @@
+<root>
+  <dane>
+    <fiz_regon9>999999990</fiz_regon9>
+    <fiz_nazwa>JAN KOWALSKI</fiz_nazwa>
+    <fiz_dataPowstania>2005-02-14</fiz_dataPowstania>
+    <fiz_dataRozpoczeciaDzialalnosci>2005-03-01</fiz_dataRozpoczeciaDzialalnosci>
+    <fiz_dataWpisuDzialalnosciDoRegon>2005-03-01</fiz_dataWpisuDzialalnosciDoRegon>
+    <fiz_dataZawieszeniaDzialalnosci>2012-05-01</fiz_dataZawieszeniaDzialalnosci>
+    <fiz_dataWznowieniaDzialalnosci>2012-09-01</fiz_dataWznowieniaDzialalnosci>
+    <fiz_dataZaistnieniaZmianyDzialalnosci>2019-06-01</fiz_dataZaistnieniaZmianyDzialalnosci>
+    <fiz_adSiedzKraj_Symbol>PL</fiz_adSiedzKraj_Symbol>
+    <fiz_adSiedzWojewodztwo_Symbol>14</fiz_adSiedzWojewodztwo_Symbol>
+    <fiz_adSiedzPowiat_Symbol>65</fiz_adSiedzPowiat_Symbol>
+    <fiz_adSiedzGmina_Symbol>108</fiz_adSiedzGmina_Symbol>
+    <fiz_adSiedzKodPocztowy>00001</fiz_adSiedzKodPocztowy>
+    <fiz_adSiedzMiejscowoscPoczty_Symbol>0918123</fiz_adSiedzMiejscowoscPoczty_Symbol>
+    <fiz_adSiedzMiejscowosc_Symbol>0918123</fiz_adSiedzMiejscowosc_Symbol>
+    <fiz_adSiedzUlica_Symbol>88888</fiz_adSiedzUlica_Symbol>
+    <fiz_adSiedzNumerNieruchomosci>1</fiz_adSiedzNumerNieruchomosci>
+    <fiz_adSiedzNumerLokalu>2</fiz_adSiedzNumerLokalu>
+    <fiz_adresEmail>jan.kowalski@example.test</fiz_adresEmail>
+    <fiz_adSiedzWojewodztwo_Nazwa>MAZOWIECKIE</fiz_adSiedzWojewodztwo_Nazwa>
+    <fiz_adSiedzPowiat_Nazwa>m. st. Warszawa</fiz_adSiedzPowiat_Nazwa>
+    <fiz_adSiedzGmina_Nazwa>Śródmieście</fiz_adSiedzGmina_Nazwa>
+    <fiz_adSiedzMiejscowosc_Nazwa>Warszawa</fiz_adSiedzMiejscowosc_Nazwa>
+    <fiz_adSiedzMiejscowoscPoczty_Nazwa>Warszawa</fiz_adSiedzMiejscowoscPoczty_Nazwa>
+    <fiz_adSiedzUlica_Nazwa>ul. Test-Prosta</fiz_adSiedzUlica_Nazwa>
+    <fizC_dataWpisuDoRejestruEwidencji>2005-02-14</fizC_dataWpisuDoRejestruEwidencji>
+    <fizC_numerWRejestrzeEwidencji>123456</fizC_numerWRejestrzeEwidencji>
+    <fizC_RodzajRejestru_Symbol>223</fizC_RodzajRejestru_Symbol>
+    <fizC_RodzajRejestru_Nazwa>CEIDG</fizC_RodzajRejestru_Nazwa>
+    <fizC_NiePodjetoDzialalnosci>false</fizC_NiePodjetoDzialalnosci>
+  </dane>
+</root>

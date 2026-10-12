@@ -30,7 +30,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Compiled into the netstandard2.0 builds of PolishOpenData.Core, PolishOpenData.Krs and PolishOpenData.BialaLista
+## Compiled into the netstandard2.0 builds of PolishOpenData.Core, PolishOpenData.Krs, PolishOpenData.BialaLista and PolishOpenData.Regon
 
 - **Polyfill** 11.4.0 (source-embedded as internal types): <https://github.com/SimonCropp/Polyfill>. MIT License, Copyright (c) Simon Cropp. The MIT License text is at the end of this file.
 

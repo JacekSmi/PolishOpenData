@@ -52,6 +52,42 @@ internal static class HttpHelpers
     }
 
     /// <summary>
+    /// Reads the body but stops once it is known to be longer than <paramref name="maxBytes"/>: the result then holds the
+    /// first <c>maxBytes + 1</c> bytes (so <c>Length &gt; maxBytes</c> tells the caller the cap was hit) and the rest of the
+    /// stream is never read. Unlike <see cref="ReadBytesAsync(HttpContent, CancellationToken)"/> this bounds memory for a
+    /// body with no Content-Length. The token is checked between chunks.
+    /// </summary>
+    public static async Task<byte[]> ReadBytesAsync(this HttpContent content, int maxBytes, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+#if NET
+        using var stream = await content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+#else
+        using var stream = await content.ReadAsStreamAsync().ConfigureAwait(false);
+#endif
+        var limit = (long)maxBytes + 1;
+        using var buffer = new MemoryStream();
+        var chunk = new byte[81920];
+        while (buffer.Length < limit)
+        {
+            var wanted = (int)Math.Min(chunk.Length, limit - buffer.Length);
+#if NET
+            var read = await stream.ReadAsync(chunk.AsMemory(0, wanted), cancellationToken).ConfigureAwait(false);
+#else
+            var read = await stream.ReadAsync(chunk, 0, wanted, cancellationToken).ConfigureAwait(false);
+#endif
+            if (read == 0)
+            {
+                break;
+            }
+
+            buffer.Write(chunk, 0, read);
+        }
+
+        return buffer.ToArray();
+    }
+
+    /// <summary>
     /// Deserialises a success response. The body is buffered so that, when it is not the expected JSON, the
     /// <see cref="JsonException"/> becomes a <see cref="PolishOpenDataApiException"/> carrying the status code and the
     /// start of the body. Returns the body too, for callers that reject a well-formed but empty answer.

@@ -1,0 +1,11 @@
+<root>
+  <dane>
+    <wspolsc_regonWspolnikSpolki>999999990</wspolsc_regonWspolnikSpolki>
+    <wspolsc_imiePierwsze>JAN</wspolsc_imiePierwsze>
+    <wspolsc_nazwisko>KOWALSKI</wspolsc_nazwisko>
+  </dane>
+  <dane>
+    <wspolsc_regonWspolnikSpolki>142396858</wspolsc_regonWspolnikSpolki>
+    <wspolsc_firmaNazwa>PRZYKŁADOWA SPÓŁKA TESTOWA</wspolsc_firmaNazwa>
+  </dane>
+</root>

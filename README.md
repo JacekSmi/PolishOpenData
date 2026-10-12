@@ -1,6 +1,6 @@
 # PolishOpenData
 
-**.NET libraries and an MCP server for Polish public registers** — company lookup in KRS, the VAT whitelist (Biała Lista) with bank-account checks, and offline validation of NIP, REGON, KRS, NRB and land-registry (KW) numbers.
+**.NET libraries and an MCP server for Polish public registers** — company lookup in KRS, the VAT whitelist (Biała Lista) with bank-account checks, a client for the GUS REGON register (library only), and offline validation of NIP, REGON, KRS, NRB and land-registry (KW) numbers.
 
 [![CI](https://github.com/JacekSmi/PolishOpenData/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JacekSmi/PolishOpenData/actions/workflows/ci.yml?query=branch%3Amain)
 [![NuGet](https://img.shields.io/nuget/v/PolishOpenData.Mcp?label=PolishOpenData.Mcp)](https://www.nuget.org/packages/PolishOpenData.Mcp)
@@ -17,7 +17,8 @@
 | [`PolishOpenData.Core`](https://www.nuget.org/packages/PolishOpenData.Core) | Offline value types: `Nip`, `Regon`, `KrsNumber`, `Nrb`, `KwNumber` (+ official court-code table) | net10.0, netstandard2.0 |
 | [`PolishOpenData.Krs`](https://www.nuget.org/packages/PolishOpenData.Krs) | KRS Open API: current/full extracts, removed entities, daily change feed, English summary | net10.0, netstandard2.0 |
 | [`PolishOpenData.BialaLista`](https://www.nuget.org/packages/PolishOpenData.BialaLista) | VAT whitelist: status, bank-account check with request ID, batches, daily-limit guard | net10.0, netstandard2.0 |
-| [`PolishOpenData.Mcp`](https://www.nuget.org/packages/PolishOpenData.Mcp) | MCP server exposing all of the above to AI assistants | .NET 10 tool |
+| [`PolishOpenData.Regon`](https://www.nuget.org/packages/PolishOpenData.Regon) | GUS REGON (BIR1.2): search by NIP/REGON/KRS, batches of 20, full reports, session and request limiter; needs your own free GUS key | net10.0, netstandard2.0 |
+| [`PolishOpenData.Mcp`](https://www.nuget.org/packages/PolishOpenData.Mcp) | MCP server for AI assistants: company lookup, VAT whitelist and bank-account check, KRS extracts, identifier validation | .NET 10 tool |
 
 ## Offline validation
 
@@ -78,6 +79,45 @@ A runnable version is in [`samples/CheckCounterparty`](https://github.com/JacekS
 
 **Source-generated JSON.** The KRS models use public converters from `PolishOpenData.Krs.Serialization` (`KrsDateJsonConverter`, `KrsTimestampJsonConverter`), so on .NET 8 or later you can add `KrsCurrentExtract` or `KrsFullExtract` to your own `JsonSerializerContext` (for example to cache extracts) without registering any converter. If you parse raw KRS API responses yourself instead of calling `IKrsClient`, note two things: the extract is wrapped in an `odpis` object, so deserialize that inner object; and the registry's field names (such as `dataRejestracjiWKRS`) match the properties only case-insensitively, so use `JsonSerializerDefaults.Web` — `[JsonSourceGenerationOptions(JsonSerializerDefaults.Web)]` on your context, or `new JsonSerializerOptions(JsonSerializerDefaults.Web)` with the reflection-based serializer on .NET Framework. Otherwise the properties stay `null` without an error.
 
+## Quick start: look up an entity in the GUS REGON register
+
+`PolishOpenData.Regon` is a client for GUS's BIR1.2 web service: search by NIP, REGON or KRS number, batches of up to 20 identifiers, and the full reports of legal persons, sole traders and local units. It needs a key of your own (free: write to `regon_bir@stat.gov.pl`); GUS's public test environment works without a key but serves an old, anonymised copy of the register.
+
+```bash
+dotnet add package PolishOpenData.Regon
+```
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using PolishOpenData;
+using PolishOpenData.Bir;
+using System.Linq;
+
+var services = new ServiceCollection();
+services.AddRegonClient(o => o.UserKey = Environment.GetEnvironmentVariable("MY_APP_REGON_KEY")); // your key, from your own configuration
+// GUS's public test environment needs no key: services.AddRegonClient(o => o.Environment = RegonEnvironment.Test);
+using var provider = services.BuildServiceProvider();
+var regon = provider.GetRequiredService<IRegonClient>();
+
+var found = await regon.FindByNipAsync(Nip.Parse("526-104-08-28"));
+var entity = found.Value[0];
+Console.WriteLine($"{entity.Name}, {entity.Address.City} (REGON {entity.Regon})");
+
+var details = (await regon.GetDetailsAsync(entity, RegonInclude.Pkd)).Value[0];
+Console.WriteLine($"{details.LegalFormName}; main PKD {details.Pkd!.First(p => p.IsPrimary).Code}");
+Console.WriteLine($"Source: GUS REGON ({found.Environment}), retrieved {found.RetrievedAt:u}");
+
+await regon.LogoutAsync();
+```
+
+The client limits itself to GUS's strictest window by default (3 calls per second, 120 per minute, 6,000 per hour; a batch of up to 20 identifiers is one call for the per-second limit, while the per-minute and per-hour limits count requests and identifiers: each identifier of a search counts one, and so does every other request — login, report, `GetDataDateAsync`, logout) and keeps one login session. A batch method checks its whole batch before the first request and throws `QuotaExceededException` without sending anything when it does not fit into what is left of the minute or hour window: under the default window one call carries at most 119 distinct identifiers (120 when the session is already logged in, fewer when other calls used the last minute). Whether GUS also counts every identifier of a batch toward its own per-second limit is not confirmed; if you send many batches, use smaller ones or space them out. Register `AddRegonClient` once per process and reuse the client: GUS counts requests per application instance, and a session works only from the IP address that created it. Call `LogoutAsync` when your process stops; the client never does it by itself. A client created without DI gets a private session and limiter.
+
+Retries stay off for REGON, as for Biała Lista: a retry made by a resilience handler is another GUS request that the request limiter cannot count, and a SOAP fault, which means your request was wrong, arrives as HTTP 500 and would be retried. If you add `AddStandardResilienceHandler`, switch its retries off as in the Biała Lista example above.
+
+**Keys and the test environment.** The library is bring-your-own-key: it ships no production key, never reads environment variables and never logs or prints your key. GUS's technical manual restricts how software that is distributed to other users may handle keys (section 3.6.3), so check GUS's rules before you distribute an application that uses this library. `RegonEnvironment.Test` selects GUS's public test service and its published test key (a `UserKey` that you configure is ignored there and never sent to the test service, so you can keep your own key configured and switch the environment); every result says which environment it came from (`RegonResult.Environment`), so anonymised test data (mostly from 2014) cannot pass for current data.
+
+**Cost.** Details cost requests: a legal person takes a login, a search and one report (3 requests), each optional list (`RegonInclude.Pkd`, `LocalUnits`, `Partners`) one more, and a sole trader the general report plus one report per activity type. `RegonResult.DataAsOf` is filled once `GetDataDateAsync` has been called (one request).
+
 ## MCP server for AI assistants
 
 Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download). No API keys.
@@ -128,11 +168,14 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 - Biała Lista allows about 100 searches and 5,000 checks per day per IP address; exceeding them blocks the IP until midnight, including the ministry's web search. Use `TrackQuota` and prefer checks over searches.
 - KRS masks natural persons in structured fields. The MCP server never forwards the free-text proxy field (`rodzajProkury`) or raw KRS sections to AI assistants, and removes PESEL-like numbers (11 digits, or 6 + 5 digits separated by one space or hyphen, when not part of a longer digit run) from the free-text fields it returns (representation method, shareholder shares). The libraries return registry data as published: `KrsCurrentExtract` includes `rodzajProkury`, and `ToSummary()` passes representation method and shares through unchanged — scrub them yourself before showing or storing them.
 - Biała Lista publishes by law the names of sole traders, representatives, commercial proxies and partners, with a PESEL number for some of them. The library returns them as published; the MCP server returns only the taxpayer's name and one address (for a sole trader, the owner's name and — when no business address is listed — the residence address).
+- GUS records the IP address, time and content of every REGON request. Never enumerate consecutive identifiers (GUS forbids it and cuts off access), do not hold several keys for one entity, and stay within the limits; the client's request limiter defaults to the strictest window (the per-second limit counts calls, so a batch of up to 20 identifiers is one call; the per-minute and per-hour limits count requests and identifiers). Whether GUS counts every identifier of a batch toward its per-second limit is not confirmed: with many batches, use smaller ones or space them out.
+- The REGON library returns data as published. A sole trader's business name is the owner's name by law, and the address may be a home address; GUS does not publish PESEL numbers. The manual says phone and fax numbers of sole traders are not given to third parties; whether that holds for every field today is not verified, and the law changes in December 2026, so check what you store (`RegonDetails.Fields` holds every field GUS sent). Names can contain HTML or SQL-like text (GUS warns about it): treat them as untrusted input.
+- Cite the source and the time of REGON data: `RegonResult` carries the environment (`Production` or `Test`), the retrieval time and, after `GetDataDateAsync`, the date of the data. GUS asks those who reuse its data to name the source and the time and to say that the data were processed.
 - No scraping, no bulk harvesting, no linking of parcels to land-registry numbers.
 
 ## Possible next steps
 
-Ideas, not commitments: GUS REGON (BIR) lookups, offline checks against the VAT whitelist flat file, and property data (ULDK parcels, GUGiK geocoder, transaction prices). If one of them would help you, [open an issue](https://github.com/JacekSmi/PolishOpenData/issues) to show interest.
+Ideas, not commitments: offline checks against the VAT whitelist flat file, and property data (ULDK parcels, GUGiK geocoder, transaction prices). A REGON tool for the MCP server is under consideration, but only if GUS confirms its rules for user keys. If one of them would help you, [open an issue](https://github.com/JacekSmi/PolishOpenData/issues) to show interest.
 
 ## Contributing and license
 
