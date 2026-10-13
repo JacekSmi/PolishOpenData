@@ -20,7 +20,12 @@ public sealed class PublishedMcpPackageTests
     // Room for the first run, which downloads the package and its dependencies.
     private const int PackageTestTimeout = 300_000;
 
-    private static readonly string[] ExpectedTools = ["lookup_company", "check_vat_bank_account", "check_vat_bank_account_offline", "get_krs_extract", "validate_identifier"];
+    private static readonly string[] ExpectedTools = ["lookup_company", "check_vat_bank_account", "get_krs_extract", "validate_identifier"];
+
+    // Added in 1.3.0: older published versions legitimately lack it, so it is expected only from that version on.
+    private const string OfflineTool = "check_vat_bank_account_offline";
+
+    private static readonly Version OfflineToolSince = new(1, 3, 0);
 
     private static readonly SearchValues<char> VersionRangeCharacters = SearchValues.Create("*[](),");
 
@@ -72,7 +77,10 @@ public sealed class PublishedMcpPackageTests
             }
 
             var tools = await client.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
-            foreach (var name in ExpectedTools)
+            var expected = Version.TryParse(client.ServerInfo.Version.Split('-', '+')[0], out var reported) && reported >= OfflineToolSince
+                ? [.. ExpectedTools, OfflineTool]
+                : ExpectedTools;
+            foreach (var name in expected)
             {
                 Assert.Contains(tools, t => string.Equals(t.Name, name, StringComparison.Ordinal));
             }
