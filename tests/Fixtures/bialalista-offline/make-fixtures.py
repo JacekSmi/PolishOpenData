@@ -1,4 +1,4 @@
-"""Rebuilds the synthetic flat-file fixtures of the offline Biala Lista tests (stdlib only).
+r"""Rebuilds the synthetic flat-file fixtures of the offline Biala Lista tests (stdlib only).
 
 Run from anywhere:  python -I make-fixtures.py
 Needs 7-Zip at C:\Program Files\7-Zip\7z.exe (override with the SEVENZIP environment variable).
@@ -33,7 +33,7 @@ def sha512_hex(text: str) -> str:
     return hashlib.sha512(text.encode("utf-8")).hexdigest()
 
 
-def write_json(path: Path) -> bytes:
+def write_json(path: Path, header_date: str) -> bytes:
     active = [flat_hash(DATE, NIP, "06160011271843983820000034"),
               # virtual account 60102010260000042270201111 is found through the mask XX10201026XXXXXXXXXX2011XX
               flat_hash(DATE, NIP, "XX10201026XXXXXXXXXX2011XX")]
@@ -42,7 +42,7 @@ def write_json(path: Path) -> bytes:
     exempt += [sha512_hex(f"filler-exempt-{i}") for i in range(20)]
     document = {
         "naglowek": {
-            "dataGenerowaniaDanych": "20261012",
+            "dataGenerowaniaDanych": header_date,
             "liczbaTransformacji": str(ROUNDS),
             "schemat": "RRRRMMDDNNNNNNNNNNBBBBBBBBBBBBBBBBBBBBBBBBBB",
         },
@@ -65,11 +65,11 @@ def build_archive(date: str, sum_source: bytes) -> None:
 
 
 def main() -> None:
-    data = write_json(HERE / f"{DATE}.json")
+    data = write_json(HERE / f"{DATE}.json", DATE)
     build_archive(DATE, data)
     # second archive: the sum belongs to different content, so verification must fail
     bad_json = HERE / "20261014.json"
-    bad_json.write_bytes(data)
+    write_json(bad_json, "20261014")
     build_archive("20261014", b"not the content of the json")
     bad_json.unlink()
     (HERE / "20261014.json.sha512sum").unlink()
