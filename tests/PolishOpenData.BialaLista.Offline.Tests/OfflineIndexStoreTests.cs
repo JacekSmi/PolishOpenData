@@ -303,6 +303,42 @@ public sealed class OfflineIndexStoreTests : IDisposable
     }
 
     [Fact]
+    public async Task Cached_index_that_left_the_window_is_closed()
+    {
+        using var store = Store();
+        var old = await store.GetAsync(Date, Download, null, Token);
+        _time.Advance(TimeSpan.FromDays(31));
+        var today = Date.AddDays(31);
+        PlaceIndex(today.ToString("yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture));
+
+        var current = await store.GetAsync(today, Download, null, Token);
+
+        Assert.Throws<ObjectDisposedException>(() => old.Lookup(ActiveNip, ActiveAccount));
+        Assert.Equal(VatWhitelistOfflineStatus.Active, current.Lookup(ActiveNip, ActiveAccount).Status);
+        Assert.Equal(1, _downloads);
+    }
+
+    [Fact]
+    public async Task Index_is_returned_when_the_used_marker_cannot_be_touched()
+    {
+        PlaceIndex("20261013", _time.GetUtcNow());
+        File.SetAttributes(PathOf("20261013.used"), FileAttributes.ReadOnly);
+        try
+        {
+            using var store = Store();
+
+            var index = await store.GetAsync(Date, Download, null, Token);
+
+            Assert.Equal(VatWhitelistOfflineStatus.Active, index.Lookup(ActiveNip, ActiveAccount).Status);
+            Assert.Equal(0, _downloads);
+        }
+        finally
+        {
+            File.SetAttributes(PathOf("20261013.used"), FileAttributes.Normal);
+        }
+    }
+
+    [Fact]
     public async Task Dispose_closes_indexes_and_rejects_new_calls()
     {
         var store = Store();

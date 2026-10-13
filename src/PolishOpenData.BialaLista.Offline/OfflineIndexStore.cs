@@ -54,6 +54,7 @@ internal sealed class OfflineIndexStore : IDisposable
         CancellationToken ct)
     {
         ArgumentNullException.ThrowIfNull(download);
+        CloseOutOfWindow();
         for (var restarts = 0; ; restarts++)
         {
             ObjectDisposedException.ThrowIf(_disposed, this);
@@ -88,6 +89,25 @@ internal sealed class OfflineIndexStore : IDisposable
         }
     }
 
+    // A long-running process would otherwise keep every date it used open (and its deleted file's space allocated) until
+    // it exits. No new call can target these dates: the date window rejects them before they reach the store.
+    private void CloseOutOfWindow()
+    {
+        var oldest = WarsawTime.Today(_time).AddDays(-30);
+        foreach (var entry in _preparations)
+        {
+            if (entry.Key < oldest && entry.Value.IsValueCreated && entry.Value.Value.Status == TaskStatus.RanToCompletion && Forget(entry.Key, entry.Value))
+            {
+                var index = entry.Value.Value.Result;
+                lock (_opened)
+                {
+                    _ = _opened.Remove(index);
+                }
+                index.Dispose();
+            }
+        }
+    }
+
     private async Task<WhitelistIndex> RunAsync(
         DateOnly date,
         Lazy<Task<WhitelistIndex>> self,
@@ -111,12 +131,12 @@ internal sealed class OfflineIndexStore : IDisposable
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            Forget(date, self);
+            _ = Forget(date, self);
             throw new IOException($"The data directory '{_dir}' cannot be used: {ex.Message}", ex);
         }
         catch
         {
-            Forget(date, self);
+            _ = Forget(date, self);
             throw;
         }
     }
@@ -152,24 +172,30 @@ internal sealed class OfflineIndexStore : IDisposable
             }
         }
 
+        // Best effort: the index is open and good; a marker or clean-up that fails now is retried at the next use or build.
         try
         {
-            var used = PathOf(name + ".used");
-            using (File.Open(used, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete))
-            {
-            }
-            File.SetLastWriteTimeUtc(used, _time.GetUtcNow().UtcDateTime);
             if (built)
             {
-                ApplyRetention(date);
+                ApplyRetention(date);   // the build touched the marker under the lock
             }
-            return index;
+            else
+            {
+                Touch(PathOf(name + ".used"));
+            }
         }
-        catch
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            index.Dispose();
-            throw;
         }
+        return index;
+    }
+
+    private void Touch(string path)
+    {
+        using (File.Open(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete))
+        {
+        }
+        File.SetLastWriteTimeUtc(path, _time.GetUtcNow().UtcDateTime);
     }
 
     private async Task<WhitelistIndex> BuildAsync(
@@ -192,14 +218,26 @@ internal sealed class OfflineIndexStore : IDisposable
                 parsed = FlatFileArchive.Read(archive, date, ct);
             }
             WhitelistIndex.Write(temp, date, parsed);
-            File.Move(temp, indexPath);
+            // Marked as used and opened before it gets its name, so retention in another process can neither pick it as
+            // least recently used nor delete it between the move and the open (Open shares Read | Delete, so the move works).
+            Touch(PathOf(name + ".used"));
+            var index = Open(temp, date);
+            try
+            {
+                File.Move(temp, indexPath);
+            }
+            catch
+            {
+                index.Dispose();
+                throw;
+            }
+            return index;
         }
         finally
         {
             TryDelete(part);
             TryDelete(temp);
         }
-        return Open(indexPath, date);
     }
 
     private async Task<FileStream> AcquireLockAsync(string path, CancellationToken ct)
@@ -242,6 +280,7 @@ internal sealed class OfflineIndexStore : IDisposable
 
             if (date < today.AddDays(-30) || date > today.AddDays(1))
             {
+                // No need for that date's lock (even for its .lock/.part/.tmp files): the window check rejects new requests for it.
                 TryDelete(path);
             }
             else if (fileName.Length == 14 && fileName.EndsWith(".wlidx", StringComparison.Ordinal))
@@ -275,7 +314,7 @@ internal sealed class OfflineIndexStore : IDisposable
     private string PathOf(string fileName) => Path.Combine(_dir, fileName);
 
     // Removes only this preparation: a newer one for the same date may already be registered.
-    private void Forget(DateOnly date, Lazy<Task<WhitelistIndex>> preparation) =>
+    private bool Forget(DateOnly date, Lazy<Task<WhitelistIndex>> preparation) =>
         ((ICollection<KeyValuePair<DateOnly, Lazy<Task<WhitelistIndex>>>>)_preparations).Remove(new(date, preparation));
 
     // Failures are ignored: the file is retried at the next build.

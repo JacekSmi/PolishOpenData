@@ -53,6 +53,7 @@ public sealed class VatWhitelistOfflineOptions
     }
 
     /// <summary>How many prepared dates (the most recently used) stay on disk. Default 5; at least 1.</summary>
+    /// <remarks>A long-running process keeps the indexes of the dates it used open (so their disk space stays allocated even after a clean-up deletes the files) until those dates leave the 30-day window.</remarks>
     /// <exception cref="ArgumentOutOfRangeException">The value is less than 1.</exception>
     public int DatesToKeep
     {

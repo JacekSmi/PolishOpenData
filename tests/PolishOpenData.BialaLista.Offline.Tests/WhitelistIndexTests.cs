@@ -105,6 +105,19 @@ public sealed class WhitelistIndexTests : IDisposable
     }
 
     [Fact]
+    public void Index_opened_under_temporary_name_can_be_moved_into_place()
+    {
+        var temp = Build(name: "index.tmp");
+        var final = Path.Combine(_dir, "index.idx");
+        using var index = WhitelistIndex.Open(temp);
+
+        File.Move(temp, final);   // needs FileShare.Delete on the open handle (Windows)
+
+        Assert.True(File.Exists(final));
+        AssertParallelLookups(index);
+    }
+
+    [Fact]
     public void Corrupt_magic_throws_unexpected_format()
     {
         var path = Build();
