@@ -89,9 +89,10 @@ public class OfflineLookupBenchmarks : IDisposable
 /// <summary>
 /// Parses the extracted flat-file JSON and writes the index (the CPU and disk part of preparing a date, without the
 /// download). Set <see cref="JsonVariable"/> to the path of the extracted <c>.json</c>.
+/// It excludes the 7z decoding and SHA-512 verification of a real preparation (about 30 s on the live file).
 /// </summary>
 [MemoryDiagnoser]
-[SimpleJob(iterationCount: 3, warmupCount: 1)] // each iteration reads a file of about 1 GB
+[SimpleJob(iterationCount: 3, warmupCount: 1)] // each iteration reads a file of about 515 MB
 public class OfflineBuildBenchmarks
 {
     public const string JsonVariable = "POLISHOPENDATA_BENCH_JSON";

@@ -30,7 +30,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Compiled into the netstandard2.0 builds of PolishOpenData.Core, PolishOpenData.Krs, PolishOpenData.BialaLista and PolishOpenData.Regon
+## Compiled into the netstandard2.0 builds of PolishOpenData.Core, PolishOpenData.Krs, PolishOpenData.BialaLista, PolishOpenData.BialaLista.Offline and PolishOpenData.Regon
 
 - **Polyfill** 11.4.0 (source-embedded as internal types): <https://github.com/SimonCropp/Polyfill>. MIT License, Copyright (c) Simon Cropp. The MIT License text is at the end of this file.
 
@@ -84,6 +84,10 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
+
+### SharpCompress
+
+`SharpCompress.dll` (SharpCompress 1.0.0, used by the offline VAT whitelist tool to read the 7z flat file): <https://github.com/adamhathcock/sharpcompress>. MIT License, Copyright (c) 2014 Adam Hathcock; see the PolishOpenData.BialaLista.Offline section above. The MIT License text is at the end of this file.
 
 ### Microsoft.Extensions.* and System.*
 

@@ -133,6 +133,8 @@ public sealed class BialaListaOfflineLiveTests
 
             output?.WriteLine("Split: " + string.Join(", ", answers.GroupBy(a => a.Status).Select(g => $"{g.Key} {g.Count()}")));
             Assert.True(mismatches.Count == 0, "The offline answer differs from the REST API for: " + string.Join(" | ", mismatches));
+            // Without one found pair the oracle passes vacuously (for example when every hash uses the wrong date).
+            Assert.Contains(answers, a => a.Status == VatWhitelistOfflineStatus.Active);
         }
         finally
         {
