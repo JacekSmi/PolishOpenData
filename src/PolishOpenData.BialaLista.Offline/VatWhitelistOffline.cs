@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using PolishOpenData.Internal;
@@ -78,13 +79,21 @@ public sealed class VatWhitelistOffline : IVatWhitelistOffline, IDisposable
         var index = await GetIndexAsync(day, null, cancellationToken).ConfigureAwait(false);
         var results = new VatWhitelistOfflineCheck[list.Length];
         // The hashing is CPU-bound (SHA-512 rounds per candidate account); keep it off the caller's thread.
-        await Task.Run(
-            () => Parallel.For(
-                0,
-                list.Length,
-                new ParallelOptions { CancellationToken = cancellationToken },
-                i => results[i] = Lookup(index, list[i].Nip, list[i].Account)),
-            cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await Task.Run(
+                () => Parallel.For(
+                    0,
+                    list.Length,
+                    new ParallelOptions { CancellationToken = cancellationToken },
+                    i => results[i] = Lookup(index, list[i].Nip, list[i].Account)),
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (AggregateException ex) when (ex.InnerExceptions.Count == 1)
+        {
+            // Callers see the same exception as from CheckAsync, not Parallel.For's wrapper.
+            ExceptionDispatchInfo.Capture(ex.InnerExceptions[0]).Throw();
+        }
         return results;
     }
 

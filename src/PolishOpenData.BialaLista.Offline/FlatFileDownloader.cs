@@ -66,8 +66,9 @@ internal static class FlatFileDownloader
             throw date >= today
                 ? new VatWhitelistDataUnavailableException(
                     $"The Ministry of Finance has not published the flat file of {date:yyyy-MM-dd} yet.", date, VatWhitelistDataUnavailableReason.NotPublishedYet)
+                // Neutral: inside the window a 404 may be a missing holiday file or a transient error, not MF's retention.
                 : new VatWhitelistDataUnavailableException(
-                    $"The Ministry of Finance no longer serves the flat file of {date:yyyy-MM-dd}.", date, VatWhitelistDataUnavailableReason.OutsideWindow);
+                    $"MF does not serve the flat file of {date:yyyy-MM-dd} (HTTP 404).", date, VatWhitelistDataUnavailableReason.OutsideWindow);
         }
 
         _ = response.EnsureSuccessStatusCode();
@@ -78,6 +79,8 @@ internal static class FlatFileDownloader
         using var file = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize, useAsync: true);
         try
         {
+            // A stalled read can ignore the token (.NET Framework); disposing the response ends it, and the catch below reports cancellation.
+            using var cancelRead = ct.Register(response.Dispose);
 #if NET
             using var body = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
 #else
@@ -106,6 +109,10 @@ internal static class FlatFileDownloader
                     progress?.Report(new VatWhitelistPreparationProgress(VatWhitelistPreparationStage.Downloading, received, total));
                 }
             }
+        }
+        catch (Exception exception) when (ct.IsCancellationRequested && exception is ObjectDisposedException or IOException)
+        {
+            throw new OperationCanceledException("The download was cancelled.", exception, ct);
         }
         catch (IOException exception) when (!writing)
         {

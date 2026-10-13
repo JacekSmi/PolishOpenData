@@ -140,6 +140,19 @@ public sealed class VatWhitelistOfflineTests : IDisposable
     }
 
     [Fact]
+    public async Task CheckMany_lookup_failure_is_not_wrapped_in_aggregate_exception()
+    {
+        Directory.CreateDirectory(_dir);
+        using var store = new OfflineIndexStore(_dir, 5, TimeSpan.FromSeconds(10), _time);
+        using var client = new VatWhitelistOffline(new HttpClient(Server()), new VatWhitelistOfflineOptions(), _time, store);
+        _ = await client.PrepareAsync(cancellationToken: Token);
+        // the cached index is closed behind the client's back, so the lookup inside the parallel loop throws
+        (await store.GetAsync(new DateOnly(2026, 10, 13), (_, _, _) => Task.CompletedTask, null, Token)).Dispose();
+
+        _ = await Assert.ThrowsAsync<ObjectDisposedException>(() => client.CheckManyAsync([(ActiveNip, ActiveAccount)], cancellationToken: Token));
+    }
+
+    [Fact]
     public async Task CheckMany_rejects_an_empty_value()
     {
         var client = Client(Server());

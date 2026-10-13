@@ -70,6 +70,43 @@ public sealed class FlatFileDownloaderTests : IDisposable
         public override bool CanSeek => false;
     }
 
+    // a read that never completes and ignores its token (like a stalled .NET Framework response stream); only Dispose ends it
+    private sealed class Stalled : Stream
+    {
+        private readonly TaskCompletionSource<int> _disposed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public TaskCompletionSource<bool> Reading { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+        {
+            Reading.TrySetResult(true);
+            return _disposed.Task;
+        }
+
+#if NET
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
+            new(ReadAsync(Array.Empty<byte>(), 0, 0, cancellationToken));
+#endif
+
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
+        public override void Flush() { }
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+        protected override void Dispose(bool disposing)
+        {
+            _disposed.TrySetException(new ObjectDisposedException(nameof(Stalled)));
+            base.Dispose(disposing);
+        }
+    }
+
     // cancels the download after the first chunk has been handed out, i.e. while the body is being written
     private sealed class CancelAfterFirstRead : MemoryStream
     {
@@ -144,6 +181,8 @@ public sealed class FlatFileDownloaderTests : IDisposable
             () => Download(new StubHttpMessageHandler(_ => StubHttpMessageHandler.Empty(HttpStatusCode.NotFound)), date));
         Assert.Equal(VatWhitelistDataUnavailableReason.OutsideWindow, exception.Reason);
         Assert.Equal(date, exception.Date);
+        // a missing holiday file or a transient 404 inside the window must not be blamed on MF's retention
+        Assert.Equal("MF does not serve the flat file of 2026-10-08 (HTTP 404).", exception.Message);
     }
 
     [Fact]
@@ -183,6 +222,21 @@ public sealed class FlatFileDownloaderTests : IDisposable
         using var cts = new CancellationTokenSource();
         var handler = new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(new CancelAfterFirstRead(cts)) });
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => Download(handler, ct: cts.Token));
+        Assert.False(File.Exists(_target));
+    }
+
+    [Fact]
+    public async Task Cancelling_a_stalled_read_ends_the_download()
+    {
+        using var cts = new CancellationTokenSource();
+        var stalled = new Stalled();
+        var download = Download(new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(stalled) }), ct: cts.Token);
+        await stalled.Reading.Task;
+
+        cts.Cancel();
+
+        Assert.Same(download, await Task.WhenAny(download, Task.Delay(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken)));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => download);
         Assert.False(File.Exists(_target));
     }
 
