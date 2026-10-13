@@ -54,6 +54,7 @@ internal sealed class FlatFileParser
         var filled = 0;
         var state = default(JsonReaderState);
         var eof = false;
+        var bomChecked = false;
         while (!eof)
         {
             ct.ThrowIfCancellationRequested();
@@ -75,6 +76,21 @@ internal sealed class FlatFileParser
             {
                 hash?.AppendData(buffer, filled, read);
                 filled += read;
+            }
+
+            // Utf8JsonReader rejects a byte order mark; the hash has already seen it, so the checksum still covers it.
+            if (!bomChecked)
+            {
+                if (filled < 3 && !eof)
+                {
+                    continue;
+                }
+                bomChecked = true;
+                if (filled >= 3 && buffer[0] == 0xEF && buffer[1] == 0xBB && buffer[2] == 0xBF)
+                {
+                    filled -= 3;
+                    Buffer.BlockCopy(buffer, 3, buffer, 0, filled);
+                }
             }
 
             var reader = new Utf8JsonReader(buffer.AsSpan(0, filled), eof, state);

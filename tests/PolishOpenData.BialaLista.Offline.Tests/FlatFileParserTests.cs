@@ -79,6 +79,20 @@ public sealed class FlatFileParserTests
         Assert.Equal(whole.Transformations, trickled.Transformations);
     }
 
+    [Theory]
+    [InlineData(1)]   // the BOM split across reads
+    [InlineData(4096)]
+    public void Leading_utf8_bom_is_skipped(int readSize)
+    {
+        var bytes = new byte[] { 0xEF, 0xBB, 0xBF }.Concat(Encoding.UTF8.GetBytes(Document())).ToArray();
+
+        var parsed = FlatFileParser.Parse(new TrickleStream(new MemoryStream(bytes), readSize), FileDate, CancellationToken.None);
+
+        Assert.Equal(3, parsed.Transformations);
+        Assert.Equal(16, parsed.Active.Length);
+        Assert.Single(parsed.Masks);
+    }
+
     [Fact]
     public void Header_date_may_differ_from_file_date()
     {
