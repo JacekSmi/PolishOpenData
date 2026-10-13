@@ -55,24 +55,33 @@ def write_json(path: Path, header_date: str) -> bytes:
     return data
 
 
-def build_archive(date: str, sum_source: bytes) -> None:
+def build_archive(date: str, sum_source: bytes, archive_name: str, sum_first: bool = False) -> None:
     json_name = f"{date}.json"
     sum_name = f"{json_name}.sha512sum"
     (HERE / sum_name).write_text(f"{hashlib.sha512(sum_source).hexdigest()}  {json_name}\n", encoding="ascii", newline="\n")
-    archive = HERE / f"{date}.7z" if date == DATE else HERE / f"{date}-badsum.7z"
+    archive = HERE / archive_name
     archive.unlink(missing_ok=True)
-    subprocess.run([SEVENZIP, "a", "-t7z", "-m0=LZMA2", str(archive), json_name, sum_name], cwd=HERE, check=True)
+    # 7-Zip sorts the items of one run by name, so the checksum goes in first by a run of its own
+    runs = [[sum_name], [json_name]] if sum_first else [[json_name, sum_name]]
+    for names in runs:
+        subprocess.run([SEVENZIP, "a", "-t7z", "-m0=LZMA2", str(archive), *names], cwd=HERE, check=True)
 
 
 def main() -> None:
     data = write_json(HERE / f"{DATE}.json", DATE)
-    build_archive(DATE, data)
+    build_archive(DATE, data, f"{DATE}.7z")
     # second archive: the sum belongs to different content, so verification must fail
     bad_json = HERE / "20261014.json"
     write_json(bad_json, "20261014")
-    build_archive("20261014", b"not the content of the json")
+    build_archive("20261014", b"not the content of the json", "20261014-badsum.7z")
     bad_json.unlink()
     (HERE / "20261014.json.sha512sum").unlink()
+    # third archive: the checksum entry comes before the JSON entry
+    sum_first_json = HERE / "20261015.json"
+    sum_first_data = write_json(sum_first_json, "20261015")
+    build_archive("20261015", sum_first_data, "20261015-sumfirst.7z", sum_first=True)
+    sum_first_json.unlink()
+    (HERE / "20261015.json.sha512sum").unlink()
 
 
 if __name__ == "__main__":
