@@ -20,12 +20,14 @@ namespace PolishOpenData.SmokeTests;
 /// <list type="table">
 /// <listheader><term>Budget</term><description>Library / MCP in-process / published package = total</description></listheader>
 /// <item><term>Biała Lista searches (each NIP or REGON counts, also inside a batch)</term><description>4 (NIP, REGON, 2-NIP batch) / 1 / 1 = 6, sent as 5 requests</description></item>
-/// <item><term>Biała Lista checks</term><description>1 / 1 / 0 = 2</description></item>
+/// <item><term>Biała Lista checks</term><description>1 / 1 / 0 = 2, plus 14 from the offline test = 16</description></item>
 /// <item><term>KRS requests</term><description>5 to 9 (current, full, not-found in P and S, change feed of 1 to 5 weekdays) / 1 / 1 = 7 to 11</description></item>
-/// <item><term>Offline flat file (<c>BialaListaOfflineLiveTests</c>, no quota; needs <c>~250 MB</c> and minutes on a slow MF server)</term><description>1 download, plus 14 Biała Lista checks as the oracle, counted against the 5,000 daily checks</description></item>
+/// <item><term>Offline flat file (<c>BialaListaOfflineLiveTests</c>: one download of about 250 MB from MF, no quota; skips after 15 min of downloading, up to 20 min in all)</term><description>0 / 0 / 0, but 14 Biała Lista checks (the oracle, counted in the checks row) and one flat-file download</description></item>
 /// <item><term>GUS BIR test environment requests (published test key, no secret)</term><description>5 / 0 / 0 = 5</description></item>
 /// <item><term>GUS BIR production requests (needs <c>POLISHOPENDATA_REGON_KEY</c>, owner-run, skipped otherwise)</term><description>4 / 0 / 0 = 4</description></item>
 /// </list>
+/// Runtime: the 13 other network tests take at most 2 min each and the published-package test 5 min; the offline test adds
+/// a few minutes when MF is fast and 15 min (then it skips) when MF is slow (it served 35 to 40 KB/s on 2026-10-13, 8 MB/s at night).
 /// The change feed asks for an earlier weekday only while the feeds it got were empty (a public holiday, or a feed not
 /// yet published). The MCP tests share one server session, so its cache answers repeated lookups without new upstream
 /// calls. Failed calls are not cached, so the next test that needs a failed search sends it again: the library NIP

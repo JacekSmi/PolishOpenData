@@ -14,8 +14,8 @@ namespace PolishOpenData.SmokeTests;
 /// <summary>
 /// The offline whitelist against the real flat file (about 250 MB; one download per run). Cost per run: one flat-file
 /// download from plikplaski.mf.gov.pl (no quota) and one Biała Lista check request per MF test pair (<see cref="Pairs"/>
-/// has 14, of the 5,000 daily checks), see <see cref="Live"/>. The whole preparation can take many minutes when MF is
-/// slow, hence the long timeout. Set <see cref="KeepDirectoryVariable"/> to keep the prepared index (for the benchmarks)
+/// has 14, of the 5,000 daily checks), see <see cref="Live"/>. The preparation is cut off after 15 minutes and then
+/// skips the test (a slow MF server is not a regression); the test as a whole times out after 20. Set <see cref="KeepDirectoryVariable"/> to keep the prepared index (for the benchmarks)
 /// instead of deleting it.
 /// </summary>
 public sealed class BialaListaOfflineLiveTests
@@ -23,7 +23,10 @@ public sealed class BialaListaOfflineLiveTests
     /// <summary>When set, the data directory to use and keep (created if missing); otherwise a temporary one that is deleted at the end.</summary>
     public const string KeepDirectoryVariable = "POLISHOPENDATA_SMOKE_OFFLINE_DIR";
 
+    // The xunit timeout covers the whole test; the download gets a shorter budget of its own so that a slow MF server
+    // ends as a skip (not a regression) while a finished download that gives wrong answers still fails.
     private const int OfflineTimeout = 20 * 60 * 1000;
+    private static readonly TimeSpan DownloadBudget = TimeSpan.FromMinutes(15);
 
     // MF's published test pairs, copied on 2026-10-13 from https://www.gov.pl/attachment/e429f4a2-98b2-4634-a2b4-7f9c1ec3e757
     // (dane_testowe_2026_09_30.txt, 17 rows). Only the rows that pass Nip.TryParse and Nrb.TryParse are kept: the three
@@ -62,7 +65,27 @@ public sealed class BialaListaOfflineLiveTests
             using var offline = new VatWhitelistOffline(http, new VatWhitelistOfflineOptions { DataDirectory = dataDirectory });
 
             var clock = Stopwatch.StartNew();
-            var info = await offline.PrepareAsync(cancellationToken: ct);
+            var progress = new LastProgress();
+            VatWhitelistFileInfo info;
+            using (var budget = CancellationTokenSource.CreateLinkedTokenSource(ct))
+            {
+                budget.CancelAfter(DownloadBudget);
+                try
+                {
+                    info = await offline.PrepareAsync(progress: progress, cancellationToken: budget.Token);
+                }
+                catch (OperationCanceledException) when (budget.IsCancellationRequested && !ct.IsCancellationRequested)
+                {
+                    Assert.Skip($"MF flat-file download too slow ({progress.Received / 1_000_000:N0} MB of {(progress.Total is { } total ? (total / 1_000_000).ToString("N0", System.Globalization.CultureInfo.InvariantCulture) : "?")} MB in {DownloadBudget.TotalMinutes:N0} min); not a regression.");
+                    return;
+                }
+                catch (VatWhitelistDataUnavailableException ex) when (ex.Reason == VatWhitelistDataUnavailableReason.NotPublishedYet)
+                {
+                    Assert.Skip("MF has not published today's flat file yet; not a regression: " + ex.Message);
+                    return;
+                }
+            }
+
             clock.Stop();
             var downloads = requests.Count;
             var indexBytes = Directory.EnumerateFiles(dataDirectory, "*.wlidx").Sum(f => new FileInfo(f).Length);
@@ -117,6 +140,23 @@ public sealed class BialaListaOfflineLiveTests
             {
                 Directory.Delete(dataDirectory, recursive: true);
             }
+        }
+    }
+
+    // Synchronous, unlike Progress<T>: the last report is already there when the preparation is cancelled.
+    private sealed class LastProgress : IProgress<VatWhitelistPreparationProgress>
+    {
+        private long _received;
+        private long _total = -1;
+
+        public long Received => Interlocked.Read(ref _received);
+
+        public long? Total => Interlocked.Read(ref _total) is var t && t >= 0 ? t : null;
+
+        public void Report(VatWhitelistPreparationProgress value)
+        {
+            Interlocked.Exchange(ref _received, value.BytesReceived);
+            Interlocked.Exchange(ref _total, value.TotalBytes ?? -1);
         }
     }
 
