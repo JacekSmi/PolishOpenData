@@ -1,0 +1,124 @@
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using PolishOpenData.Internal;
+
+namespace PolishOpenData.BialaLista.Offline;
+
+/// <summary>Downloads the daily 7z flat file. No timeout of its own: the server can be very slow, only the token cancels.</summary>
+internal static class FlatFileDownloader
+{
+    private const int BufferSize = 81920;
+    private static readonly TimeSpan ReportInterval = TimeSpan.FromMilliseconds(250);
+
+    /// <summary>Streams <c>{baseAddress}{yyyyMMdd}.7z</c> to <paramref name="targetPath"/>; the file is deleted on any failure or cancellation.</summary>
+    /// <exception cref="VatWhitelistDataUnavailableException">404 (not published yet, or outside the window), or a body shorter than announced.</exception>
+    /// <exception cref="HttpRequestException">Any other non-success status.</exception>
+    public static async Task DownloadAsync(
+        HttpClient http,
+        Uri baseAddress,
+        DateOnly date,
+        DateOnly today,
+        string targetPath,
+        IProgress<VatWhitelistPreparationProgress>? progress,
+        CancellationToken ct)
+    {
+        try
+        {
+            await DownloadCoreAsync(http, baseAddress, date, today, targetPath, progress, ct).ConfigureAwait(false);
+        }
+        catch
+        {
+            try
+            {
+                File.Delete(targetPath);
+            }
+            catch (IOException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+
+            throw;
+        }
+    }
+
+    private static async Task DownloadCoreAsync(
+        HttpClient http,
+        Uri baseAddress,
+        DateOnly date,
+        DateOnly today,
+        string targetPath,
+        IProgress<VatWhitelistPreparationProgress>? progress,
+        CancellationToken ct)
+    {
+        using var request = HttpHelpers.CreateGet(new Uri(baseAddress, date.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + ".7z"));
+        request.Headers.Accept.Clear();
+        using var response = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct).ConfigureAwait(false);
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            throw date >= today
+                ? new VatWhitelistDataUnavailableException(
+                    $"The Ministry of Finance has not published the flat file of {date:yyyy-MM-dd} yet.", date, VatWhitelistDataUnavailableReason.NotPublishedYet)
+                : new VatWhitelistDataUnavailableException(
+                    $"The Ministry of Finance no longer serves the flat file of {date:yyyy-MM-dd}.", date, VatWhitelistDataUnavailableReason.OutsideWindow);
+        }
+
+        _ = response.EnsureSuccessStatusCode();
+        var total = response.Content.Headers.ContentLength;
+        long received = 0;
+        try
+        {
+#if NET
+            using var body = await response.Content.ReadAsStreamAsync(ct).ConfigureAwait(false);
+#else
+            using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+#endif
+            using var file = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize, useAsync: true);
+            var buffer = new byte[BufferSize];
+            var clock = Stopwatch.StartNew();
+            var lastReport = TimeSpan.Zero;
+            int read;
+#if NET
+            while ((read = await body.ReadAsync(buffer.AsMemory(), ct).ConfigureAwait(false)) > 0)
+            {
+                await file.WriteAsync(buffer.AsMemory(0, read), ct).ConfigureAwait(false);
+#else
+            while ((read = await body.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false)) > 0)
+            {
+                await file.WriteAsync(buffer, 0, read, ct).ConfigureAwait(false);
+#endif
+                received += read;
+                if (clock.Elapsed - lastReport >= ReportInterval)
+                {
+                    lastReport = clock.Elapsed;
+                    progress?.Report(new VatWhitelistPreparationProgress(VatWhitelistPreparationStage.Downloading, received, total));
+                }
+            }
+        }
+        catch (IOException exception)
+        {
+            throw Failed(date, received, total, exception);
+        }
+
+        if (total is { } expected && received != expected)
+        {
+            throw Failed(date, received, total, null);
+        }
+
+        progress?.Report(new VatWhitelistPreparationProgress(VatWhitelistPreparationStage.Downloading, received, total));
+    }
+
+    private static VatWhitelistDataUnavailableException Failed(DateOnly date, long received, long? total, Exception? inner) =>
+        new(
+            $"Downloading the flat file of {date:yyyy-MM-dd} stopped after {received} of {(total?.ToString(CultureInfo.InvariantCulture) ?? "an unknown number of")} bytes.",
+            date,
+            VatWhitelistDataUnavailableReason.DownloadFailed,
+            inner);
+}
