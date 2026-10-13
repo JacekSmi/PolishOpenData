@@ -1,6 +1,6 @@
 # PolishOpenData
 
-**Biblioteki .NET i serwer MCP dla polskich rejestrów publicznych** — dane firm z KRS, Biała Lista podatników VAT ze sprawdzaniem rachunków, klient rejestru GUS REGON (tylko biblioteka) oraz walidacja offline NIP, REGON, numeru KRS, NRB i numeru księgi wieczystej (KW).
+**Biblioteki .NET i serwer MCP dla polskich rejestrów publicznych** — dane firm z KRS, Biała Lista podatników VAT ze sprawdzaniem rachunków (online albo offline na podstawie pliku płaskiego MF), klient rejestru GUS REGON (tylko biblioteka) oraz walidacja offline NIP, REGON, numeru KRS, NRB i numeru księgi wieczystej (KW).
 
 🇬🇧 [English version](https://github.com/JacekSmi/PolishOpenData/blob/main/README.md)
 
@@ -13,8 +13,9 @@
 | `PolishOpenData.Core` | Typy wartości offline: `Nip`, `Regon`, `KrsNumber`, `Nrb`, `KwNumber` (+ oficjalna tabela kodów sądów) |
 | `PolishOpenData.Krs` | API KRS: odpis aktualny i pełny, podmioty wykreślone, dzienny biuletyn zmian, podsumowanie |
 | `PolishOpenData.BialaLista` | Wykaz podatników VAT: status, sprawdzenie rachunku z identyfikatorem zapytania, zapytania zbiorcze, ochrona limitu dziennego |
+| `PolishOpenData.BialaLista.Offline` | Sprawdzanie rachunków offline na podstawie dziennego pliku płaskiego Ministerstwa Finansów: bez limitu zapytań, wiele par naraz, bez identyfikatora zapytania |
 | `PolishOpenData.Regon` | GUS REGON (BIR1.2): wyszukiwanie po NIP/REGON/KRS, zapytania zbiorcze po 20, pełne raporty, sesja i ogranicznik zapytań; wymaga własnego, bezpłatnego klucza GUS |
-| `PolishOpenData.Mcp` | Serwer MCP dla asystentów AI: dane firmy, Biała Lista i sprawdzanie rachunku, odpisy KRS, walidacja numerów |
+| `PolishOpenData.Mcp` | Serwer MCP dla asystentów AI: dane firmy, Biała Lista i sprawdzanie rachunku (online i offline), odpisy KRS, walidacja numerów |
 
 Biblioteki działają na .NET 10 oraz .NET Framework / starszych .NET (netstandard2.0) — także w dodatkach do systemów ERP.
 
@@ -103,6 +104,41 @@ Ponawianie zapytań (retry) jest wyłączone także dla REGON, tak jak dla Biał
 
 **Koszt.** Szczegóły kosztują zapytania: osoba prawna to logowanie, wyszukanie i jeden raport (3 zapytania), każda opcjonalna lista (`RegonInclude.Pkd`, `LocalUnits`, `Partners`) to kolejne zapytanie, a przedsiębiorca jednoosobowy potrzebuje raportu ogólnego oraz jednego raportu na rodzaj działalności. `RegonResult.DataAsOf` jest wypełnione dopiero po wywołaniu `GetDataDateAsync` (jedno zapytanie).
 
+## Sprawdzanie Białej Listy offline
+
+Ministerstwo Finansów publikuje Białą Listę codziennie jako plik płaski (skróty par NIP i rachunek). `PolishOpenData.BialaLista.Offline` pobiera plik na wybrany dzień, raz buduje lokalny indeks, a potem odpowiada na dowolną liczbę zapytań z dysku: bez limitu zapytań i bez opuszczania Twojego komputera przez sprawdzane pary NIP/rachunek. Używaj go do dużych partii (przelewy zbiorcze, import do ERP); gdy potrzebujesz identyfikatora zapytania jako dowodu, użyj `PolishOpenData.BialaLista`.
+
+```bash
+dotnet add package PolishOpenData.BialaLista.Offline
+```
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using PolishOpenData;
+using PolishOpenData.BialaLista.Offline;
+
+var services = new ServiceCollection();
+services.AddVatWhitelistOffline(o => o.DatesToKeep = 3);
+using var provider = services.BuildServiceProvider();
+var offline = provider.GetRequiredService<IVatWhitelistOffline>();
+
+await offline.PrepareAsync(); // opcjonalnie: pobiera i indeksuje dzisiejszy plik teraz, a nie przy pierwszym sprawdzeniu
+var checks = await offline.CheckManyAsync(new[]
+{
+    (Nip.Parse("774-000-14-54"), Nrb.Parse("06 1600 1127 1843 9838 2000 0034")),
+});
+foreach (var c in checks)
+    Console.WriteLine($"{c.Nip}: {c.Status} (plik z {c.FileDate:yyyy-MM-dd}, wygenerowany {c.GeneratedOn:yyyy-MM-dd})");
+```
+
+- **Trzy odpowiedzi.** `Active`, `Exempt` albo `NotFound`. `NotFound` oznacza „nie znaleziono w pliku” (sprawdzono zwykły skrót i każdą maskę rachunku wirtualnego banku danego rachunku), a nie dowód, że rachunku nie ma na Białej Liście; `MatchedVirtualAccountMask` mówi, że parę znaleziono przez maskę.
+- **Pierwsze użycie daty jest wolne.** Pobiera się ok. 250 MB (archiwum 7z z ok. 515 MB JSON) i buduje indeks. Trwa to kilka minut, a gdy serwer MF jest wolny, co zdarza się w godzinach pracy, znacznie dłużej. Pobrany plik jest usuwany po zbudowaniu indeksu. Wywołaj `PrepareAsync` z wyprzedzeniem, aby uniknąć czekania: MF publikuje plik na dzień D około 23:00 w dniu D−1, więc dobry moment to wieczór poprzedniego dnia. `PrepareAsync` przyjmuje `IProgress<VatWhitelistPreparationProgress>` i `CancellationToken`. Klient HTTP nie ma limitu czasu; przerywaj tokenem.
+- **Katalog danych i zajętość dysku.** Gotowe indeksy trafiają do `PolishOpenData/BialaListaOffline` w lokalnym folderze danych aplikacji użytkownika; inny folder ustawisz w `VatWhitelistOfflineOptions.DataDirectory`. Indeks zajmuje ok. 16 bajtów na wpis plus niewielkie tablice. `DatesToKeep` (domyślnie 5) to liczba ostatnio używanych dat zachowywanych na dysku.
+- **Tylko jeden komputer.** Użyj folderu na lokalnym dysku; udział sieciowy nie jest obsługiwany. Procesy na tym samym komputerze, które współdzielą folder, współdzielą gotowe indeksy.
+- **Daty.** Od 30 dni wstecz do jutra (czas warszawski), domyślnie dziś. Dla daty zawsze zwracana jest odpowiedź z pliku z tej daty. Poza oknem, gdy plik nie został jeszcze opublikowany, nie da się go pobrać albo nie przejdzie weryfikacji, wywołanie rzuca `VatWhitelistDataUnavailableException` (zob. `Reason`), zamiast odpowiadać danymi z innego dnia.
+- **Bez identyfikatora zapytania, bez dowodu.** Plik płaski nie daje identyfikatora zapytania. Gdy potrzebujesz dowodu dla urzędu skarbowego, sprawdź przez klienta REST (`PolishOpenData.BialaLista`) i zachowaj `RequestId`.
+- **Czas sprawdzenia i czas danych.** `FileDate` i `GeneratedOn` opisują dane; czas samego sprawdzenia zapisz we własnym zakresie.
+
 ## Serwer MCP
 
 Wymaga [.NET 10 SDK](https://dotnet.microsoft.com/download). Bez kluczy API.
@@ -113,7 +149,7 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 
 Konfiguracje dla VS Code, Claude Desktop i Cursor: zob. [README.md](https://github.com/JacekSmi/PolishOpenData/blob/main/README.md#mcp-server-for-ai-assistants).
 
-Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_account` (Biała Lista przed zapłatą faktury), `check_vat_bank_account_offline` (to samo z pliku płaskiego MF, bez limitu zapytań; zmienna `POLISHOPENDATA_OFFLINE_DIR` wskazuje folder danych), `get_krs_extract` (zarząd, kapitał, PKD), `validate_identifier` (walidacja numerów offline).
+Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_account` (Biała Lista przed zapłatą faktury), `check_vat_bank_account_offline` (to samo z pliku płaskiego MF: bez limitu zapytań, do 50 par naraz, bez identyfikatora zapytania, a sprawdzane pary nie opuszczają komputera; pierwsze wywołanie dla danej daty pobiera ok. 250 MB, co trwa kilka minut, a przy wolnym serwerze MF znacznie dłużej; `not_found` oznacza „nie znaleziono w pliku”; zmienna `POLISHOPENDATA_OFFLINE_DIR` wskazuje lokalny folder danych, nie udział sieciowy), `get_krs_extract` (zarząd, kapitał, PKD), `validate_identifier` (walidacja numerów offline).
 
 ## Księgi wieczyste
 
@@ -121,7 +157,7 @@ Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_acco
 
 ## Odpowiedzialne korzystanie
 
-- Podawaj źródło danych i czas pobrania. Zawiera je każdy wynik narzędzi MCP korzystających z rejestrów (`lookup_company`, `check_vat_bank_account`, `get_krs_extract`) oraz `BialaListaResult`; `KrsResult` nie dodaje własnego czasu pobrania — użyj `ToSummary().ExtractedAt`, jeśli jest dostępny.
+- Podawaj źródło danych i czas pobrania. Zawiera je każdy wynik narzędzi MCP korzystających z rejestrów (`lookup_company`, `check_vat_bank_account`, `check_vat_bank_account_offline`, `get_krs_extract`) oraz `BialaListaResult` (w narzędziu offline `Source.RetrievedAt` to czas sprawdzenia, a `fileDate` i `generatedOn` to czas danych); `KrsResult` nie dodaje własnego czasu pobrania — użyj `ToSummary().ExtractedAt`, jeśli jest dostępny.
 - Biała Lista pozwala na ok. 100 wyszukiwań i 5000 sprawdzeń dziennie z jednego adresu IP; przekroczenie blokuje IP do północy, także w wyszukiwarce ministerstwa.
 - KRS maskuje osoby fizyczne w polach strukturalnych. Serwer MCP nigdy nie przekazuje asystentom AI wolnotekstowego pola prokury (`rodzajProkury`) ani surowych sekcji KRS, a z pól wolnotekstowych, które zwraca (sposób reprezentacji, udziały wspólników), usuwa numery przypominające PESEL (11 cyfr albo 6 + 5 cyfr rozdzielonych jedną spacją lub łącznikiem, o ile nie są częścią dłuższego ciągu cyfr). Biblioteki zwracają dane w postaci opublikowanej przez rejestr: `KrsCurrentExtract` zawiera `rodzajProkury`, a `ToSummary()` przekazuje sposób reprezentacji i udziały bez zmian — przed wyświetleniem lub zapisaniem oczyść je we własnym zakresie.
 - Biała Lista z mocy ustawy publikuje imiona i nazwiska przedsiębiorców jednoosobowych, reprezentantów, prokurentów i wspólników, a dla części z nich numer PESEL. Biblioteka zwraca je tak, jak zostały opublikowane; serwer MCP zwraca tylko nazwę podatnika i jeden adres (dla jednoosobowej działalności — imię i nazwisko właściciela oraz, gdy nie podano adresu działalności, adres zamieszkania).
@@ -132,7 +168,7 @@ Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_acco
 
 ## Możliwe kolejne kroki
 
-Pomysły, nie zobowiązania: sprawdzanie offline na podstawie pliku płaskiego Białej Listy oraz dane nieruchomości (działki ULDK, geokoder GUGiK, ceny transakcyjne). Rozważamy narzędzie REGON w serwerze MCP, ale tylko jeśli GUS potwierdzi zasady dotyczące kluczy użytkowników. Jeśli któryś z nich by Ci się przydał, [otwórz issue](https://github.com/JacekSmi/PolishOpenData/issues), aby dać znać.
+Pomysły, nie zobowiązania: dane nieruchomości (działki ULDK, geokoder GUGiK, ceny transakcyjne). Rozważamy narzędzie REGON w serwerze MCP, ale tylko jeśli GUS potwierdzi zasady dotyczące kluczy użytkowników. Jeśli któryś z nich by Ci się przydał, [otwórz issue](https://github.com/JacekSmi/PolishOpenData/issues), aby dać znać.
 
 ## Współpraca i licencja
 
