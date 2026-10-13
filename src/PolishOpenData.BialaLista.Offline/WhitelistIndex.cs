@@ -4,9 +4,6 @@ using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-#if !NET
-using System.Collections.Concurrent;
-#endif
 
 namespace PolishOpenData.BialaLista.Offline;
 
@@ -31,12 +28,8 @@ internal sealed class WhitelistIndex : IDisposable
     private readonly long _exemptOffset;
     private readonly string _path;
     private volatile bool _disposed;
-#if NET
-    private readonly FileStream _stream; // kept referenced so its finalizer cannot close the handle used by RandomAccess
-#else
-    // netstandard2.0 has no positional read; a lock-free pool of unbuffered streams gives each concurrent lookup its own Position.
-    private readonly ConcurrentQueue<FileStream> _streams = new();
-#endif
+    // Kept referenced so its finalizer cannot close the handle. Never reopened by path: the file may have been renamed or deleted since Open (FileShare.Delete).
+    private readonly FileStream _stream;
 
     private WhitelistIndex(string path, VatWhitelistFileInfo info, int[] activeBuckets, int[] exemptBuckets, string[] masks, long activeOffset, long exemptOffset, FileStream stream)
     {
@@ -47,11 +40,7 @@ internal sealed class WhitelistIndex : IDisposable
         _masks = masks;
         _activeOffset = activeOffset;
         _exemptOffset = exemptOffset;
-#if NET
         _stream = stream;
-#else
-        _streams.Enqueue(stream);
-#endif
     }
 
     public VatWhitelistFileInfo Info { get; }
@@ -207,14 +196,7 @@ internal sealed class WhitelistIndex : IDisposable
     public void Dispose()
     {
         _disposed = true;
-#if NET
         _stream.Dispose();
-#else
-        while (_streams.TryDequeue(out var stream))
-        {
-            stream.Dispose();
-        }
-#endif
     }
 
     private int FirstMaskOfBank(string nrb)
@@ -246,6 +228,10 @@ internal sealed class WhitelistIndex : IDisposable
         }
         return -1;
     }
+
+    /// <summary>Whether the active (or exempt) list holds exactly this 16-byte prefix, given as two big-endian halves.</summary>
+    internal bool Contains(bool exempt, ulong hi, ulong lo) =>
+        exempt ? Contains((hi, lo), _exemptBuckets, _exemptOffset) : Contains((hi, lo), _activeBuckets, _activeOffset);
 
     private bool Contains((ulong Hi, ulong Lo) key, int[] buckets, long entriesOffset)
     {
@@ -292,8 +278,8 @@ internal sealed class WhitelistIndex : IDisposable
 
     private void ReadAt(long offset, byte[] buffer, int count)
     {
-#if NET
         var read = 0;
+#if NET
         while (read < count)
         {
             var n = RandomAccess.Read(_stream.SafeFileHandle, buffer.AsSpan(read, count - read), offset + read);
@@ -304,35 +290,18 @@ internal sealed class WhitelistIndex : IDisposable
             read += n;
         }
 #else
-        if (!_streams.TryDequeue(out var stream))
+        // netstandard2.0 has no positional read; one stream under a lock (lookups are dominated by the SHA-512 rounds, so this is not a bottleneck).
+        lock (_stream)
         {
-            stream = new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete, 1);
-        }
-        try
-        {
-            stream.Position = offset;
-            var read = 0;
+            _stream.Position = offset;
             while (read < count)
             {
-                var n = stream.Read(buffer, read, count - read);
+                var n = _stream.Read(buffer, read, count - read);
                 if (n == 0)
                 {
                     throw Truncated();
                 }
                 read += n;
-            }
-        }
-        catch
-        {
-            stream.Dispose();
-            throw;
-        }
-        _streams.Enqueue(stream);
-        if (_disposed)
-        {
-            while (_streams.TryDequeue(out var late))
-            {
-                late.Dispose();
             }
         }
 #endif

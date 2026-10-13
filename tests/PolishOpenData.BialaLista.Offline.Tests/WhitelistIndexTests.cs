@@ -1,4 +1,6 @@
 using System;
+using System.Buffers.Binary;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -137,14 +139,108 @@ public sealed class WhitelistIndexTests : IDisposable
     }
 
     [Fact]
-    public void Open_index_can_be_deleted()
+    public void Open_index_can_be_deleted_and_still_answers_in_parallel()
     {
         var path = Build();
         using var index = WhitelistIndex.Open(path);
 
         File.Delete(path);
 
-        Assert.Equal((VatWhitelistOfflineStatus.Active, false), index.Lookup(ActiveNip, ActiveAccount));
+        AssertParallelLookups(index);
+    }
+
+    [Fact]
+    public void Open_index_renamed_and_replaced_still_answers_from_the_original()
+    {
+        var path = Build();
+        using var index = WhitelistIndex.Open(path);
+
+        File.Move(path, path + ".old");
+        File.WriteAllBytes(path, new byte[4096]);
+
+        AssertParallelLookups(index);
+    }
+
+    private static void AssertParallelLookups(WhitelistIndex index) =>
+        Parallel.For(0, 500, i =>
+        {
+            Assert.Equal((VatWhitelistOfflineStatus.Active, false), index.Lookup(ActiveNip, ActiveAccount));
+            Assert.Equal((VatWhitelistOfflineStatus.Exempt, false), index.Lookup(ExemptNip, ExemptAccount));
+            Assert.Equal((VatWhitelistOfflineStatus.Active, true), index.Lookup(ActiveNip, VirtualAccount));
+            Assert.Equal((VatWhitelistOfflineStatus.NotFound, false), index.Lookup(ActiveNip, UnknownAccount));
+        });
+
+    private static byte[] Entries(params (ulong Hi, ulong Lo)[] entries)
+    {
+        var bytes = new byte[entries.Length * 16];
+        for (var i = 0; i < entries.Length; i++)
+        {
+            BinaryPrimitives.WriteUInt64BigEndian(bytes.AsSpan(i * 16), entries[i].Hi);
+            BinaryPrimitives.WriteUInt64BigEndian(bytes.AsSpan((i * 16) + 8), entries[i].Lo);
+        }
+        return bytes;
+    }
+
+    private static ulong Prefixed(ulong prefix, ulong rest) => (prefix << 48) | rest;
+
+    private static void AssertContainsExactly(bool exempt, WhitelistIndex index, (ulong Hi, ulong Lo)[] present)
+    {
+        var set = present.ToHashSet();
+        var probes = new HashSet<(ulong, ulong)>(present);
+        foreach (var (hi, lo) in present)
+        {
+            probes.Add((hi, lo + 1));
+            probes.Add((hi, lo - 1));
+            probes.Add((hi + 1, lo));
+            probes.Add((hi - 1, lo));
+            probes.Add((hi, 0));
+            probes.Add((hi, ulong.MaxValue));
+            probes.Add((hi & 0xFFFF_0000_0000_0000UL, 0));
+            probes.Add((hi | 0x0000_FFFF_FFFF_FFFFUL, ulong.MaxValue));
+        }
+        foreach (var neighbour in new[] { 0x1233UL, 0x1235UL, 0x0002UL, 0xFFFEUL })
+        {
+            probes.Add((Prefixed(neighbour, 5), 5));
+        }
+
+        foreach (var key in probes)
+        {
+            Assert.Equal(set.Contains(key), index.Contains(exempt, key.Item1, key.Item2));
+        }
+    }
+
+    [Fact]
+    public void Contains_finds_exactly_the_entries_of_a_synthetic_index()
+    {
+        // Prefixes at both ends of the table, one bucket with 7 entries given unsorted, a lone entry after the empty bucket 0x1235, duplicates of none.
+        var active = new (ulong Hi, ulong Lo)[]
+        {
+            (Prefixed(0xFFFF, 9), 1), (Prefixed(0x0000, 0), 0), (Prefixed(0x1234, 50), 7), (Prefixed(0x0000, 0), 1),
+            (Prefixed(0x1234, 10), 99), (Prefixed(0x1236, 3), 3), (Prefixed(0x1234, 50), 2), (Prefixed(0x1234, 10), 98),
+            (Prefixed(0xFFFF, 0xFFFF_FFFF_FFFF), ulong.MaxValue), (Prefixed(0x1234, 0), 0), (Prefixed(0x1234, 0xFFFF_FFFF_FFFF), ulong.MaxValue),
+            (Prefixed(0x0000, 0), ulong.MaxValue), (Prefixed(0x1234, 20), 5),
+        };
+        var exempt = new (ulong Hi, ulong Lo)[] { (Prefixed(0x0001, 1), 1), (Prefixed(0xFFFF, 1), 1), (Prefixed(0x1234, 7), 7) };
+        var path = Build(new ParsedFlatFile(FileDate, 3, Entries(active), Entries(exempt), []), "synthetic.idx");
+        using var index = WhitelistIndex.Open(path);
+
+        AssertContainsExactly(false, index, active);
+        AssertContainsExactly(true, index, exempt);
+        Assert.False(index.Contains(true, active[0].Hi, active[0].Lo));
+        Assert.False(index.Contains(false, exempt[0].Hi, exempt[0].Lo));
+    }
+
+    [Fact]
+    public void Empty_index_contains_nothing()
+    {
+        using var index = WhitelistIndex.Open(Build(new ParsedFlatFile(FileDate, 3, [], [], []), "empty.idx"));
+
+        foreach (var exempt in new[] { false, true })
+        {
+            Assert.False(index.Contains(exempt, 0, 0));
+            Assert.False(index.Contains(exempt, ulong.MaxValue, ulong.MaxValue));
+        }
+        Assert.Equal((VatWhitelistOfflineStatus.NotFound, false), index.Lookup(ActiveNip, ActiveAccount));
     }
 
     [Theory]
