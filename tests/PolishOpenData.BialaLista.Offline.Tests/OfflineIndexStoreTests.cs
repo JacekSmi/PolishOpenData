@@ -307,8 +307,8 @@ public sealed class OfflineIndexStoreTests : IDisposable
     {
         using var store = Store();
         var old = await store.GetAsync(Date, Download, null, Token);
-        _time.Advance(TimeSpan.FromDays(31));
-        var today = Date.AddDays(31);
+        _time.Advance(TimeSpan.FromDays(32));
+        var today = Date.AddDays(32);
         PlaceIndex(today.ToString("yyyyMMdd", System.Globalization.CultureInfo.InvariantCulture));
 
         var current = await store.GetAsync(today, Download, null, Token);

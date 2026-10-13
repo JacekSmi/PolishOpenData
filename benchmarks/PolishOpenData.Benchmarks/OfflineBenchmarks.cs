@@ -35,7 +35,8 @@ public class OfflineLookupBenchmarks : IDisposable
         _date = DateOnly.ParseExact(name!, "yyyyMMdd", null);
         _client = new VatWhitelistOffline(new HttpClient(new FailingHandler()), new VatWhitelistOfflineOptions { DataDirectory = dir });
         _one = (Nip.Parse("1810004094"), Nrb.Parse("39102055610000370202959088")); // one of MF's published test pairs
-        // Deterministic, mostly not-found pairs: the slowest path (the plain hash plus every mask of the bank, all rounds).
+        // Deterministic, mostly not-found pairs: the plain hash plus every mask of the bank, all rounds. Random account
+        // numbers seldom land in banks with many masks, so this is a typical miss, not the worst case.
         var random = new Random(1);
         _many = Enumerable.Range(0, 1000).Select(_ => (RandomNip(random), RandomNrb(random))).ToArray();
         _ = await _client.PrepareAsync(_date); // opens the index outside the measurement

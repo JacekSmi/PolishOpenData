@@ -89,9 +89,10 @@ public sealed class VatWhitelistOffline : IVatWhitelistOffline, IDisposable
                     i => results[i] = Lookup(index, list[i].Nip, list[i].Account)),
                 cancellationToken).ConfigureAwait(false);
         }
-        catch (AggregateException ex) when (ex.InnerExceptions.Count == 1)
+        catch (AggregateException ex)
         {
-            // Callers see the same exception as from CheckAsync, not Parallel.For's wrapper.
+            // Callers see the same exception as from CheckAsync, not Parallel.For's wrapper; when several lookups fail
+            // at once they fail for the same reason (a broken or closed index), so the first one stands for all.
             ExceptionDispatchInfo.Capture(ex.InnerExceptions[0]).Throw();
         }
         return results;

@@ -90,10 +90,11 @@ internal sealed class OfflineIndexStore : IDisposable
     }
 
     // A long-running process would otherwise keep every date it used open (and its deleted file's space allocated) until
-    // it exits. No new call can target these dates: the date window rejects them before they reach the store.
+    // it exits. No new call can target these dates: the date window rejects them before they reach the store. One extra day
+    // of grace lets a call that passed the window check just before midnight finish its lookups on the index.
     private void CloseOutOfWindow()
     {
-        var oldest = WarsawTime.Today(_time).AddDays(-30);
+        var oldest = WarsawTime.Today(_time).AddDays(-31);
         foreach (var entry in _preparations)
         {
             if (entry.Key < oldest && entry.Value.IsValueCreated && entry.Value.Value.Status == TaskStatus.RanToCompletion && Forget(entry.Key, entry.Value))
