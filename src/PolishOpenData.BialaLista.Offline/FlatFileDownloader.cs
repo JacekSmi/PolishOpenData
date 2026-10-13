@@ -73,6 +73,9 @@ internal static class FlatFileDownloader
         _ = response.EnsureSuccessStatusCode();
         var total = response.Content.Headers.ContentLength;
         long received = 0;
+        var writing = false;
+        // Local file errors (missing or read-only directory, full disk) surface as they are; only network reads mean "download failed".
+        using var file = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize, useAsync: true);
         try
         {
 #if NET
@@ -80,7 +83,6 @@ internal static class FlatFileDownloader
 #else
             using var body = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 #endif
-            using var file = new FileStream(targetPath, FileMode.Create, FileAccess.Write, FileShare.None, BufferSize, useAsync: true);
             var buffer = new byte[BufferSize];
             var clock = Stopwatch.StartNew();
             var lastReport = TimeSpan.Zero;
@@ -88,12 +90,15 @@ internal static class FlatFileDownloader
 #if NET
             while ((read = await body.ReadAsync(buffer.AsMemory(), ct).ConfigureAwait(false)) > 0)
             {
+                writing = true;
                 await file.WriteAsync(buffer.AsMemory(0, read), ct).ConfigureAwait(false);
 #else
             while ((read = await body.ReadAsync(buffer, 0, buffer.Length, ct).ConfigureAwait(false)) > 0)
             {
+                writing = true;
                 await file.WriteAsync(buffer, 0, read, ct).ConfigureAwait(false);
 #endif
+                writing = false;
                 received += read;
                 if (clock.Elapsed - lastReport >= ReportInterval)
                 {
@@ -102,7 +107,7 @@ internal static class FlatFileDownloader
                 }
             }
         }
-        catch (IOException exception)
+        catch (IOException exception) when (!writing)
         {
             throw Failed(date, received, total, exception);
         }

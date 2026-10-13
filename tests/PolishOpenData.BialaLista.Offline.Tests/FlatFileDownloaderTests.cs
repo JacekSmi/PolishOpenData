@@ -167,6 +167,17 @@ public sealed class FlatFileDownloaderTests : IDisposable
     }
 
     [Fact]
+    public async Task Local_file_error_is_not_download_failed()
+    {
+        using var http = new HttpClient(new StubHttpMessageHandler(_ => Archive()));
+        var target = Path.Combine(_dir, "missing", "20261013.7z.part");
+
+        var exception = await Assert.ThrowsAnyAsync<IOException>(
+            () => FlatFileDownloader.DownloadAsync(http, BaseAddress, Today, Today, target, null, TestContext.Current.CancellationToken));
+        Assert.Contains(target, exception.Message);
+    }
+
+    [Fact]
     public async Task Cancelled_download_leaves_no_file()
     {
         using var cts = new CancellationTokenSource();
