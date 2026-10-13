@@ -1,7 +1,6 @@
 using System;
 using System.Buffers;
 using System.Buffers.Binary;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -151,7 +150,7 @@ internal sealed class WhitelistIndex : IDisposable
             new($"The index file '{path}' {what}.", default, VatWhitelistDataUnavailableReason.UnexpectedFormat, inner);
     }
 
-    /// <summary>Looks the pair up: the plain hash first, then every mask of the account's bank; an active hit wins over an exempt one.</summary>
+    /// <summary>Looks the pair up: the plain account first, then each mask of the account's bank in turn; for each candidate an active hit wins over an exempt one, and the first candidate found decides.</summary>
     /// <param name="nip">Ten digits.</param>
     /// <param name="nrb">Twenty-six digits.</param>
     public (VatWhitelistOfflineStatus Status, bool ViaMask) Lookup(string nip, string nrb)
@@ -168,29 +167,19 @@ internal sealed class WhitelistIndex : IDisposable
         }
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        var candidates = new List<string> { nrb };
+        // Masks are hashed only after the plain account missed both lists, one at a time: each costs N SHA-512 rounds.
+        if (Find(nip, nrb) is { } plain)
+        {
+            return (plain, false);
+        }
         for (var i = FirstMaskOfBank(nrb); i < _masks.Length && string.CompareOrdinal(_masks[i], 2, nrb, 2, 8) == 0; i++)
         {
-            if (FlatFileHash.ApplyMask(nrb, _masks[i]) is { } account)
+            if (FlatFileHash.ApplyMask(nrb, _masks[i]) is { } account && Find(nip, account) is { } masked)
             {
-                candidates.Add(account);
+                return (masked, true);
             }
         }
-
-        var keys = new (ulong Hi, ulong Lo)[candidates.Count];
-        for (var i = 0; i < keys.Length; i++)
-        {
-            var digest = FlatFileHash.Compute(FlatFileHash.Input(Info.GeneratedOn, nip, candidates[i]), Info.Transformations);
-            keys[i] = (BinaryPrimitives.ReadUInt64BigEndian(digest), BinaryPrimitives.ReadUInt64BigEndian(digest.AsSpan(8)));
-        }
-
-        var active = FirstHit(keys, _activeBuckets, _activeOffset);
-        if (active >= 0)
-        {
-            return (VatWhitelistOfflineStatus.Active, active > 0);
-        }
-        var exempt = FirstHit(keys, _exemptBuckets, _exemptOffset);
-        return exempt >= 0 ? (VatWhitelistOfflineStatus.Exempt, exempt > 0) : (VatWhitelistOfflineStatus.NotFound, false);
+        return (VatWhitelistOfflineStatus.NotFound, false);
     }
 
     public void Dispose()
@@ -217,16 +206,14 @@ internal sealed class WhitelistIndex : IDisposable
         return lo;
     }
 
-    private int FirstHit((ulong Hi, ulong Lo)[] keys, int[] buckets, long entriesOffset)
+    // Active wins over exempt for one account.
+    private VatWhitelistOfflineStatus? Find(string nip, string account)
     {
-        for (var i = 0; i < keys.Length; i++)
-        {
-            if (Contains(keys[i], buckets, entriesOffset))
-            {
-                return i;
-            }
-        }
-        return -1;
+        var digest = FlatFileHash.Compute(FlatFileHash.Input(Info.GeneratedOn, nip, account), Info.Transformations);
+        var key = (BinaryPrimitives.ReadUInt64BigEndian(digest), BinaryPrimitives.ReadUInt64BigEndian(digest.AsSpan(8)));
+        return Contains(key, _activeBuckets, _activeOffset) ? VatWhitelistOfflineStatus.Active
+            : Contains(key, _exemptBuckets, _exemptOffset) ? VatWhitelistOfflineStatus.Exempt
+            : null;
     }
 
     /// <summary>Whether the active (or exempt) list holds exactly this 16-byte prefix, given as two big-endian halves.</summary>

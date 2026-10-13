@@ -93,6 +93,18 @@ public sealed class WhitelistIndexTests : IDisposable
     }
 
     [Fact]
+    public void Plain_hit_returns_without_trying_masks()
+    {
+        // plain hash in the exempt list, its masked form in the active list: the plain account decides (spec §4 order)
+        const string mask = "XX10201026XXXXXXXXYYYYYYXX";
+        static byte[] Prefix(string account) => FlatFileHash.Compute(FlatFileHash.Input(FileDate, ActiveNip, account), 3).Take(16).ToArray();
+        var parsed = new ParsedFlatFile(FileDate, 3, Prefix(FlatFileHash.ApplyMask(VirtualAccount, mask)!), Prefix(VirtualAccount), [mask]);
+        using var index = WhitelistIndex.Open(Build(parsed, "order.idx"));
+
+        Assert.Equal((VatWhitelistOfflineStatus.Exempt, false), index.Lookup(ActiveNip, VirtualAccount));
+    }
+
+    [Fact]
     public void Corrupt_magic_throws_unexpected_format()
     {
         var path = Build();
