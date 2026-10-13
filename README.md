@@ -155,6 +155,7 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 |---|---|
 | `lookup_company` | "Who is NIP 774-000-14-54?" — name, VAT status, seat, bank accounts, KRS legal form, capital, removal |
 | `check_vat_bank_account` | "Can I pay this invoice to this account?" — whitelist check with request ID |
+| `check_vat_bank_account_offline` | Same question against the Ministry of Finance daily flat file: no request limit, up to 50 pairs at once, nothing leaves your machine, no request ID. The first call for a date downloads about 250 MB and can take a minute or two; "not_found" means not found in the file, not proof of absence. Prepared files are kept in the user's local application data folder; set `POLISHOPENDATA_OFFLINE_DIR` to use another local folder (not a network share) |
 | `get_krs_extract` | Board and supervisory members (masked by the ministry), capital, shareholders, PKD activities |
 | `validate_identifier` | Offline checksum validation of NIP, REGON, KRS, NRB and KW numbers, with typo suggestions |
 

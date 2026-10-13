@@ -113,7 +113,7 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 
 Konfiguracje dla VS Code, Claude Desktop i Cursor: zob. [README.md](https://github.com/JacekSmi/PolishOpenData/blob/main/README.md#mcp-server-for-ai-assistants).
 
-Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_account` (Biała Lista przed zapłatą faktury), `get_krs_extract` (zarząd, kapitał, PKD), `validate_identifier` (walidacja numerów offline).
+Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_account` (Biała Lista przed zapłatą faktury), `check_vat_bank_account_offline` (to samo z pliku płaskiego MF, bez limitu zapytań; zmienna `POLISHOPENDATA_OFFLINE_DIR` wskazuje folder danych), `get_krs_extract` (zarząd, kapitał, PKD), `validate_identifier` (walidacja numerów offline).
 
 ## Księgi wieczyste
 

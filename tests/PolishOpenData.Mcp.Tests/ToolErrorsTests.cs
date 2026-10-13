@@ -4,6 +4,7 @@ using System.Net.Http;
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Timeout;
+using PolishOpenData.BialaLista.Offline;
 using PolishOpenData.Mcp;
 
 namespace PolishOpenData.Mcp.Tests;
@@ -22,6 +23,31 @@ public class ToolErrorsTests
         Assert.NotNull(text);
         Assert.Contains("WL-191", text, StringComparison.Ordinal);
         Assert.Contains("2026-09-24 22:00 UTC", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Daily_limit_error_points_to_offline_tool()
+    {
+        var text = ToolErrors.Describe(new QuotaExceededException("Biała Lista daily request limit for this IP address is exhausted (WL-191).", (HttpStatusCode)429, "WL-191", null, null));
+        Assert.EndsWith("Use check_vat_bank_account_offline, which has no request limit.", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Not_published_yet_says_when_the_file_usually_appears()
+    {
+        var text = ToolErrors.Describe(new VatWhitelistDataUnavailableException("x", new DateOnly(2026, 10, 14), VatWhitelistDataUnavailableReason.NotPublishedYet));
+        Assert.Equal("MF has not published the file for 2026-10-14 yet; it usually appears on the evening before.", text);
+    }
+
+    [Theory]
+    [InlineData(VatWhitelistDataUnavailableReason.OutsideWindow)]
+    [InlineData(VatWhitelistDataUnavailableReason.DownloadFailed)]
+    [InlineData(VatWhitelistDataUnavailableReason.ChecksumMismatch)]
+    [InlineData(VatWhitelistDataUnavailableReason.UnexpectedFormat)]
+    public void Other_unavailable_reasons_carry_the_library_message(VatWhitelistDataUnavailableReason reason)
+    {
+        var text = ToolErrors.Describe(new VatWhitelistDataUnavailableException("library message", new DateOnly(2026, 10, 14), reason));
+        Assert.Contains("library message", text, StringComparison.Ordinal);
     }
 
     [Fact]

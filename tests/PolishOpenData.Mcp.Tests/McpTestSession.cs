@@ -35,7 +35,8 @@ internal sealed class McpTestSession : IAsyncDisposable
     /// </param>
     /// <param name="clock">Registered as the server's <see cref="TimeProvider"/>; null keeps the production default (system clock).</param>
     /// <param name="cancellationToken">Cancels start-up and the MCP handshake.</param>
-    public static async Task<McpTestSession> StartAsync(Action<IHttpClientBuilder> configureHttp, TimeProvider? clock, CancellationToken cancellationToken)
+    /// <param name="offlineDataDirectory">Where the offline flat-file indexes go; null keeps the production default (env var or user folder).</param>
+    public static async Task<McpTestSession> StartAsync(Action<IHttpClientBuilder> configureHttp, TimeProvider? clock, CancellationToken cancellationToken, string? offlineDataDirectory = null)
     {
         ArgumentNullException.ThrowIfNull(configureHttp);
         var builder = Host.CreateApplicationBuilder();
@@ -45,7 +46,7 @@ internal sealed class McpTestSession : IAsyncDisposable
             builder.Services.AddSingleton(clock);
         }
 
-        builder.Services.AddPolishOpenDataServices(configureHttp);
+        builder.Services.AddPolishOpenDataServices(configureHttp, offlineDataDirectory);
 
         var clientToServer = new Pipe();
         var serverToClient = new Pipe();

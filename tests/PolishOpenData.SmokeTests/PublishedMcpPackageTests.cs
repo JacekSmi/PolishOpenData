@@ -20,7 +20,7 @@ public sealed class PublishedMcpPackageTests
     // Room for the first run, which downloads the package and its dependencies.
     private const int PackageTestTimeout = 300_000;
 
-    private static readonly string[] ExpectedTools = ["lookup_company", "check_vat_bank_account", "get_krs_extract", "validate_identifier"];
+    private static readonly string[] ExpectedTools = ["lookup_company", "check_vat_bank_account", "check_vat_bank_account_offline", "get_krs_extract", "validate_identifier"];
 
     private static readonly SearchValues<char> VersionRangeCharacters = SearchValues.Create("*[](),");
 

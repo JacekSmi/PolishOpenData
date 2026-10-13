@@ -15,7 +15,13 @@
       "runtimeHint": "dnx",
       "transport": { "type": "stdio" },
       "packageArguments": [],
-      "environmentVariables": []
+      "environmentVariables": [
+        {
+          "name": "POLISHOPENDATA_OFFLINE_DIR",
+          "description": "Folder for the prepared VAT whitelist flat-file indexes used by check_vat_bank_account_offline (a local disk, not a network share). Default: PolishOpenData/BialaListaOffline under the user's local application data folder.",
+          "isRequired": false
+        }
+      ]
     }
   ]
 }
