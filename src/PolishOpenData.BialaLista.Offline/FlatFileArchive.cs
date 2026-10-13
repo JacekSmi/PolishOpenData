@@ -7,7 +7,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using SharpCompress.Archives.SevenZip;
-using SharpCompress.Common;
 using SharpCompress.Readers;
 
 namespace PolishOpenData.BialaLista.Offline;
@@ -71,7 +70,8 @@ internal static class FlatFileArchive
                 }
             }
         }
-        catch (Exception ex) when (ex is InvalidDataException or InvalidOperationException or EndOfStreamException or SharpCompressException)
+        catch (Exception ex) when (ex is not (OperationCanceledException or VatWhitelistDataUnavailableException))
+        // Trust boundary: the LZMA/7z decoder reports corruption with many exception types (even IndexOutOfRangeException).
         {
             throw new VatWhitelistDataUnavailableException(
                 $"The flat file archive of {fileDate:yyyy-MM-dd} cannot be read: {ex.Message}", fileDate, VatWhitelistDataUnavailableReason.UnexpectedFormat, ex);

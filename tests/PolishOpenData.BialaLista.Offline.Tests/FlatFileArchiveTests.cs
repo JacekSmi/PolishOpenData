@@ -89,4 +89,27 @@ public sealed class FlatFileArchiveTests
 
         Assert.Equal(VatWhitelistDataUnavailableReason.UnexpectedFormat, ex.Reason);
     }
+
+    [Theory]
+    [InlineData(40)]
+    [InlineData(100)]
+    [InlineData(300)]
+    [InlineData(323)]
+    [InlineData(420)]
+    [InlineData(1000)]
+    [InlineData(1293)]
+    [InlineData(2000)]
+    [InlineData(3000)]
+    [InlineData(3330)]
+    [InlineData(3427)]
+    public void Corrupted_archive_only_throws_the_public_exception(int offset)
+    {
+        var bytes = Fixture.ReadBytes("bialalista-offline/20261013.7z");
+        bytes[offset] ^= 0xFF;
+        using var archive = new MemoryStream(bytes);
+
+        var ex = ReadFails(archive, new DateOnly(2026, 10, 13));
+
+        Assert.True(ex.Reason is VatWhitelistDataUnavailableReason.UnexpectedFormat or VatWhitelistDataUnavailableReason.ChecksumMismatch, ex.Reason.ToString());
+    }
 }
