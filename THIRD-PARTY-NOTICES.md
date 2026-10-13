@@ -34,6 +34,10 @@ SOFTWARE.
 
 - **Polyfill** 11.4.0 (source-embedded as internal types): <https://github.com/SimonCropp/Polyfill>. MIT License, Copyright (c) Simon Cropp. The MIT License text is at the end of this file.
 
+## Redistributed with the PolishOpenData.BialaLista.Offline package
+
+- **SharpCompress** 1.0.0 (a package dependency, reads the 7z archive of the flat file): <https://github.com/adamhathcock/sharpcompress>. MIT License, Copyright (c) 2014 Adam Hathcock (package copyright: Copyright (c) 2025 Adam Hathcock). Its 7z reader is based on managed-lzma (<https://code.google.com/p/managed-lzma/>), as its README states. The MIT License text is at the end of this file.
+
 ## Redistributed inside the PolishOpenData.Mcp tool package
 
 The .NET tool package (`tools/net10.0/any`) contains these third-party assemblies.
@@ -94,7 +98,7 @@ MIT License. Package copyright: © Microsoft Corporation. All rights reserved. T
 
 ### MIT License
 
-Applies, with the copyright lines given above, to Polyfill, the MIT-licensed parts of the Model Context Protocol C# SDK and the Microsoft.Extensions.* and System.* assemblies.
+Applies, with the copyright lines given above, to Polyfill, SharpCompress, the MIT-licensed parts of the Model Context Protocol C# SDK and the Microsoft.Extensions.* and System.* assemblies.
 
 ```text
 Permission is hereby granted, free of charge, to any person obtaining a copy

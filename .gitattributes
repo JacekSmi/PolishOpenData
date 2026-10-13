@@ -1,2 +1,3 @@
 * text=auto
 tests/Fixtures/regon/** -text
+tests/Fixtures/bialalista-offline/** -text

@@ -3,6 +3,7 @@
     <Project Path="samples/CheckCounterparty/CheckCounterparty.csproj" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="src/PolishOpenData.BialaLista.Offline/PolishOpenData.BialaLista.Offline.csproj" />
     <Project Path="src/PolishOpenData.BialaLista/PolishOpenData.BialaLista.csproj" />
     <Project Path="src/PolishOpenData.Core/PolishOpenData.Core.csproj" />
     <Project Path="src/PolishOpenData.Krs/PolishOpenData.Krs.csproj" />
@@ -10,6 +11,7 @@
     <Project Path="src/PolishOpenData.Regon/PolishOpenData.Regon.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/PolishOpenData.BialaLista.Offline.Tests/PolishOpenData.BialaLista.Offline.Tests.csproj" />
     <Project Path="tests/PolishOpenData.BialaLista.Tests/PolishOpenData.BialaLista.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Core.Tests/PolishOpenData.Core.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Krs.Tests/PolishOpenData.Krs.Tests.csproj" />
