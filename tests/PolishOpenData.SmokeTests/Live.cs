@@ -22,6 +22,7 @@ namespace PolishOpenData.SmokeTests;
 /// <item><term>Biała Lista searches (each NIP or REGON counts, also inside a batch)</term><description>4 (NIP, REGON, 2-NIP batch) / 1 / 1 = 6, sent as 5 requests</description></item>
 /// <item><term>Biała Lista checks</term><description>1 / 1 / 0 = 2</description></item>
 /// <item><term>KRS requests</term><description>5 to 9 (current, full, not-found in P and S, change feed of 1 to 5 weekdays) / 1 / 1 = 7 to 11</description></item>
+/// <item><term>Offline flat file (<c>BialaListaOfflineLiveTests</c>, no quota; needs <c>~250 MB</c> and minutes on a slow MF server)</term><description>1 download, plus 14 Biała Lista checks as the oracle, counted against the 5,000 daily checks</description></item>
 /// <item><term>GUS BIR test environment requests (published test key, no secret)</term><description>5 / 0 / 0 = 5</description></item>
 /// <item><term>GUS BIR production requests (needs <c>POLISHOPENDATA_REGON_KEY</c>, owner-run, skipped otherwise)</term><description>4 / 0 / 0 = 4</description></item>
 /// </list>

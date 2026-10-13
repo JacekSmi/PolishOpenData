@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/PolishOpenData.Benchmarks/PolishOpenData.Benchmarks.csproj" />
+  </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/CheckCounterparty/CheckCounterparty.csproj" />
   </Folder>
