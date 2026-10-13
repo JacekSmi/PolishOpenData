@@ -65,7 +65,7 @@ internal static class McpServerSetup
                 {
                     return await next(context, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception ex) when (ex is not McpProtocolException && ToolErrors.Describe(ex) is { } message)
+                catch (Exception ex) when (ex is not McpProtocolException && ToolErrors.Describe(ex, context.Params?.Name) is { } message)
                 {
                     return ToolResults.Error(message);
                 }

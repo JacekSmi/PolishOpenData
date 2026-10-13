@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using Polly;
@@ -10,9 +11,18 @@ namespace PolishOpenData.Mcp;
 /// <summary>Turns exceptions into short, actionable text for the model. Returns null for cancellation (let it propagate).</summary>
 internal static class ToolErrors
 {
-    public static string? Describe(Exception exception) => exception switch
+    private const string OfflineTool = "check_vat_bank_account_offline";
+
+    /// <param name="exception">The failure.</param>
+    /// <param name="toolName">The tool that failed, when known: some errors only have a specific meaning for one tool.</param>
+    public static string? Describe(Exception exception, string? toolName = null) => exception switch
     {
         OperationCanceledException => null,
+        // Only the offline tool waits for a lock file held by another process (the library's lock timeout).
+        TimeoutException => "Another process is preparing this date; try again later.",
+        // The offline library reports an unusable data directory as an IOException whose message names the folder.
+        IOException io when toolName == OfflineTool =>
+            io.Message + " Set " + McpServerSetup.OfflineDirectoryVariable + " to a folder this server can write to.",
         QuotaExceededException quota => "Request limit reached: " + quota.Message +
             (quota.ResetsAt is { } at ? " (resets " + at.UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) + " UTC)." : string.Empty) +
             " Use check_vat_bank_account_offline, which has no request limit.",

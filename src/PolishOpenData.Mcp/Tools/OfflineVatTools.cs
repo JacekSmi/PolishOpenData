@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -13,7 +14,7 @@ using PolishOpenData.Internal;
 namespace PolishOpenData.Mcp;
 
 [McpServerToolType]
-internal sealed class OfflineVatTools(IVatWhitelistOffline offline, TimeProvider timeProvider)
+internal sealed class OfflineVatTools(IVatWhitelistOffline offline, TimeProvider timeProvider, IHostApplicationLifetime lifetime)
 {
     private const int MaxPairs = 50;
     private const string Source = "Plik płaski wykazu podatników VAT / Biała Lista (Ministerstwo Finansów)";
@@ -57,8 +58,17 @@ internal sealed class OfflineVatTools(IVatWhitelistOffline offline, TimeProvider
         day ??= WarsawTime.Today(timeProvider);   // one date for both calls, even across midnight
 
         // PrepareAsync checks the date window before any I/O and reports progress only to the call that starts the download.
+        // It runs under the server's lifetime, not this call's token: a client that gives up (or times out) leaves the
+        // download running, so asking again joins it instead of starting from zero.
         var relay = progress is null ? null : new Relay(progress);
-        await offline.PrepareAsync(day, relay, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await offline.PrepareAsync(day, relay, lifetime.ApplicationStopping).WaitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            relay?.Stop();
+        }
         var checks = await offline.CheckManyAsync(parsed, day, cancellationToken).ConfigureAwait(false);
 
         var results = new List<VatAccountOfflineResult>(checks.Count);
@@ -105,13 +115,33 @@ internal sealed class OfflineVatTools(IVatWhitelistOffline offline, TimeProvider
     }
 
     // Synchronous on purpose: Progress<T> would post to a thread-pool and could deliver reports after the call has returned.
+    // Stopped when the call returns: the preparation may outlive it.
     private sealed class Relay(IProgress<ProgressNotificationValue> target) : IProgress<VatWhitelistPreparationProgress>
     {
-        public void Report(VatWhitelistPreparationProgress value) => target.Report(new ProgressNotificationValue
+        private bool _stopped;
+
+        public void Stop()
         {
-            Progress = value.BytesReceived,
-            Total = value.TotalBytes,
-            Message = value.Stage == VatWhitelistPreparationStage.Downloading ? "Downloading the MF flat file" : "Building the index",
-        });
+            lock (this)
+            {
+                _stopped = true;
+            }
+        }
+
+        public void Report(VatWhitelistPreparationProgress value)
+        {
+            lock (this)
+            {
+                if (!_stopped)
+                {
+                    target.Report(new ProgressNotificationValue
+                    {
+                        Progress = value.BytesReceived,
+                        Total = value.TotalBytes,
+                        Message = value.Stage == VatWhitelistPreparationStage.Downloading ? "Downloading the MF flat file" : "Building the index",
+                    });
+                }
+            }
+        }
     }
 }

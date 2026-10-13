@@ -5,8 +5,10 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Time.Testing;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
@@ -58,6 +60,11 @@ public sealed class OfflineVatToolsTests : IAsyncDisposable
     private async Task<CallToolResult> CallAsync(IEnumerable<(string Nip, string Account)> pairs, string? date = null, IProgress<ProgressNotificationValue>? progress = null)
     {
         var session = await SessionAsync();
+        return await session.Client.CallToolAsync("check_vat_bank_account_offline", Arguments(pairs, date), progress, cancellationToken: TestContext.Current.CancellationToken);
+    }
+
+    private static Dictionary<string, object?> Arguments(IEnumerable<(string Nip, string Account)> pairs, string? date = null)
+    {
         var arguments = new Dictionary<string, object?>
         {
             ["pairs"] = pairs.Select(p => new Dictionary<string, object?> { ["nip"] = p.Nip, ["bankAccount"] = p.Account }).ToArray(),
@@ -67,7 +74,7 @@ public sealed class OfflineVatToolsTests : IAsyncDisposable
             arguments["date"] = date;
         }
 
-        return await session.Client.CallToolAsync("check_vat_bank_account_offline", arguments, progress, cancellationToken: TestContext.Current.CancellationToken);
+        return arguments;
     }
 
     private static string Text(CallToolResult result) => ((TextContentBlock)result.Content[0]).Text;
@@ -198,6 +205,50 @@ public sealed class OfflineVatToolsTests : IAsyncDisposable
         Assert.True(download.Progress > 0);
         Assert.Equal(download.Progress, download.Total);   // the stub announces the size, and the last download report is complete
         Assert.Contains(values, v => v.Message == "Building the index");
+    }
+
+    [Fact]
+    public async Task Cancelled_first_call_leaves_the_download_running_for_the_next_call()
+    {
+        // The tool is called directly: the token stands for the one the MCP SDK cancels when a client gives up or times out.
+        var token = TestContext.Current.CancellationToken;
+        var gate = new GatedHttpMessageHandler(request =>
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(Fixture.ReadBytes("bialalista-offline/20261013.7z")) });
+        var clock = new FakeTimeProvider(new DateTimeOffset(2026, 10, 13, 8, 0, 0, TimeSpan.Zero));
+        var services = new ServiceCollection().AddSingleton<TimeProvider>(clock);
+        _ = services.AddPolishOpenDataServices(http => http.ConfigurePrimaryHttpMessageHandler(() => gate), _dir);
+        await using var provider = services.BuildServiceProvider();
+        using var stopping = new CancellationTokenSource();
+        var tools = new OfflineVatTools(provider.GetRequiredService<BialaLista.Offline.IVatWhitelistOffline>(), clock, new Lifetime(stopping.Token));
+        OfflineVatPair[] pairs = [new(ActiveNip, ActiveAccount)];
+        using var cancel = CancellationTokenSource.CreateLinkedTokenSource(token);
+
+        var first = tools.CheckVatBankAccountOffline(pairs, cancellationToken: cancel.Token);
+        await gate.Entered.WaitAsync(token);
+        cancel.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first);
+
+        var second = tools.CheckVatBankAccountOffline(pairs, cancellationToken: token);
+        gate.Release();
+        var result = await second;
+
+        Assert.True(result.IsError != true, Text(result));
+        Assert.Equal("active", Result(result, 0).GetProperty("status").GetString());
+        Assert.Equal(1, gate.Requests);
+        Assert.False(gate.UpstreamCancelled);
+    }
+
+    private sealed class Lifetime(CancellationToken stopping) : IHostApplicationLifetime
+    {
+        public CancellationToken ApplicationStarted => CancellationToken.None;
+
+        public CancellationToken ApplicationStopping => stopping;
+
+        public CancellationToken ApplicationStopped => CancellationToken.None;
+
+        public void StopApplication()
+        {
+        }
     }
 
     private sealed class Collector : IProgress<ProgressNotificationValue>

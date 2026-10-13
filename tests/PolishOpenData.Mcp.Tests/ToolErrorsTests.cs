@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using Polly;
@@ -48,6 +49,29 @@ public class ToolErrorsTests
     {
         var text = ToolErrors.Describe(new VatWhitelistDataUnavailableException("library message", new DateOnly(2026, 10, 14), reason));
         Assert.Contains("library message", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Lock_timeout_says_another_process_is_preparing_the_date()
+    {
+        var text = ToolErrors.Describe(new TimeoutException("Another process held the lock file 'x' for longer than 00:15:00."));
+        Assert.Equal("Another process is preparing this date; try again later.", text);
+    }
+
+    [Fact]
+    public void Offline_io_error_names_the_folder_and_the_environment_variable()
+    {
+        var text = ToolErrors.Describe(new IOException("The data directory 'C:\\data' cannot be used: access denied"), "check_vat_bank_account_offline");
+        Assert.NotNull(text);
+        Assert.Contains("C:\\data", text, StringComparison.Ordinal);
+        Assert.Contains("POLISHOPENDATA_OFFLINE_DIR", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Io_error_of_another_tool_does_not_mention_the_offline_folder()
+    {
+        var text = ToolErrors.Describe(new IOException("connection reset"), "lookup_company");
+        Assert.Equal("Unexpected error: connection reset", text);
     }
 
     [Fact]
