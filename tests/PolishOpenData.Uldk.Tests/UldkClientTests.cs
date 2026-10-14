@@ -93,6 +93,32 @@ public class UldkClientTests
         Assert.Equal("niepoprawny identyfikator", exception.Message);
     }
 
+    [Theory]
+    [InlineData("garbage\n")]
+    [InlineData("0\n146510_8.0507.41/1|41/1|5-05-07|W|p|m|637928.3,485970.8,abc,486033.1|s|SRID=2180;POLYGON((1 2))\n")]
+    [InlineData("0\n146510_8.0507.41/1|41/1|5-05-07|W|p|m|0,0,1,1|s|SRID=2180;POLYGON((1 2))\n")]
+    [InlineData("0\n146510_8.0507.41/1|41/1|5-05-07|W|p|m|637928.3,485970.8,638215.3,486033.1|s|POLYGON((1 2))\n")]
+    public async Task GetParcelById_unreadable_answer_throws_api_exception_with_http_200(string body)
+    {
+        var (client, _) = Create(_ => Text(body));
+
+        var exception = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.GetParcelByIdAsync(Parcel, ParcelGeometryKind.Pl1992, TestContext.Current.CancellationToken));
+
+        Assert.Equal(HttpStatusCode.OK, exception.StatusCode);   // answered, but unusable: not "rejected"
+        Assert.Null(exception.ErrorCode);
+    }
+
+    [Fact]
+    public async Task GetParcelAt_default_point_throws_before_any_request()
+    {
+        var (client, stub) = Create(_ => FromFixture("xy-warsaw.txt"));
+
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => client.GetParcelAtAsync(default(Wgs84Point), cancellationToken: TestContext.Current.CancellationToken));
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => client.GetParcelAtAsync(default(Pl1992Point), cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.Empty(stub.RequestUris);
+    }
+
     [Fact]
     public async Task GetParcelById_non_success_status_throws_api_exception()
     {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using PolishOpenData.Internal;
 
 namespace PolishOpenData.Uldk;
@@ -30,7 +31,7 @@ internal static class UldkResponse
 
         if (!int.TryParse(first, NumberStyles.None, CultureInfo.InvariantCulture, out var count))
         {
-            throw new PolishOpenDataApiException("ULDK returned a response that could not be read.", null, null, HttpHelpers.Truncate(body));
+            throw new PolishOpenDataApiException("ULDK returned a response that could not be read.", HttpStatusCode.OK, null, HttpHelpers.Truncate(body));
         }
 
         var rows = new List<string[]>();

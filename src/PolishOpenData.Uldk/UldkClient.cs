@@ -67,10 +67,24 @@ public sealed class UldkClient : IUldkClient
     }
 
     /// <summary>ULDK wants easting first for 2180.</summary>
-    internal static string FormatXy(Pl1992Point point) => Number(point.Easting) + "," + Number(point.Northing) + "," + Pl1992Srid.ToString(CultureInfo.InvariantCulture);
+    internal static string FormatXy(Pl1992Point point)
+    {
+        // default(Pl1992Point) skips the validating constructor (0, 0 is outside Poland).
+        if (!Pl1992Point.IsInPoland(point.Easting, point.Northing))
+        {
+            throw new ArgumentOutOfRangeException(nameof(point), point, "Outside the PL-1992 range that covers Poland.");
+        }
+
+        return Number(point.Easting) + "," + Number(point.Northing) + "," + Pl1992Srid.ToString(CultureInfo.InvariantCulture);
+    }
 
     /// <summary>ULDK wants longitude first for 4326 (WKT order), the reverse of <see cref="Wgs84Point"/>'s constructor.</summary>
-    internal static string FormatXy(Wgs84Point point) => Number(point.Longitude) + "," + Number(point.Latitude) + "," + Wgs84Srid.ToString(CultureInfo.InvariantCulture);
+    internal static string FormatXy(Wgs84Point point)
+    {
+        // default(Wgs84Point) skips the validating constructor; rebuilding the point re-runs its range check.
+        point = new Wgs84Point(point.Latitude, point.Longitude);
+        return Number(point.Longitude) + "," + Number(point.Latitude) + "," + Wgs84Srid.ToString(CultureInfo.InvariantCulture);
+    }
 
     private static string Number(double value) => value.ToString("R", CultureInfo.InvariantCulture);
 
@@ -111,9 +125,10 @@ public sealed class UldkClient : IUldkClient
         // ULDK appends a geom_wkt field only when asked; row order is the order of `result=`.
         wkt ??= row.Length > 8 ? row[8] : null;
         var extent = row.Length > 7 ? row[6].Split(',') : [];
-        if (extent.Length != 4 || !ParcelId.TryParse(row[0], out var id))
+        if (extent.Length != 4 || !ParcelId.TryParse(row[0], out var id) ||
+            !TryCorner(extent[0], extent[1], out var min) || !TryCorner(extent[2], extent[3], out var max))
         {
-            throw new PolishOpenDataApiException("ULDK returned a parcel that could not be read.", null, null, HttpHelpers.Truncate(string.Join("|", row)));
+            throw new PolishOpenDataApiException("ULDK returned a parcel that could not be read.", HttpStatusCode.OK, null, HttpHelpers.Truncate(string.Join("|", row)));
         }
 
         return new UldkParcel
@@ -124,15 +139,25 @@ public sealed class UldkClient : IUldkClient
             CommuneName = NullIfEmpty(row[3]),
             CountyName = NullIfEmpty(row[4]),
             VoivodeshipName = NullIfEmpty(row[5]),
-            Extent = new Pl1992Bbox(
-                new Pl1992Point(Coordinate(extent[0]), Coordinate(extent[1])),
-                new Pl1992Point(Coordinate(extent[2]), Coordinate(extent[3]))),
+            Extent = new Pl1992Bbox(min, max),
             DataSource = NullIfEmpty(row[7]),
             Geometry = wkt is null ? null : ToGeometry(wkt),
         };
     }
 
-    private static double Coordinate(string text) => double.Parse(text, NumberStyles.Float, CultureInfo.InvariantCulture);
+    private static bool TryCorner(string easting, string northing, out Pl1992Point corner)
+    {
+        if (double.TryParse(easting, NumberStyles.Float, CultureInfo.InvariantCulture, out var e) &&
+            double.TryParse(northing, NumberStyles.Float, CultureInfo.InvariantCulture, out var n) &&
+            Pl1992Point.IsInPoland(e, n))
+        {
+            corner = new Pl1992Point(e, n);
+            return true;
+        }
+
+        corner = default;
+        return false;
+    }
 
     private static string? NullIfEmpty(string text) => text.Length == 0 ? null : text;
 
@@ -143,7 +168,7 @@ public sealed class UldkClient : IUldkClient
         if (!ewkt.StartsWith(Prefix, StringComparison.Ordinal) || semicolon < 0 ||
             !int.TryParse(ewkt.AsSpan(Prefix.Length, semicolon - Prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, out var srid))
         {
-            throw new PolishOpenDataApiException("ULDK returned a geometry that could not be read.", null, null, HttpHelpers.Truncate(ewkt));
+            throw new PolishOpenDataApiException("ULDK returned a geometry that could not be read.", HttpStatusCode.OK, null, HttpHelpers.Truncate(ewkt));
         }
 
         return new ParcelGeometry { Srid = srid, Wkt = ewkt.Substring(semicolon + 1) };

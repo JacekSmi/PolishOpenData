@@ -82,6 +82,40 @@ public class UugClientTests
         Assert.All(matches, m => Assert.Equal(UugMatchKind.City, m.Kind));
     }
 
+    [Theory]
+    [InlineData("""{"type":"address","results":{"1":{"city":"A","x":"1","y":"2"}}}""")]
+    [InlineData("""{"type":"address","results":{"1":{"city":"A"}}}""")]
+    public async Task Geocode_unusable_coordinates_throw_api_exception_with_http_200(string body)
+    {
+        var (client, _) = Create(_ => Json(body));
+
+        var exception = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.GeocodeAsync("x", TestContext.Current.CancellationToken));
+
+        Assert.Equal(HttpStatusCode.OK, exception.StatusCode);   // answered, but unusable: not "rejected"
+    }
+
+    [Fact]
+    public async Task Reverse_coordinates_outside_poland_throw_api_exception()
+    {
+        // latitude and longitude swapped by the service
+        var (client, _) = Create(_ => Json("""{"type":"address","results":{"1":{"city":"A","x":"52.229","y":"21.019"}}}"""));
+
+        var exception = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.ReverseGeocodeAsync(new Wgs84Point(52.2290, 21.0198), TestContext.Current.CancellationToken));
+
+        Assert.Equal(HttpStatusCode.OK, exception.StatusCode);
+        Assert.IsType<ArgumentOutOfRangeException>(exception.InnerException);
+    }
+
+    [Fact]
+    public async Task Reverse_default_point_throws_before_any_request()
+    {
+        var (client, stub) = Create(_ => FromFixture("reverse-zurawia.json"));
+
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => client.ReverseGeocodeAsync(default, TestContext.Current.CancellationToken));
+
+        Assert.Empty(stub.RequestUris);
+    }
+
     [Fact]
     public async Task Geocode_html_block_page_throws_blocked()
     {
