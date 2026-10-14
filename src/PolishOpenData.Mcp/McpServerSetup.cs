@@ -7,6 +7,8 @@ using ModelContextProtocol;
 using PolishOpenData.BialaLista;
 using PolishOpenData.BialaLista.Offline;
 using PolishOpenData.Krs;
+using PolishOpenData.Uldk;
+using PolishOpenData.Uug;
 
 namespace PolishOpenData.Mcp;
 
@@ -31,6 +33,11 @@ internal static class McpServerSetup
             // blocked until midnight: keep timeouts and the circuit breaker, but never retry Biała Lista.
             o.Retry.ShouldHandle = static _ => ValueTask.FromResult(false);
         });
+        // One retry for the GUGiK services (plain GETs with no request counter to protect); the libraries themselves never retry.
+        var uldk = services.AddUldkClient();
+        var uug = services.AddUugClient();
+        uldk.AddStandardResilienceHandler(o => o.Retry.MaxRetryAttempts = 1);
+        uug.AddStandardResilienceHandler(o => o.Retry.MaxRetryAttempts = 1);
         // No resilience handler: its timeouts would cut the 250 MB flat-file download (the library sets an infinite HttpClient timeout).
         var offlineDirectory = offlineDataDirectory ?? Environment.GetEnvironmentVariable(OfflineDirectoryVariable);
         var offline = services.AddVatWhitelistOffline(o =>
@@ -43,6 +50,8 @@ internal static class McpServerSetup
         configureHttp?.Invoke(krs);
         configureHttp?.Invoke(vat);
         configureHttp?.Invoke(offline);
+        configureHttp?.Invoke(uldk);
+        configureHttp?.Invoke(uug);
 
         services.AddTransient<CachedRegistries>();
         return services;
@@ -59,6 +68,7 @@ internal static class McpServerSetup
             .WithTools<CompanyTools>(json)
             .WithTools<OfflineVatTools>(json)
             .WithTools<IdentifierTools>(json)
+            .WithTools<GeoTools>(json)
             .WithRequestFilters(filters => filters.AddCallToolFilter(next => async (context, cancellationToken) =>
             {
                 try

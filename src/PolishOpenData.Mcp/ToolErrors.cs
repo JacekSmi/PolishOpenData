@@ -29,6 +29,8 @@ internal static class ToolErrors
         VatWhitelistDataUnavailableException { Reason: VatWhitelistDataUnavailableReason.NotPublishedYet } unavailable =>
             "MF has not published the file for " + unavailable.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + " yet; it usually appears on the evening before.",
         VatWhitelistDataUnavailableException unavailable => unavailable.Message + (unavailable.Reason == VatWhitelistDataUnavailableReason.DownloadFailed ? " Try again later." : string.Empty),
+        // The F5 firewall page of the GUGiK services (ULDK, UUG): the request never reached the service.
+        PolishOpenDataApiException { ErrorCode: "blocked" } => "The registry service blocked the request (it answered with a firewall page instead of data). Try again in a few minutes.",
         PolishOpenDataApiException { IsTransient: true } transient => "The registry is updating its data (" + transient.ErrorCode + "). Try again in a minute.",
         // A 2xx whose body the libraries could not read (malformed JSON, a value in the wrong format, no extract or
         // result): the registry accepted the request, so "rejected" would mislead.

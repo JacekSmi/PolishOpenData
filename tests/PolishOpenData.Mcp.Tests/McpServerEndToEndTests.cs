@@ -65,7 +65,7 @@ public sealed class McpServerEndToEndTests
         var tools = await session.Client.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(
-            ["check_vat_bank_account", "check_vat_bank_account_offline", "get_krs_extract", "lookup_company", "validate_identifier"],
+            ["check_vat_bank_account", "check_vat_bank_account_offline", "find_parcel", "geocode_address", "get_krs_extract", "lookup_company", "validate_identifier"],
             tools.Select(t => t.Name).Order(StringComparer.Ordinal).ToArray());
         var offline = tools.Single(t => t.Name == "check_vat_bank_account_offline");
         Assert.Contains("about 250 MB", offline.Description, StringComparison.Ordinal);

@@ -11,6 +11,8 @@ namespace PolishOpenData.Mcp;
 [JsonSerializable(typeof(KrsExtractView))]
 [JsonSerializable(typeof(VatAccountOfflineCheck))]
 [JsonSerializable(typeof(OfflineVatPair[]))]
+[JsonSerializable(typeof(GeocodeResult))]
+[JsonSerializable(typeof(FindParcelResult))]
 internal sealed partial class McpJsonContext : JsonSerializerContext;
 
 internal static class McpJson

@@ -81,6 +81,15 @@ public class ToolErrorsTests
         Assert.Contains("rejected the request", ToolErrors.Describe(new PolishOpenDataApiException("bad date", HttpStatusCode.BadRequest, "WL-103", null)), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Block_page_says_the_service_blocked_the_request()
+    {
+        var text = ToolErrors.Describe(new PolishOpenDataApiException("blocked", HttpStatusCode.OK, "blocked", "<html>", isTransient: true));
+
+        Assert.Contains("blocked the request", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("updating its data", text, StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("KRS returned a response that could not be read (HTTP 200): 'x' is invalid. Path: $.odpis.")]
     [InlineData("KRS returned a response without an extract.")]
