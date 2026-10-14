@@ -146,10 +146,10 @@ internal sealed class GeoTools(IUldkClient uldk, IUugClient uug, TimeProvider ti
         {
             ParcelId = parcel.Id.ToString(),
             Number = parcel.Number,
-            Region = parcel.Region,
-            Commune = parcel.Commune,
-            County = parcel.County,
-            Voivodeship = parcel.Voivodeship,
+            Region = parcel.RegionName,
+            Commune = parcel.CommuneName,
+            County = parcel.CountyName,
+            Voivodeship = parcel.VoivodeshipName,
             Center = new GeoPosition(center.Latitude, center.Longitude),
             GeometryWkt = wkt,
         };

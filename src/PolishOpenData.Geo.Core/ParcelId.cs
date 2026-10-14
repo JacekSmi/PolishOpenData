@@ -27,9 +27,6 @@ public readonly struct ParcelId : IEquatable<ParcelId>
     /// <summary>The TERYT commune code with its type digit, e.g. <c>146510_8</c>.</summary>
     public string Unit => _value is null ? string.Empty : _value.Substring(0, UnitLength);
 
-    /// <summary>The TERYT commune code with its type digit (same as <see cref="Unit"/>).</summary>
-    public string Commune => Unit;
-
     /// <summary>The cadastral region (<i>obręb</i>) number, e.g. <c>0507</c>.</summary>
     public string Region => _value is null ? string.Empty : _value.Substring(RegionStart, RegionLength);
 

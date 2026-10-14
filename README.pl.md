@@ -169,8 +169,8 @@ var matches = await uug.GeocodeAsync("Warszawa, Krucza 50");
 if (matches is [{ Kind: UugMatchKind.Address } match])
 {
     var parcel = await uldk.GetParcelAtAsync(match.Location, ParcelGeometryKind.Wgs84);
-    Console.WriteLine($"{parcel?.Id}, {parcel?.Commune}");   // null: w tym punkcie nie ma działki
-    Console.WriteLine(parcel?.Geometry?.Wkt);                // POLYGON((długość szerokość, ...)), EPSG:4326
+    Console.WriteLine($"{parcel?.Id}, {parcel?.CommuneName}");   // null: w tym punkcie nie ma działki
+    Console.WriteLine(parcel?.Geometry?.Wkt);                    // POLYGON((długość szerokość, ...)), EPSG:4326
 }
 
 // Po identyfikatorze albo po nazwie obrębu i numerze („Krzewina 134” może pasować do kilku działek, więc bez geometrii).

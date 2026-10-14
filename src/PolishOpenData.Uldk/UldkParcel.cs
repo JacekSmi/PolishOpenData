@@ -11,17 +11,20 @@ public sealed class UldkParcel
     /// <summary>The parcel number within its region, e.g. <c>41/1</c>.</summary>
     public required string Number { get; init; }
 
-    /// <summary>The cadastral region (<i>obręb</i>) as ULDK writes it, e.g. <c>5-05-07</c>.</summary>
-    public string? Region { get; init; }
+    /// <summary>
+    /// The name of the cadastral region (<i>obręb</i>) as ULDK writes it, e.g. <c>Krzewina</c>, or a code-like name
+    /// such as <c>5-05-07</c> in Warsaw. The region number is <see cref="ParcelId.Region"/>.
+    /// </summary>
+    public string? RegionName { get; init; }
 
-    /// <summary>The commune name, e.g. <c>Warszawa (miasto)</c>.</summary>
-    public string? Commune { get; init; }
+    /// <summary>The commune name as ULDK writes it, e.g. <c>Warszawa (miasto)</c>. The TERYT code is <see cref="ParcelId.Unit"/>.</summary>
+    public string? CommuneName { get; init; }
 
-    /// <summary>The county name, e.g. <c>powiat Warszawa</c>.</summary>
-    public string? County { get; init; }
+    /// <summary>The county name as ULDK writes it, e.g. <c>powiat Warszawa</c>.</summary>
+    public string? CountyName { get; init; }
 
-    /// <summary>The voivodeship name, e.g. <c>mazowieckie</c>.</summary>
-    public string? Voivodeship { get; init; }
+    /// <summary>The voivodeship name as ULDK writes it, e.g. <c>mazowieckie</c>.</summary>
+    public string? VoivodeshipName { get; init; }
 
     /// <summary>The bounding box of the parcel in PL-1992.</summary>
     public Pl1992Bbox Extent { get; init; }

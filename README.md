@@ -184,8 +184,8 @@ var matches = await uug.GeocodeAsync("Warszawa, Krucza 50");
 if (matches is [{ Kind: UugMatchKind.Address } match])
 {
     var parcel = await uldk.GetParcelAtAsync(match.Location, ParcelGeometryKind.Wgs84);
-    Console.WriteLine($"{parcel?.Id}, {parcel?.Commune}");   // null: no parcel at that point
-    Console.WriteLine(parcel?.Geometry?.Wkt);                // POLYGON((longitude latitude, ...)), EPSG:4326
+    Console.WriteLine($"{parcel?.Id}, {parcel?.CommuneName}");   // null: no parcel at that point
+    Console.WriteLine(parcel?.Geometry?.Wkt);                    // POLYGON((longitude latitude, ...)), EPSG:4326
 }
 
 // By identifier or by region name and number ("Krzewina 134" can match several parcels, so there is no geometry).

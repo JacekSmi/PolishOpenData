@@ -120,10 +120,10 @@ public sealed class UldkClient : IUldkClient
         {
             Id = id,
             Number = row[1],
-            Region = NullIfEmpty(row[2]),
-            Commune = NullIfEmpty(row[3]),
-            County = NullIfEmpty(row[4]),
-            Voivodeship = NullIfEmpty(row[5]),
+            RegionName = NullIfEmpty(row[2]),
+            CommuneName = NullIfEmpty(row[3]),
+            CountyName = NullIfEmpty(row[4]),
+            VoivodeshipName = NullIfEmpty(row[5]),
             Extent = new Pl1992Bbox(
                 new Pl1992Point(Coordinate(extent[0]), Coordinate(extent[1])),
                 new Pl1992Point(Coordinate(extent[2]), Coordinate(extent[3]))),

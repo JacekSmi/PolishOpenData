@@ -11,7 +11,6 @@ public class ParcelIdTests
     {
         var id = ParcelId.Parse("141201_1.0001.6509");
         Assert.Equal("141201_1", id.Unit);
-        Assert.Equal("141201_1", id.Commune);
         Assert.Equal("0001", id.Region);
         Assert.Null(id.Sheet);
         Assert.Equal("6509", id.Number);

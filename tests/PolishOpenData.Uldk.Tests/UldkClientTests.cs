@@ -36,10 +36,10 @@ public class UldkClientTests
         Assert.NotNull(parcel);
         Assert.Equal("146510_8.0507.41/1", parcel.Id.ToString());
         Assert.Equal("41/1", parcel.Number);
-        Assert.Equal("5-05-07", parcel.Region);
-        Assert.Equal("Warszawa (miasto)", parcel.Commune);
-        Assert.Equal("powiat Warszawa", parcel.County);
-        Assert.Equal("mazowieckie", parcel.Voivodeship);
+        Assert.Equal("5-05-07", parcel.RegionName);
+        Assert.Equal("Warszawa (miasto)", parcel.CommuneName);
+        Assert.Equal("powiat Warszawa", parcel.CountyName);
+        Assert.Equal("mazowieckie", parcel.VoivodeshipName);
         Assert.Equal("powiat m. Warszawa (wfs)", parcel.DataSource);
         Assert.Equal(637928.30, parcel.Extent.Min.Easting, 2);
         Assert.Equal(485970.88, parcel.Extent.Min.Northing, 2);
@@ -170,7 +170,7 @@ public class UldkClientTests
 
         var parcel = Assert.Single(parcels);
         Assert.Equal("022503_5.0003.134", parcel.Id.ToString());
-        Assert.Equal("Bogatynia", parcel.Commune);
+        Assert.Equal("Bogatynia", parcel.CommuneName);
         Assert.Null(parcel.Geometry);
         Assert.Equal("?request=GetParcelByIdOrNr&id=Krzewina 134&result=id,parcel,region,commune,county,voivodeship,geom_extent,datasource&srid=2180", Query(Assert.Single(stub.RequestUris)));
     }
