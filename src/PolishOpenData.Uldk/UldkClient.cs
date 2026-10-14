@@ -48,6 +48,24 @@ public sealed class UldkClient : IUldkClient
     public Task<UldkParcel?> GetParcelAtAsync(Wgs84Point point, ParcelGeometryKind geometry = ParcelGeometryKind.None, CancellationToken cancellationToken = default) =>
         GetParcelAsync("GetParcelByXY&xy=" + FormatXy(point), geometry, cancellationToken);
 
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<UldkParcel>> FindParcelsAsync(string regionAndNumber, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(regionAndNumber))
+        {
+            throw new ArgumentException("The search text is empty.", nameof(regionAndNumber));
+        }
+
+        var rows = await SendAsync("?request=GetParcelByIdOrNr&id=" + Uri.EscapeDataString(regionAndNumber.Trim()) + "&result=" + ParcelFields + "&srid=2180", cancellationToken).ConfigureAwait(false);
+        var parcels = new List<UldkParcel>(rows.Count);
+        foreach (var row in rows)
+        {
+            parcels.Add(ToParcel(row));
+        }
+
+        return parcels;
+    }
+
     /// <summary>ULDK wants easting first for 2180.</summary>
     internal static string FormatXy(Pl1992Point point) => Number(point.Easting) + "," + Number(point.Northing) + "," + Pl1992Srid.ToString(CultureInfo.InvariantCulture);
 

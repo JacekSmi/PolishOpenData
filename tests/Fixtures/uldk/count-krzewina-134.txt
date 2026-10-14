@@ -1,3 +1,3 @@
 1
-022503_5.0003.134|134|Krzewina|Bogatynia|powiat zgorzelecki|dolnośląskie
+022503_5.0003.134|134|Krzewina|Bogatynia|powiat zgorzelecki|dolnośląskie|216905.017713944,358172.059716642,217054.157537946,358339.824308741|powiat zgorzelecki (wfs)
 

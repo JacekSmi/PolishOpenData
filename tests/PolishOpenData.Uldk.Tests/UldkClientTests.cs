@@ -162,6 +162,46 @@ public class UldkClientTests
     }
 
     [Fact]
+    public async Task FindParcels_returns_every_match()
+    {
+        var (client, stub) = Create(_ => FromFixture("count-krzewina-134.txt"));
+
+        var parcels = await client.FindParcelsAsync("Krzewina 134", TestContext.Current.CancellationToken);
+
+        var parcel = Assert.Single(parcels);
+        Assert.Equal("022503_5.0003.134", parcel.Id.ToString());
+        Assert.Equal("Bogatynia", parcel.Commune);
+        Assert.Null(parcel.Geometry);
+        Assert.Equal("?request=GetParcelByIdOrNr&id=Krzewina 134&result=id,parcel,region,commune,county,voivodeship,geom_extent,datasource&srid=2180", Query(Assert.Single(stub.RequestUris)));
+    }
+
+    [Fact]
+    public async Task FindParcels_encodes_name_with_space_and_diacritics()
+    {
+        var (client, stub) = Create(_ => FromFixture("count-not-found.txt"));
+
+        _ = await client.FindParcelsAsync("Stara Wieś 756", TestContext.Current.CancellationToken);
+
+        Assert.Contains("id=Stara%20Wie%C5%9B%20756&", stub.RequestUris[0].Query, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task FindParcels_not_found_returns_empty()
+    {
+        var (client, _) = Create(_ => FromFixture("count-not-found.txt"));
+
+        Assert.Empty(await client.FindParcelsAsync("Qwertyuiop 99999", TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(" ")]
+    public async Task FindParcels_blank_text_throws(string? text) =>
+        _ = await Assert.ThrowsAsync<ArgumentException>(() => client().FindParcelsAsync(text!, TestContext.Current.CancellationToken));
+
+    private static UldkClient client() => Create(_ => FromFixture("count-not-found.txt")).Client;
+
+    [Fact]
     public async Task Requests_send_the_user_agent()
     {
         var (client, stub) = Create(_ => FromFixture("xy-warsaw.txt"));

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using PolishOpenData.Geo;
@@ -15,4 +16,10 @@ public interface IUldkClient
 
     /// <summary>Gets the parcel that contains the point, or null when there is none.</summary>
     Task<UldkParcel?> GetParcelAtAsync(Wgs84Point point, ParcelGeometryKind geometry = ParcelGeometryKind.None, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Finds parcels by region name and number ("Krzewina 134") or by a full parcel identifier; an empty list when none match.
+    /// A name can match many parcels, so there is no geometry option.
+    /// </summary>
+    Task<IReadOnlyList<UldkParcel>> FindParcelsAsync(string regionAndNumber, CancellationToken cancellationToken = default);
 }
