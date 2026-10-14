@@ -1,6 +1,6 @@
 # PolishOpenData
 
-**Biblioteki .NET i serwer MCP dla polskich rejestrów publicznych** — dane firm z KRS, Biała Lista podatników VAT ze sprawdzaniem rachunków (online albo offline na podstawie pliku płaskiego MF), klient rejestru GUS REGON (tylko biblioteka) oraz walidacja offline NIP, REGON, numeru KRS, NRB i numeru księgi wieczystej (KW).
+**Biblioteki .NET i serwer MCP dla polskich rejestrów publicznych** — dane firm z KRS, Biała Lista podatników VAT ze sprawdzaniem rachunków (online albo offline na podstawie pliku płaskiego MF), klient rejestru GUS REGON (tylko biblioteka), wyszukiwanie działek ewidencyjnych (ULDK) i geokodowanie adresów (UUG) z GUGiK oraz walidacja offline NIP, REGON, numeru KRS, NRB i numeru księgi wieczystej (KW).
 
 🇬🇧 [English version](https://github.com/JacekSmi/PolishOpenData/blob/main/README.md)
 
@@ -15,7 +15,10 @@
 | `PolishOpenData.BialaLista` | Wykaz podatników VAT: status, sprawdzenie rachunku z identyfikatorem zapytania, zapytania zbiorcze, ochrona limitu dziennego |
 | `PolishOpenData.BialaLista.Offline` | Sprawdzanie rachunków offline na podstawie dziennego pliku płaskiego Ministerstwa Finansów: bez limitu zapytań, wiele par naraz, bez identyfikatora zapytania |
 | `PolishOpenData.Regon` | GUS REGON (BIR1.2): wyszukiwanie po NIP/REGON/KRS, zapytania zbiorcze po 20, pełne raporty, sesja i ogranicznik zapytań; wymaga własnego, bezpłatnego klucza GUS |
-| `PolishOpenData.Mcp` | Serwer MCP dla asystentów AI: dane firmy, Biała Lista i sprawdzanie rachunku (online i offline), odpisy KRS, walidacja numerów |
+| `PolishOpenData.Geo.Core` | Typowane współrzędne polskie: `Pl1992Point` (EPSG:2180) i `Wgs84Point` z wbudowaną konwersją, `Pl1992Bbox`, `ParcelId` (identyfikator działki TERYT) |
+| `PolishOpenData.Uldk` | ULDK GUGiK: działka ewidencyjna po identyfikatorze, po punkcie albo po nazwie obrębu i numerze, z granicą w WKT |
+| `PolishOpenData.Uug` | UUG GUGiK: geokodowanie polskiego adresu do punktu WGS-84 z dokładnością dopasowania oraz najbliższy adres dla punktu |
+| `PolishOpenData.Mcp` | Serwer MCP dla asystentów AI: dane firmy, Biała Lista i sprawdzanie rachunku (online i offline), odpisy KRS, działki i geokodowanie adresów, walidacja numerów |
 
 Biblioteki działają na .NET 10 oraz .NET Framework / starszych .NET (netstandard2.0) — także w dodatkach do systemów ERP.
 
@@ -139,9 +142,51 @@ foreach (var c in checks)
 - **Bez identyfikatora zapytania, bez dowodu.** Plik płaski nie daje identyfikatora zapytania. Gdy potrzebujesz dowodu dla urzędu skarbowego, sprawdź przez klienta REST (`PolishOpenData.BialaLista`) i zachowaj `RequestId`.
 - **Czas sprawdzenia i czas danych.** `FileDate` i `GeneratedOn` opisują dane; czas samego sprawdzenia zapisz we własnym zakresie.
 
+## Działki i geokodowanie
+
+`PolishOpenData.Uldk` wyszukuje działki ewidencyjne w usłudze ULDK GUGiK, a `PolishOpenData.Uug` zamienia adres na współrzędne za pomocą geokodera GUGiK; oba klienty korzystają ze wspólnych typów współrzędnych z `PolishOpenData.Geo.Core`. Obie usługi są publiczne i nie wymagają klucza.
+
+```bash
+dotnet add package PolishOpenData.Uldk
+dotnet add package PolishOpenData.Uug
+```
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using PolishOpenData.Geo;
+using PolishOpenData.Uldk;
+using PolishOpenData.Uug;
+
+var services = new ServiceCollection();
+services.AddUldkClient();
+services.AddUugClient();
+using var provider = services.BuildServiceProvider();
+var uug = provider.GetRequiredService<IUugClient>();
+var uldk = provider.GetRequiredService<IUldkClient>();
+
+// Adres -> współrzędne -> działka. Punktem jest tylko dopasowanie typu Address; niepełny adres daje dopasowanie Street lub City.
+var matches = await uug.GeocodeAsync("Warszawa, Krucza 50");
+if (matches is [{ Kind: UugMatchKind.Address } match])
+{
+    var parcel = await uldk.GetParcelAtAsync(match.Location, ParcelGeometryKind.Wgs84);
+    Console.WriteLine($"{parcel?.Id}, {parcel?.Commune}");   // null: w tym punkcie nie ma działki
+    Console.WriteLine(parcel?.Geometry?.Wkt);                // POLYGON((długość szerokość, ...)), EPSG:4326
+}
+
+// Po identyfikatorze albo po nazwie obrębu i numerze („Krzewina 134” może pasować do kilku działek, więc bez geometrii).
+var byId = await uldk.GetParcelByIdAsync(ParcelId.Parse("146510_8.0507.41/1"));
+var byName = await uldk.FindParcelsAsync("Krzewina 134");
+```
+
+- **Kolejność osi.** Żadna pozycja nie jest gołą parą liczb: `Wgs84Point(Latitude, Longitude)` i `Pl1992Point(Easting, Northing)` nazywają swoje osie, a składowych `X`/`Y` nie ma. W `Wgs84Point` najpierw podaje się szerokość geograficzną (Warszawa to ok. 52,2; 21,0), natomiast WKT, także geometria zwracana przez bibliotekę, zapisuje najpierw długość. Zamieniona para WGS-84 jest odrzucana wyjątkiem `ArgumentOutOfRangeException` przed wysłaniem jakiegokolwiek zapytania, bo zakresy dla Polski (szerokość 48,9–55,0, długość 14,0–24,2) nie nakładają się.
+- **Brak wyniku to nie błąd.** Działka, która nie istnieje, to `null`, a wyszukiwanie bez trafień to pusta lista. Odpowiedź będąca stroną HTML (zapora GUGiK) rzuca `PolishOpenDataApiException` z `ErrorCode = "blocked"`.
+- **Co zawiera działka.** Identyfikator, numer, obręb, gminę, powiat, województwo, prostokąt otaczający w PL-1992 (`Extent`) oraz na życzenie granicę w WKT w PL-1992 lub WGS-84 (`ParcelGeometryKind`; WGS-84 kosztuje jedno dodatkowe zapytanie). ULDK nie podaje powierzchni.
+- **Punkt adresowy to nie cała nieruchomość.** Oznacza wejście do budynku, więc znaleziona w nim działka to ta pod tym wejściem, niekoniecznie cała nieruchomość.
+- **Ponowienia i równoległość.** Biblioteki nigdy nie ponawiają zapytań i otwierają najwyżej 4 połączenia na usługę; jeśli chcesz ponowień, dodaj `.AddStandardResilienceHandler()` do zwróconego buildera i ustaw ich niewiele.
+
 ## Serwer MCP
 
-Wymaga [.NET 10 SDK](https://dotnet.microsoft.com/download). Bez kluczy API.
+Wymaga [.NET 10 SDK](https://dotnet.microsoft.com/download). Bez kluczy API. Narzędzia do działek i geokodowania wysyłają wszystkie zapytania do GUGiK i ponawiają jedno nieudane zapytanie (błąd przejściowy) raz.
 
 ```bash
 claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx PolishOpenData.Mcp --yes
@@ -149,7 +194,7 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 
 Konfiguracje dla VS Code, Claude Desktop i Cursor: zob. [README.md](https://github.com/JacekSmi/PolishOpenData/blob/main/README.md#mcp-server-for-ai-assistants).
 
-Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_account` (Biała Lista przed zapłatą faktury), `check_vat_bank_account_offline` (to samo z pliku płaskiego MF: bez limitu zapytań, do 50 par naraz, bez identyfikatora zapytania, a sprawdzane pary nie opuszczają komputera; pierwsze wywołanie dla danej daty pobiera ok. 250 MB, co trwa kilka minut, a przy wolnym serwerze MF znacznie dłużej; `not_found` oznacza „nie znaleziono w pliku”; zmienna `POLISHOPENDATA_OFFLINE_DIR` wskazuje lokalny folder danych, nie udział sieciowy), `get_krs_extract` (zarząd, kapitał, PKD), `validate_identifier` (walidacja numerów offline).
+Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_account` (Biała Lista przed zapłatą faktury), `check_vat_bank_account_offline` (to samo z pliku płaskiego MF: bez limitu zapytań, do 50 par naraz, bez identyfikatora zapytania, a sprawdzane pary nie opuszczają komputera; pierwsze wywołanie dla danej daty pobiera ok. 250 MB, co trwa kilka minut, a przy wolnym serwerze MF znacznie dłużej; `not_found` oznacza „nie znaleziono w pliku”; zmienna `POLISHOPENDATA_OFFLINE_DIR` wskazuje lokalny folder danych, nie udział sieciowy), `get_krs_extract` (zarząd, kapitał, PKD), `find_parcel` (działka po identyfikatorze, współrzędnych WGS-84 — najpierw szerokość — adresie albo nazwie obrębu i numerze, np. „Krzewina 134” zwraca wszystkie pasujące działki; wynik to identyfikator, numer, obręb, gmina, powiat, województwo i środek prostokąta otaczającego; `includeGeometry` dodaje pełną granicę w WKT w EPSG:4326, nie dla wyszukiwania po nazwie obrębu; adres daje działkę tylko wtedy, gdy wskazuje dokładnie jeden punkt adresowy — wejście do budynku, niekoniecznie całą nieruchomość — w przeciwnym razie zwracani są kandydaci geokodera; bez powierzchni działki, bo ULDK jej nie podaje; źródła: ULDK, a dla adresu także UUG, w polu `sources`), `geocode_address` (adres na współrzędne WGS-84 z dokładnością dopasowania; każde dopasowanie mówi, czy jest adresem, ulicą czy miejscowością — niepełny adres daje punkt reprezentatywny ulicy lub miejscowości; źródło: UUG, w polu `source`), `validate_identifier` (walidacja numerów offline).
 
 ## Księgi wieczyste
 
@@ -164,11 +209,13 @@ Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_acco
 - GUS zapisuje adres IP, czas i treść każdego zapytania do REGON. Nie wyliczaj kolejnych identyfikatorów (GUS tego zabrania i odcina dostęp), nie miej kilku kluczy dla jednego podmiotu i mieść się w limitach; ogranicznik klienta domyślnie stosuje najostrzejsze okno (limit na sekundę liczy wywołania, więc zapytanie zbiorcze do 20 identyfikatorów to jedno wywołanie; limity na minutę i na godzinę liczą zapytania i identyfikatory). Nie jest potwierdzone, czy GUS wlicza każdy identyfikator zapytania zbiorczego do limitu na sekundę: przy wielu zapytaniach zbiorczych używaj mniejszych albo rozłóż je w czasie. GUS nie zwraca błędu po przekroczeniu limitu: kontaktuje się z właścicielem klucza albo, gdy cierpi na tym usługa, blokuje adres IP.
 - Biblioteka REGON zwraca dane tak, jak zostały opublikowane. Firma przedsiębiorcy jednoosobowego jest z mocy prawa jego imieniem i nazwiskiem, a adres może być adresem zamieszkania; GUS nie publikuje numerów PESEL. Instrukcja mówi, że numery telefonu i faksu przedsiębiorców jednoosobowych nie są przekazywane osobom trzecim; czy tak jest dziś dla każdego pola, nie sprawdzono, a w grudniu 2026 r. zmienia się prawo, więc sprawdź, co zapisujesz (`RegonDetails.Fields` zawiera każde pole, które przysłał GUS). Nazwy mogą zawierać HTML lub fragmenty podobne do SQL (GUS przed tym ostrzega): traktuj je jako dane niezaufane.
 - Podawaj źródło i czas danych z REGON: `RegonResult` zawiera środowisko (`Production` albo `Test`), czas pobrania oraz, po wywołaniu `GetDataDateAsync`, datę danych. GUS prosi tych, którzy wykorzystują jego dane ponownie, o wskazanie źródła i czasu oraz o informację, że dane zostały przetworzone.
+- GUGiK nie publikuje warunków korzystania, limitu zapytań ani wymogu wskazania źródła dla ULDK i UUG, ale blokuje adresy IP, z których idzie bardzo wiele zapytań (progu nie podano). Używaj ich do pojedynczych wyszukiwań: bez masowego pobierania działek i adresów, bez równoległego zalewania usługi, bez pętli po identyfikatorach czy współrzędnych. Biblioteki nigdy nie ponawiają zapytań i otwierają najwyżej 4 połączenia na usługę; serwer MCP ponawia nieudane zapytanie raz. Przy większych potrzebach najpierw skontaktuj się z GUGiK (`uslugi.iip@gugik.gov.pl`). Wskazanie źródła (GUGiK, ULDK/UUG) to dobra praktyka, nie wymóg; każdy wynik `find_parcel` i `geocode_address` zawiera źródło i czas pobrania. Dane o działkach to rekordy ewidencji gruntów i budynków (EGiB), tylko informacyjnie.
+- Nigdy numerów ksiąg wieczystych (KW): narzędzia do działek nie przyjmują ani nie zwracają ich, tak samo jak danych właścicieli, a nic w tym projekcie nie łączy działki z numerem księgi wieczystej. Nie próbuj budować takiego połączenia z danych o działkach.
 - Bez scrapingu, bez masowego pobierania, bez łączenia działek z numerami ksiąg wieczystych.
 
 ## Możliwe kolejne kroki
 
-Pomysły, nie zobowiązania: dane nieruchomości (działki ULDK, geokoder GUGiK, ceny transakcyjne). Rozważamy narzędzie REGON w serwerze MCP, ale tylko jeśli GUS potwierdzi zasady dotyczące kluczy użytkowników. Jeśli któryś z nich by Ci się przydał, [otwórz issue](https://github.com/JacekSmi/PolishOpenData/issues), aby dać znać.
+Pomysły, nie zobowiązania: więcej danych o nieruchomościach (ceny transakcyjne). Rozważamy narzędzie REGON w serwerze MCP, ale tylko jeśli GUS potwierdzi zasady dotyczące kluczy użytkowników. Jeśli któryś z nich by Ci się przydał, [otwórz issue](https://github.com/JacekSmi/PolishOpenData/issues), aby dać znać.
 
 ## Współpraca i licencja
 
