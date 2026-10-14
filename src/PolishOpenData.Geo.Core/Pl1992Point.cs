@@ -6,16 +6,25 @@ namespace PolishOpenData.Geo;
 /// A position in PL-1992 (EPSG:2180), the national metric grid used by GUGiK services, in metres.
 /// Easting comes first, then northing; there is no X/Y here because the registries disagree on which is which.
 /// </summary>
-/// <param name="Easting">Metres east of the false origin; 100 000 to 900 000.</param>
-/// <param name="Northing">Metres north of the false origin; 100 000 to 830 000.</param>
-/// <exception cref="ArgumentOutOfRangeException">A coordinate is NaN, infinite or outside the range that covers Poland.</exception>
-public readonly record struct Pl1992Point(double Easting, double Northing)
+// Not a positional record: that would generate Deconstruct(out double, out double), an unnamed pair of numbers.
+// The constructor parameters keep PascalCase names so that named arguments read like the properties.
+public readonly record struct Pl1992Point
 {
+    /// <summary>Creates a point, checking that it lies in the range that covers Poland.</summary>
+    /// <param name="Easting">Metres east of the false origin; 100 000 to 900 000.</param>
+    /// <param name="Northing">Metres north of the false origin; 100 000 to 830 000.</param>
+    /// <exception cref="ArgumentOutOfRangeException">A coordinate is NaN, infinite or outside the range that covers Poland.</exception>
+    public Pl1992Point(double Easting, double Northing)
+    {
+        this.Easting = InRange(Easting, 100_000, 900_000) ? Easting : throw Out(nameof(Easting), Easting);
+        this.Northing = InRange(Northing, 100_000, 830_000) ? Northing : throw Out(nameof(Northing), Northing);
+    }
+
     /// <summary>Metres east of the false origin.</summary>
-    public double Easting { get; } = InRange(Easting, 100_000, 900_000) ? Easting : throw Out(nameof(Easting), Easting);
+    public double Easting { get; }
 
     /// <summary>Metres north of the false origin.</summary>
-    public double Northing { get; } = InRange(Northing, 100_000, 830_000) ? Northing : throw Out(nameof(Northing), Northing);
+    public double Northing { get; }
 
     /// <summary>True when both coordinates are finite and inside the range that covers Poland.</summary>
     public static bool IsInPoland(double easting, double northing) =>

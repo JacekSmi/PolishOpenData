@@ -62,4 +62,11 @@ public class CoordinateTests
         Assert.Equal("E 638144.50, N 486022.68", new Pl1992Point(638144.500192729, 486022.681429996).ToString());
         Assert.Equal("52.2229075, 21.0230574", new Wgs84Point(52.2229074776239, 21.0230574318539).ToString());
     }
+
+    [Fact]
+    public void Points_have_no_deconstruct_to_a_bare_pair()
+    {
+        Assert.Null(typeof(Pl1992Point).GetMethod("Deconstruct"));
+        Assert.Null(typeof(Wgs84Point).GetMethod("Deconstruct"));
+    }
 }
