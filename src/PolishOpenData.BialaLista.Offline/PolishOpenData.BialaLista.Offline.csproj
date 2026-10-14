@@ -4,8 +4,6 @@
     <RootNamespace>PolishOpenData.BialaLista.Offline</RootNamespace>
     <Description>Offline check of a Polish VAT taxpayer and bank account against the Ministry of Finance daily plik płaski (flat file): downloads and indexes the file once per day, then answers Active, Exempt or NotFound locally without the REST API's request limit. Unofficial; not affiliated with the Polish government.</Description>
     <PackageTags>$(PackageTags);wykaz-podatnikow;whitelist;split-payment;plik-plaski;flat-file;offline</PackageTags>
-    <!-- No release of this package exists on nuget.org yet, so there is nothing to compare against. After 1.3.0 is published, delete this line; the baseline in src/Directory.Build.props then applies (raise it first). -->
-    <PackageValidationBaselineVersion />
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Http" />
