@@ -114,6 +114,47 @@ internal static class HttpHelpers
         }
     }
 
+    /// <summary>
+    /// Reads a success response's body and rejects the F5 block page, which answers 200 with HTML (a <c>text/html</c>
+    /// content type or a body starting with <c>&lt;</c>): <see cref="PolishOpenDataApiException"/> with code <c>blocked</c>, transient.
+    /// </summary>
+    public static async Task<byte[]> ReadBodyRejectingBlockPageAsync(this HttpResponseMessage response, string service, CancellationToken cancellationToken)
+    {
+        var body = await response.Content.ReadBytesAsync(cancellationToken).ConfigureAwait(false);
+        var text = Snippet(body);
+        if (response.Content.Headers.ContentType?.MediaType == "text/html" || text.TrimStart().StartsWith('<'))
+        {
+            throw new PolishOpenDataApiException(service + " blocked the request (HTML block page).", response.StatusCode, "blocked", text, isTransient: true);
+        }
+
+        return body;
+    }
+
+    /// <summary>
+    /// Throws for a non-success response: 429 is <see cref="QuotaExceededException"/>, 5xx an <see cref="HttpRequestException"/>
+    /// (transient), anything else a <see cref="PolishOpenDataApiException"/> carrying the start of the body.
+    /// </summary>
+    public static async Task ThrowForStatusAsync(this HttpResponseMessage response, string service, CancellationToken cancellationToken)
+    {
+        var status = (int)response.StatusCode;
+        if (status == 429)
+        {
+            throw new QuotaExceededException(service + " rate limit reached (HTTP 429).", response.StatusCode, null, null, GetRetryAfter(response));
+        }
+
+        if (status >= 500)
+        {
+            _ = response.EnsureSuccessStatusCode();
+        }
+
+        var body = await response.Content.ReadStringAsync(cancellationToken).ConfigureAwait(false);
+        throw new PolishOpenDataApiException(
+            service + " request failed with HTTP " + status.ToString(CultureInfo.InvariantCulture) + ".",
+            response.StatusCode,
+            null,
+            Truncate(body));
+    }
+
     /// <summary>An error for a success response whose body the library cannot use.</summary>
     public static PolishOpenDataApiException UnreadableResponse(string message, HttpResponseMessage response, byte[] body, Exception? innerException = null) =>
         new(message, response.StatusCode, null, Snippet(body), innerException);

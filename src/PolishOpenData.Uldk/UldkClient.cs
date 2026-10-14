@@ -99,17 +99,10 @@ public sealed class UldkClient : IUldkClient
         using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
         if (!response.IsSuccessStatusCode)
         {
-            await ThrowForStatusAsync(response, cancellationToken).ConfigureAwait(false);
+            await response.ThrowForStatusAsync("ULDK", cancellationToken).ConfigureAwait(false);
         }
 
-        var body = await response.Content.ReadBytesAsync(cancellationToken).ConfigureAwait(false);
-        var text = HttpHelpers.Snippet(body);
-        // The F5 block page answers 200 with HTML.
-        if (response.Content.Headers.ContentType?.MediaType == "text/html" || text.TrimStart().StartsWith('<'))
-        {
-            throw new PolishOpenDataApiException("ULDK blocked the request (HTML block page).", response.StatusCode, "blocked", text, isTransient: true);
-        }
-
+        var body = await response.ReadBodyRejectingBlockPageAsync("ULDK", cancellationToken).ConfigureAwait(false);
         return UldkResponse.Parse(Encoding.UTF8.GetString(body));
     }
 
@@ -154,26 +147,5 @@ public sealed class UldkClient : IUldkClient
         }
 
         return new ParcelGeometry { Srid = srid, Wkt = ewkt.Substring(semicolon + 1) };
-    }
-
-    private static async Task ThrowForStatusAsync(HttpResponseMessage response, CancellationToken cancellationToken)
-    {
-        var status = (int)response.StatusCode;
-        if (status == 429)
-        {
-            throw new QuotaExceededException("ULDK rate limit reached (HTTP 429).", response.StatusCode, null, null, HttpHelpers.GetRetryAfter(response));
-        }
-
-        if (status >= 500)
-        {
-            _ = response.EnsureSuccessStatusCode();
-        }
-
-        var body = await response.Content.ReadStringAsync(cancellationToken).ConfigureAwait(false);
-        throw new PolishOpenDataApiException(
-            "ULDK request failed with HTTP " + status.ToString(CultureInfo.InvariantCulture) + ".",
-            response.StatusCode,
-            null,
-            HttpHelpers.Truncate(body));
     }
 }
