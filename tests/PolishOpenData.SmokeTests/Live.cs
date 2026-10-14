@@ -19,10 +19,10 @@ namespace PolishOpenData.SmokeTests;
 /// Cost of one full run (all live tests), per IP address:
 /// <list type="table">
 /// <listheader><term>Budget</term><description>Library / MCP in-process / published package = total</description></listheader>
-/// <item><term>Biała Lista searches (each NIP or REGON counts, also inside a batch)</term><description>4 (NIP, REGON, 2-NIP batch) / 1 / 1 = 6, sent as 5 requests</description></item>
-/// <item><term>Biała Lista checks</term><description>1 / 1 / 0 = 2, plus 14 from the offline test = 16</description></item>
+/// <item><term>Biała Lista searches (each NIP or REGON counts, also inside a batch)</term><description>4 (NIP, REGON, 2-NIP batch) / 1 / 1 = 6, sent as 5 requests, plus 2 (one 2-NIP batch) from the offline test = 8</description></item>
+/// <item><term>Biała Lista checks</term><description>1 / 1 / 0 = 2</description></item>
 /// <item><term>KRS requests</term><description>5 to 9 (current, full, not-found in P and S, change feed of 1 to 5 weekdays) / 1 / 1 = 7 to 11</description></item>
-/// <item><term>Offline flat file (<c>BialaListaOfflineLiveTests</c>: one download of about 250 MB from MF, no quota; skips after 15 min of downloading, up to 20 min in all)</term><description>0 / 0 / 0, but 14 Biała Lista checks (the oracle, counted in the checks row) and one flat-file download</description></item>
+/// <item><term>Offline flat file (<c>BialaListaOfflineLiveTests</c>: one download of about 250 MB from MF, no quota; skips after 15 min of downloading, up to 20 min in all)</term><description>0 / 0 / 0, but one 2-NIP Biała Lista search (the oracle, counted in the searches row) and one flat-file download</description></item>
 /// <item><term>GUS BIR test environment requests (published test key, no secret)</term><description>5 / 0 / 0 = 5</description></item>
 /// <item><term>GUS BIR production requests (needs <c>POLISHOPENDATA_REGON_KEY</c>, owner-run, skipped otherwise)</term><description>4 / 0 / 0 = 4</description></item>
 /// </list>
@@ -32,13 +32,13 @@ namespace PolishOpenData.SmokeTests;
 /// yet published). The MCP tests share one server session, so its cache answers repeated lookups without new upstream
 /// calls. Failed calls are not cached, so the next test that needs a failed search sends it again: the library NIP
 /// search when it was cancelled, and any MCP search (for example after the MCP server's 10 s attempt timeout, which
-/// Biała Lista still counts). A run with failures therefore spends at most 9 searches. Biała Lista is never retried;
+/// Biała Lista still counts). A run with failures therefore spends at most 11 searches. Biała Lista is never retried;
 /// the MCP server's KRS client (in process and published) retries transient failures (5xx, 408, 429, connection
 /// errors and 10 s attempt timeouts), which can add KRS requests but never Biała Lista quota.
 /// </para>
 /// <para>
 /// Biała Lista allows 100 searches and 5,000 checks per IP address per day; exceeding either blocks the IP until
-/// midnight Warsaw time, including searches on podatki.gov.pl. A run spends 6 searches (at most 9), so running it
+/// midnight Warsaw time, including searches on podatki.gov.pl. A run spends 8 searches (at most 11), so running it
 /// locally a few times a day is fine; do not run it in a loop. A test that hits a limit is skipped, not failed.
 /// </para>
 /// <para>

@@ -13,8 +13,8 @@ namespace PolishOpenData.SmokeTests;
 
 /// <summary>
 /// The offline whitelist against the real flat file (about 250 MB; one download per run). Cost per run: one flat-file
-/// download from plikplaski.mf.gov.pl (no quota) and one Biała Lista check request per MF test pair (<see cref="Pairs"/>
-/// has 14, of the 5,000 daily checks), see <see cref="Live"/>. The preparation is cut off after 15 minutes and then
+/// download from plikplaski.mf.gov.pl (no quota) and one Biała Lista search request for two NIPs (2 of the 100 daily
+/// searches), see <see cref="Live"/>. The preparation is cut off after 15 minutes and then
 /// skips the test (a slow MF server is not a regression); the test as a whole times out after 20. Set <see cref="KeepDirectoryVariable"/> to keep the prepared index (for the benchmarks)
 /// instead of deleting it.
 /// </summary>
@@ -28,30 +28,13 @@ public sealed class BialaListaOfflineLiveTests
     private const int OfflineTimeout = 20 * 60 * 1000;
     private static readonly TimeSpan DownloadBudget = TimeSpan.FromMinutes(15);
 
-    // MF's published test pairs, copied on 2026-10-13 from https://www.gov.pl/attachment/e429f4a2-98b2-4634-a2b4-7f9c1ec3e757
-    // (dane_testowe_2026_09_30.txt, 17 rows). Only the rows that pass Nip.TryParse and Nrb.TryParse are kept: the three
-    // NRBs of 1810004094 ending ...7534289857, ...9973554 and ...7887664831 fail the NRB check digits. Their status is not
-    // hand-recorded here: the test asks the REST API about each pair on the same date and compares.
-    private static readonly (string Nip, string Nrb)[] Pairs =
-    [
-        ("9810000054", "70102035709724546729803218"),
-        ("1120000322", "83249000054243980827278527"),
-        ("1120000428", "89926400093578089389446762"),
-        ("1810004094", "39102055610000370202959088"),
-        ("1120000411", "33144010558221640315760086"),
-        ("1810004094", "38102055610000320209756141"),
-        ("1120000351", "98124062349989896801925550"),
-        ("1810004094", "23102055610000340209684145"),
-        ("1130013160", "57102010550000910200159426"),
-        ("1130013160", "53102011560000740200072686"),
-        ("1130013160", "31102011560000730200166736"),
-        ("5838154651", "63102011560000710200483933"),
-        ("5838154651", "24102055610000360209622046"),
-        ("9889982762", "63102011560000710200483933"),
-    ];
+    // Two large VAT payers with many accounts in several banks. Their accounts come from the REST API on the file's date,
+    // so nothing is hand-recorded. MF's published test pairs (dane_testowe_2026_09_30.txt) are fictional: the REST API
+    // answers "not assigned" for all of them (live run of 2026-10-13), so they cannot show that the hashing is right.
+    private static readonly Nip[] Taxpayers = [Nip.Parse(Live.OrlenNip), Nip.Parse("5260251049")];
 
     [Fact(Timeout = OfflineTimeout)]
-    public async Task BialaListaOffline_prepares_todays_file_and_agrees_with_the_rest_api_on_mfs_test_pairs()
+    public async Task BialaListaOffline_prepares_todays_file_and_finds_the_accounts_the_rest_api_lists()
     {
         Live.SkipUnlessEnabled();
         var ct = TestContext.Current.CancellationToken;
@@ -103,38 +86,34 @@ public sealed class BialaListaOfflineLiveTests
 
             // A second call for the same date is served from the prepared index: no request.
             Assert.Equal(info.ActiveCount, (await offline.PrepareAsync(info.FileDate, cancellationToken: ct)).ActiveCount);
-            _ = await offline.CheckAsync(Nip.Parse(Pairs[0].Nip), Nrb.Parse(Pairs[0].Nrb), info.FileDate, ct);
+            _ = await offline.CheckAsync(Taxpayers[0], Nrb.Parse("70102035709724546729803218"), info.FileDate, ct);
             Assert.Equal(downloads, requests.Count);
 
-            // The oracle is the REST API of the same date: it answers "is this account assigned to this NIP", which is
-            // "found in the file" (Active or Exempt) on the offline side.
+            // The oracle is the REST API of the same date: every account it lists for an active taxpayer is in the file.
             using var restHttp = Live.CreateHttpClient();
             var rest = new BialaListaClient(restHttp);
-            var pairs = Pairs.Select(p => (Nip: Nip.Parse(p.Nip), Account: Nrb.Parse(p.Nrb))).ToArray();
-            var answers = await offline.CheckManyAsync(pairs, info.FileDate, ct);
-            var mismatches = new List<string>();
+            IReadOnlyList<VatBatchEntry> entries;
             try
             {
-                for (var i = 0; i < pairs.Length; i++)
-                {
-                    var apiAssigned = (await rest.CheckBankAccountAsync(pairs[i].Nip, pairs[i].Account, info.FileDate, ct)).Value;
-                    var line = $"{pairs[i].Nip} {pairs[i].Account}: offline {answers[i].Status} (mask {answers[i].MatchedVirtualAccountMask}), REST assigned {apiAssigned}";
-                    output?.WriteLine(line);
-                    if ((answers[i].Status != VatWhitelistOfflineStatus.NotFound) != apiAssigned)
-                    {
-                        mismatches.Add(line);
-                    }
-                }
+                entries = (await rest.FindByNipsAsync(Taxpayers, info.FileDate, ct)).Value;
             }
             catch (QuotaExceededException ex)
             {
                 Live.SkipOnQuota(ex);
+                return;
             }
 
-            output?.WriteLine("Split: " + string.Join(", ", answers.GroupBy(a => a.Status).Select(g => $"{g.Key} {g.Count()}")));
-            Assert.True(mismatches.Count == 0, "The offline answer differs from the REST API for: " + string.Join(" | ", mismatches));
-            // Without one found pair the oracle passes vacuously (for example when every hash uses the wrong date).
-            Assert.Contains(answers, a => a.Status == VatWhitelistOfflineStatus.Active);
+            var pairs = entries.SelectMany(e => e.Subjects).Where(s => s.VatStatus == VatStatus.Active)
+                .SelectMany(s => s.AccountNumbers.Select(a => (Nip: s.Nip!.Value, Account: a))).ToArray();
+            Assert.True(pairs.Length >= Taxpayers.Length, "The REST API listed " + pairs.Length + " accounts of active taxpayers.");
+            var answers = await offline.CheckManyAsync(pairs, info.FileDate, ct);
+            var missing = pairs.Zip(answers, (p, a) => (p, a)).Where(x => x.a.Status != VatWhitelistOfflineStatus.Active).Select(x => $"{x.p.Nip} {x.p.Account}: {x.a.Status}").ToList();
+            output?.WriteLine($"{pairs.Length} accounts from the REST API, {answers.Count(a => a.MatchedVirtualAccountMask)} through a mask, {missing.Count} not active offline.");
+            Assert.True(missing.Count == 0, "The REST API lists these accounts, the offline index does not: " + string.Join(" | ", missing));
+
+            // The same account under another taxpayer's NIP is not in the file.
+            var other = pairs.First(p => p.Nip != pairs[0].Nip).Nip;
+            Assert.Equal(VatWhitelistOfflineStatus.NotFound, (await offline.CheckAsync(other, pairs[0].Account, info.FileDate, ct)).Status);
         }
         finally
         {
