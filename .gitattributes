@@ -2,3 +2,4 @@
 tests/Fixtures/regon/** -text
 tests/Fixtures/bialalista-offline/** -text
 tests/Fixtures/uldk/** -text
+tests/Fixtures/uug/** -text

@@ -14,6 +14,7 @@
     <Project Path="src/PolishOpenData.Mcp/PolishOpenData.Mcp.csproj" />
     <Project Path="src/PolishOpenData.Regon/PolishOpenData.Regon.csproj" />
     <Project Path="src/PolishOpenData.Uldk/PolishOpenData.Uldk.csproj" />
+    <Project Path="src/PolishOpenData.Uug/PolishOpenData.Uug.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PolishOpenData.BialaLista.Offline.Tests/PolishOpenData.BialaLista.Offline.Tests.csproj" />
@@ -26,5 +27,6 @@
     <Project Path="tests/PolishOpenData.Shared.Tests/PolishOpenData.Shared.Tests.csproj" />
     <Project Path="tests/PolishOpenData.SmokeTests/PolishOpenData.SmokeTests.csproj" />
     <Project Path="tests/PolishOpenData.Uldk.Tests/PolishOpenData.Uldk.Tests.csproj" />
+    <Project Path="tests/PolishOpenData.Uug.Tests/PolishOpenData.Uug.Tests.csproj" />
   </Folder>
 </Solution>
