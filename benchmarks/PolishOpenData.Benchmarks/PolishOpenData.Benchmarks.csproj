@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- Built by the solution (so it cannot rot) but neither a test project nor a package. -->
+    <IsPackable>false</IsPackable>
+    <!-- Underscored benchmark names show in the results table; instance methods and unused-instance warnings do not apply to BenchmarkDotNet classes. -->
+    <NoWarn>$(NoWarn);CA1707;CA1812;CA1822</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+    <ProjectReference Include="..\..\src\PolishOpenData.BialaLista.Offline\PolishOpenData.BialaLista.Offline.csproj" />
+  </ItemGroup>
+</Project>

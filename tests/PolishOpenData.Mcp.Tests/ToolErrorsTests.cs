@@ -1,9 +1,11 @@
 using System;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Timeout;
+using PolishOpenData.BialaLista.Offline;
 using PolishOpenData.Mcp;
 
 namespace PolishOpenData.Mcp.Tests;
@@ -22,6 +24,54 @@ public class ToolErrorsTests
         Assert.NotNull(text);
         Assert.Contains("WL-191", text, StringComparison.Ordinal);
         Assert.Contains("2026-09-24 22:00 UTC", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Daily_limit_error_points_to_offline_tool()
+    {
+        var text = ToolErrors.Describe(new QuotaExceededException("Biała Lista daily request limit for this IP address is exhausted (WL-191).", (HttpStatusCode)429, "WL-191", null, null));
+        Assert.EndsWith("Use check_vat_bank_account_offline, which has no request limit.", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Not_published_yet_says_when_the_file_usually_appears()
+    {
+        var text = ToolErrors.Describe(new VatWhitelistDataUnavailableException("x", new DateOnly(2026, 10, 14), VatWhitelistDataUnavailableReason.NotPublishedYet));
+        Assert.Equal("MF has not published the file for 2026-10-14 yet; it usually appears on the evening before.", text);
+    }
+
+    [Theory]
+    [InlineData(VatWhitelistDataUnavailableReason.OutsideWindow)]
+    [InlineData(VatWhitelistDataUnavailableReason.DownloadFailed)]
+    [InlineData(VatWhitelistDataUnavailableReason.ChecksumMismatch)]
+    [InlineData(VatWhitelistDataUnavailableReason.UnexpectedFormat)]
+    public void Other_unavailable_reasons_carry_the_library_message(VatWhitelistDataUnavailableReason reason)
+    {
+        var text = ToolErrors.Describe(new VatWhitelistDataUnavailableException("library message", new DateOnly(2026, 10, 14), reason));
+        Assert.Contains("library message", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Lock_timeout_says_another_process_is_preparing_the_date()
+    {
+        var text = ToolErrors.Describe(new TimeoutException("Another process held the lock file 'x' for longer than 00:15:00."));
+        Assert.Equal("Another process is preparing this date; try again later.", text);
+    }
+
+    [Fact]
+    public void Offline_io_error_names_the_folder_and_the_environment_variable()
+    {
+        var text = ToolErrors.Describe(new IOException("The data directory 'C:\\data' cannot be used: access denied"), "check_vat_bank_account_offline");
+        Assert.NotNull(text);
+        Assert.Contains("C:\\data", text, StringComparison.Ordinal);
+        Assert.Contains("POLISHOPENDATA_OFFLINE_DIR", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Io_error_of_another_tool_does_not_mention_the_offline_folder()
+    {
+        var text = ToolErrors.Describe(new IOException("connection reset"), "lookup_company");
+        Assert.Equal("Unexpected error: connection reset", text);
     }
 
     [Fact]

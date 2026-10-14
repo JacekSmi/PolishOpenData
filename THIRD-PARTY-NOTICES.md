@@ -30,9 +30,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Compiled into the netstandard2.0 builds of PolishOpenData.Core, PolishOpenData.Krs, PolishOpenData.BialaLista and PolishOpenData.Regon
+## Compiled into the netstandard2.0 builds of PolishOpenData.Core, PolishOpenData.Krs, PolishOpenData.BialaLista, PolishOpenData.BialaLista.Offline and PolishOpenData.Regon
 
 - **Polyfill** 11.4.0 (source-embedded as internal types): <https://github.com/SimonCropp/Polyfill>. MIT License, Copyright (c) Simon Cropp. The MIT License text is at the end of this file.
+
+## Redistributed with the PolishOpenData.BialaLista.Offline package
+
+- **SharpCompress** 1.0.0 (a package dependency, reads the 7z archive of the flat file): <https://github.com/adamhathcock/sharpcompress>. MIT License, Copyright (c) 2014 Adam Hathcock (package copyright: Copyright (c) 2025 Adam Hathcock). Its 7z reader is based on managed-lzma (<https://code.google.com/p/managed-lzma/>), as its README states. The MIT License text is at the end of this file.
 
 ## Redistributed inside the PolishOpenData.Mcp tool package
 
@@ -81,6 +85,10 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
+### SharpCompress
+
+`SharpCompress.dll` (SharpCompress 1.0.0, used by the offline VAT whitelist tool to read the 7z flat file): <https://github.com/adamhathcock/sharpcompress>. MIT License, Copyright (c) 2014 Adam Hathcock; see the PolishOpenData.BialaLista.Offline section above. The MIT License text is at the end of this file.
+
 ### Microsoft.Extensions.* and System.*
 
 MIT License. Package copyright: © Microsoft Corporation. All rights reserved. The MIT License text is at the end of this file.
@@ -94,7 +102,7 @@ MIT License. Package copyright: © Microsoft Corporation. All rights reserved. T
 
 ### MIT License
 
-Applies, with the copyright lines given above, to Polyfill, the MIT-licensed parts of the Model Context Protocol C# SDK and the Microsoft.Extensions.* and System.* assemblies.
+Applies, with the copyright lines given above, to Polyfill, SharpCompress, the MIT-licensed parts of the Model Context Protocol C# SDK and the Microsoft.Extensions.* and System.* assemblies.
 
 ```text
 Permission is hereby granted, free of charge, to any person obtaining a copy

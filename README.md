@@ -1,6 +1,6 @@
 # PolishOpenData
 
-**.NET libraries and an MCP server for Polish public registers** — company lookup in KRS, the VAT whitelist (Biała Lista) with bank-account checks, a client for the GUS REGON register (library only), and offline validation of NIP, REGON, KRS, NRB and land-registry (KW) numbers.
+**.NET libraries and an MCP server for Polish public registers** — company lookup in KRS, the VAT whitelist (Biała Lista) with bank-account checks (online, or offline against the Ministry of Finance flat file), a client for the GUS REGON register (library only), and offline validation of NIP, REGON, KRS, NRB and land-registry (KW) numbers.
 
 [![CI](https://github.com/JacekSmi/PolishOpenData/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JacekSmi/PolishOpenData/actions/workflows/ci.yml?query=branch%3Amain)
 [![NuGet](https://img.shields.io/nuget/v/PolishOpenData.Mcp?label=PolishOpenData.Mcp)](https://www.nuget.org/packages/PolishOpenData.Mcp)
@@ -17,8 +17,9 @@
 | [`PolishOpenData.Core`](https://www.nuget.org/packages/PolishOpenData.Core) | Offline value types: `Nip`, `Regon`, `KrsNumber`, `Nrb`, `KwNumber` (+ official court-code table) | net10.0, netstandard2.0 |
 | [`PolishOpenData.Krs`](https://www.nuget.org/packages/PolishOpenData.Krs) | KRS Open API: current/full extracts, removed entities, daily change feed, English summary | net10.0, netstandard2.0 |
 | [`PolishOpenData.BialaLista`](https://www.nuget.org/packages/PolishOpenData.BialaLista) | VAT whitelist: status, bank-account check with request ID, batches, daily-limit guard | net10.0, netstandard2.0 |
+| [`PolishOpenData.BialaLista.Offline`](https://www.nuget.org/packages/PolishOpenData.BialaLista.Offline) | VAT whitelist checked offline against the Ministry of Finance daily flat file: no request limit, many pairs at once, no request ID | net10.0, netstandard2.0 |
 | [`PolishOpenData.Regon`](https://www.nuget.org/packages/PolishOpenData.Regon) | GUS REGON (BIR1.2): search by NIP/REGON/KRS, batches of 20, full reports, session and request limiter; needs your own free GUS key | net10.0, netstandard2.0 |
-| [`PolishOpenData.Mcp`](https://www.nuget.org/packages/PolishOpenData.Mcp) | MCP server for AI assistants: company lookup, VAT whitelist and bank-account check, KRS extracts, identifier validation | .NET 10 tool |
+| [`PolishOpenData.Mcp`](https://www.nuget.org/packages/PolishOpenData.Mcp) | MCP server for AI assistants: company lookup, VAT whitelist and bank-account check (online and offline), KRS extracts, identifier validation | .NET 10 tool |
 
 ## Offline validation
 
@@ -118,6 +119,41 @@ Retries stay off for REGON, as for Biała Lista: a retry made by a resilience ha
 
 **Cost.** Details cost requests: a legal person takes a login, a search and one report (3 requests), each optional list (`RegonInclude.Pkd`, `LocalUnits`, `Partners`) one more, and a sole trader the general report plus one report per activity type. `RegonResult.DataAsOf` is filled once `GetDataDateAsync` has been called (one request).
 
+## Offline VAT whitelist check
+
+The Ministry of Finance publishes the VAT whitelist every day as a flat file (plik płaski) of hashed NIP and account pairs. `PolishOpenData.BialaLista.Offline` downloads the file for a date, builds a local index once, and then answers any number of checks from disk: no request limit, and nothing about the checked NIP/account pairs leaves your machine. Use it for large batches (a payment run, an ERP import); use `PolishOpenData.BialaLista` when you need a request ID as proof.
+
+```bash
+dotnet add package PolishOpenData.BialaLista.Offline
+```
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using PolishOpenData;
+using PolishOpenData.BialaLista.Offline;
+
+var services = new ServiceCollection();
+services.AddVatWhitelistOffline(o => o.DatesToKeep = 3);
+using var provider = services.BuildServiceProvider();
+var offline = provider.GetRequiredService<IVatWhitelistOffline>();
+
+await offline.PrepareAsync(); // optional: downloads and indexes today's file now instead of in the first check
+var checks = await offline.CheckManyAsync(new[]
+{
+    (Nip.Parse("774-000-14-54"), Nrb.Parse("06 1600 1127 1843 9838 2000 0034")),
+});
+foreach (var c in checks)
+    Console.WriteLine($"{c.Nip}: {c.Status} (file of {c.FileDate:yyyy-MM-dd}, generated {c.GeneratedOn:yyyy-MM-dd})");
+```
+
+- **Three answers.** `Active`, `Exempt` or `NotFound`. `NotFound` means not found in the file (the plain hash and every virtual-account mask of the account's bank were tried), not proof that the account is absent from the whitelist; `MatchedVirtualAccountMask` tells you when a pair was found through a mask.
+- **First use of a date is slow.** It downloads about 250 MB and builds an index. That took about 4 minutes on a fast connection (October 2026), but much longer when the Ministry's server is slow, which happens during the working day. The download is deleted once the index is built. Call `PrepareAsync` ahead of time to avoid the wait: the Ministry publishes the file for day D at about 23:00 on D−1, so the evening before is a good moment. `PrepareAsync` takes an `IProgress<VatWhitelistPreparationProgress>` and a `CancellationToken`. The HTTP client registered by `AddVatWhitelistOffline` has no timeout; cancel through the token.
+- **Data directory and disk use.** Prepared indexes live in `PolishOpenData/BialaListaOffline` under the user's local application data folder; set `VatWhitelistOfflineOptions.DataDirectory` to use another folder. An index takes about 60 MB per date (3.7 million entries in October 2026). `DatesToKeep` (default 5) is the number of most recently used dates kept on disk.
+- **One machine only.** Use a folder on a local disk; a network share is not supported. Processes on the same machine that share the folder share the prepared indexes; while one process prepares a date, another that needs the same date waits up to `LockTimeout` (15 minutes by default) and then throws `TimeoutException`.
+- **Dates.** From 30 days back to tomorrow (Warsaw time), default today. A date is only ever answered with the file of that date. Outside the window, or when the file is not published yet, cannot be downloaded or fails verification, the call throws `VatWhitelistDataUnavailableException` (see `Reason`) instead of answering with another day's data.
+- **No request ID, no evidence.** The flat file gives no request identifier. When you need proof for the tax office, check with the REST client (`PolishOpenData.BialaLista`) and keep its `RequestId`.
+- **Time of the check and time of the data.** `FileDate` and `GeneratedOn` describe the data; record when you ran the check yourself.
+
 ## MCP server for AI assistants
 
 Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download). No API keys.
@@ -155,6 +191,7 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 |---|---|
 | `lookup_company` | "Who is NIP 774-000-14-54?" — name, VAT status, seat, bank accounts, KRS legal form, capital, removal |
 | `check_vat_bank_account` | "Can I pay this invoice to this account?" — whitelist check with request ID |
+| `check_vat_bank_account_offline` | Same question against the Ministry of Finance daily flat file: no request limit, up to 50 pairs at once, nothing about the pairs leaves your machine, no request ID (use `check_vat_bank_account` when you need one). The first call for a date downloads about 250 MB (the file is deleted once the index is built) and takes several minutes, or much longer when the Ministry's server is slow; the tool reports progress. `not_found` means not found in the file, not proof of absence. Prepared indexes are kept in the user's local application data folder; set `POLISHOPENDATA_OFFLINE_DIR` to use another local folder (not a network share) |
 | `get_krs_extract` | Board and supervisory members (masked by the ministry), capital, shareholders, PKD activities |
 | `validate_identifier` | Offline checksum validation of NIP, REGON, KRS, NRB and KW numbers, with typo suggestions |
 
@@ -164,18 +201,18 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 
 ## Responsible use
 
-- Data comes from official public registers; cite the source and the retrieval time. Every registry-backed MCP tool result (`lookup_company`, `check_vat_bank_account`, `get_krs_extract`) and `BialaListaResult` carry both; `KrsResult` does not add one itself — use `ToSummary().ExtractedAt` when present.
+- Data comes from official public registers; cite the source and the retrieval time. Every registry-backed MCP tool result (`lookup_company`, `check_vat_bank_account`, `check_vat_bank_account_offline`, `get_krs_extract`) and `BialaListaResult` carry both (for the offline tool `Source.RetrievedAt` is the time of the check, while `fileDate` and `generatedOn` are the time of the data); `KrsResult` does not add one itself — use `ToSummary().ExtractedAt` when present.
 - Biała Lista allows about 100 searches and 5,000 checks per day per IP address; exceeding them blocks the IP until midnight, including the ministry's web search. Use `TrackQuota` and prefer checks over searches.
 - KRS masks natural persons in structured fields. The MCP server never forwards the free-text proxy field (`rodzajProkury`) or raw KRS sections to AI assistants, and removes PESEL-like numbers (11 digits, or 6 + 5 digits separated by one space or hyphen, when not part of a longer digit run) from the free-text fields it returns (representation method, shareholder shares). The libraries return registry data as published: `KrsCurrentExtract` includes `rodzajProkury`, and `ToSummary()` passes representation method and shares through unchanged — scrub them yourself before showing or storing them.
 - Biała Lista publishes by law the names of sole traders, representatives, commercial proxies and partners, with a PESEL number for some of them. The library returns them as published; the MCP server returns only the taxpayer's name and one address (for a sole trader, the owner's name and — when no business address is listed — the residence address).
-- GUS records the IP address, time and content of every REGON request. Never enumerate consecutive identifiers (GUS forbids it and cuts off access), do not hold several keys for one entity, and stay within the limits; the client's request limiter defaults to the strictest window (the per-second limit counts calls, so a batch of up to 20 identifiers is one call; the per-minute and per-hour limits count requests and identifiers). Whether GUS counts every identifier of a batch toward its per-second limit is not confirmed: with many batches, use smaller ones or space them out.
+- GUS records the IP address, time and content of every REGON request. Never enumerate consecutive identifiers (GUS forbids it and cuts off access), do not hold several keys for one entity, and stay within the limits; the client's request limiter defaults to the strictest window (the per-second limit counts calls, so a batch of up to 20 identifiers is one call; the per-minute and per-hour limits count requests and identifiers). Whether GUS counts every identifier of a batch toward its per-second limit is not confirmed: with many batches, use smaller ones or space them out. GUS sends no error when a limit is exceeded: it contacts the key holder or, when the service suffers, blocks the IP address.
 - The REGON library returns data as published. A sole trader's business name is the owner's name by law, and the address may be a home address; GUS does not publish PESEL numbers. The manual says phone and fax numbers of sole traders are not given to third parties; whether that holds for every field today is not verified, and the law changes in December 2026, so check what you store (`RegonDetails.Fields` holds every field GUS sent). Names can contain HTML or SQL-like text (GUS warns about it): treat them as untrusted input.
 - Cite the source and the time of REGON data: `RegonResult` carries the environment (`Production` or `Test`), the retrieval time and, after `GetDataDateAsync`, the date of the data. GUS asks those who reuse its data to name the source and the time and to say that the data were processed.
 - No scraping, no bulk harvesting, no linking of parcels to land-registry numbers.
 
 ## Possible next steps
 
-Ideas, not commitments: offline checks against the VAT whitelist flat file, and property data (ULDK parcels, GUGiK geocoder, transaction prices). A REGON tool for the MCP server is under consideration, but only if GUS confirms its rules for user keys. If one of them would help you, [open an issue](https://github.com/JacekSmi/PolishOpenData/issues) to show interest.
+Ideas, not commitments: property data (ULDK parcels, GUGiK geocoder, transaction prices). A REGON tool for the MCP server is under consideration, but only if GUS confirms its rules for user keys. If one of them would help you, [open an issue](https://github.com/JacekSmi/PolishOpenData/issues) to show interest.
 
 ## Contributing and license
 

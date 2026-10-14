@@ -22,7 +22,7 @@ public enum RegonRateLimit
     /// <summary>The strictest published window at every time of day: 3 requests per second, 120 per minute, 6,000 per hour. The default.</summary>
     Strictest = 0,
 
-    /// <summary>The three published windows, chosen by the hour in Europe/Warsaw (the time zone is not stated by GUS; Polish time is assumed).</summary>
+    /// <summary>The three published windows, chosen by the hour in Europe/Warsaw (GUS confirmed in October 2026 that the windows follow Polish time).</summary>
     TimeOfDay = 1,
 
     /// <summary>No local limit. The limits of GUS still apply to you.</summary>

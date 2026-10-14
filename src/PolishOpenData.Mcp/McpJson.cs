@@ -9,6 +9,8 @@ namespace PolishOpenData.Mcp;
 [JsonSerializable(typeof(CompanyOverview))]
 [JsonSerializable(typeof(VatAccountCheck))]
 [JsonSerializable(typeof(KrsExtractView))]
+[JsonSerializable(typeof(VatAccountOfflineCheck))]
+[JsonSerializable(typeof(OfflineVatPair[]))]
 internal sealed partial class McpJsonContext : JsonSerializerContext;
 
 internal static class McpJson

@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using ModelContextProtocol.Client;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -54,6 +56,22 @@ public sealed class McpServerEndToEndTests
         var second = await session.Client.CallToolAsync("get_krs_extract", arguments, cancellationToken: TestContext.Current.CancellationToken);
         Assert.True(second.IsError == true);
         Assert.Equal(2, stub.RequestUris.Count);   // asked the stub again: the failed first call was not cached
+    }
+
+    [Fact]
+    public async Task Server_lists_all_tools_and_keeps_the_progress_parameter_out_of_the_offline_tool_schema()
+    {
+        await using var session = await StartAsync(new StubHttpMessageHandler(_ => StubHttpMessageHandler.Empty(HttpStatusCode.NotFound)));
+        var tools = await session.Client.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            ["check_vat_bank_account", "check_vat_bank_account_offline", "get_krs_extract", "lookup_company", "validate_identifier"],
+            tools.Select(t => t.Name).Order(StringComparer.Ordinal).ToArray());
+        var offline = tools.Single(t => t.Name == "check_vat_bank_account_offline");
+        Assert.Contains("about 250 MB", offline.Description, StringComparison.Ordinal);
+        var properties = offline.JsonSchema.GetProperty("properties").EnumerateObject().Select(p => p.Name).Order(StringComparer.Ordinal).ToArray();
+        Assert.Equal(["date", "pairs"], properties);
+        Assert.Equal(true, offline.ProtocolTool.Annotations?.ReadOnlyHint);
     }
 
     private static Task<McpTestSession> StartAsync(HttpMessageHandler handler) =>

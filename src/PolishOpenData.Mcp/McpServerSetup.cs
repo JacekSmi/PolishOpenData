@@ -5,14 +5,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using ModelContextProtocol;
 using PolishOpenData.BialaLista;
+using PolishOpenData.BialaLista.Offline;
 using PolishOpenData.Krs;
 
 namespace PolishOpenData.Mcp;
 
 internal static class McpServerSetup
 {
+    /// <summary>Environment variable that overrides where the offline flat-file indexes are kept (default: the library's per-user folder).</summary>
+    public const string OfflineDirectoryVariable = "POLISHOPENDATA_OFFLINE_DIR";
+
     /// <summary>Registers the registry clients (with resilience and the Biała Lista quota guard) and the cache.</summary>
-    public static IServiceCollection AddPolishOpenDataServices(this IServiceCollection services, Action<IHttpClientBuilder>? configureHttp = null)
+    public static IServiceCollection AddPolishOpenDataServices(this IServiceCollection services, Action<IHttpClientBuilder>? configureHttp = null, string? offlineDataDirectory = null)
     {
         services.TryAddSingleton(TimeProvider.System);
         services.AddMemoryCache();
@@ -27,8 +31,18 @@ internal static class McpServerSetup
             // blocked until midnight: keep timeouts and the circuit breaker, but never retry Biała Lista.
             o.Retry.ShouldHandle = static _ => ValueTask.FromResult(false);
         });
+        // No resilience handler: its timeouts would cut the 250 MB flat-file download (the library sets an infinite HttpClient timeout).
+        var offlineDirectory = offlineDataDirectory ?? Environment.GetEnvironmentVariable(OfflineDirectoryVariable);
+        var offline = services.AddVatWhitelistOffline(o =>
+        {
+            if (!string.IsNullOrWhiteSpace(offlineDirectory))
+            {
+                o.DataDirectory = offlineDirectory;
+            }
+        });
         configureHttp?.Invoke(krs);
         configureHttp?.Invoke(vat);
+        configureHttp?.Invoke(offline);
 
         services.AddTransient<CachedRegistries>();
         return services;
@@ -43,6 +57,7 @@ internal static class McpServerSetup
 
         return builder
             .WithTools<CompanyTools>(json)
+            .WithTools<OfflineVatTools>(json)
             .WithTools<IdentifierTools>(json)
             .WithRequestFilters(filters => filters.AddCallToolFilter(next => async (context, cancellationToken) =>
             {
@@ -50,7 +65,7 @@ internal static class McpServerSetup
                 {
                     return await next(context, cancellationToken).ConfigureAwait(false);
                 }
-                catch (Exception ex) when (ex is not McpProtocolException && ToolErrors.Describe(ex) is { } message)
+                catch (Exception ex) when (ex is not McpProtocolException && ToolErrors.Describe(ex, context.Params?.Name) is { } message)
                 {
                     return ToolResults.Error(message);
                 }

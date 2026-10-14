@@ -7,7 +7,7 @@ dotnet build -c Release
 dotnet test -c Release
 ```
 
-Requirements: .NET 10 SDK (see `global.json`). On Windows the Core, Shared, Krs, BialaLista and Regon tests also run on .NET Framework 4.7.2. Tests use xUnit v3 on Microsoft Testing Platform (`dotnet test --project tests/<Project>` runs one project).
+Requirements: .NET 10 SDK (see `global.json`). On Windows the Core, Shared, Krs, BialaLista, BialaLista.Offline and Regon tests also run on .NET Framework 4.7.2. Tests use xUnit v3 on Microsoft Testing Platform (`dotnet test --project tests/<Project>` runs one project).
 
 ## Live tests
 
@@ -34,6 +34,8 @@ One run costs, per IP address:
 | GUS BIR production requests (needs `POLISHOPENDATA_REGON_KEY`, owner-run, skipped otherwise) | 4 | 0 | 0 | **4** |
 
 These are the counts when every call succeeds. The change feed test asks for an earlier weekday, up to 5 in all, only while the feeds it got were empty (a public holiday, or a feed not yet published). Failed calls are not cached, so a cancelled or failed search is sent again by the next test that needs it: a run with failures spends at most 9 searches. The MCP server never retries Biała Lista; its KRS client retries transient failures (5xx, 408, 429, connection errors and 10-second attempt timeouts), which can add KRS requests.
+
+The offline flat-file test (`BialaListaOfflineLiveTests`) downloads one file of about 250 MB from the Ministry of Finance, which has no request quota, and uses 14 Biała Lista checks as its oracle (counted in the checks row). It skips itself after 15 minutes of downloading, because MF's server can be slow during the working day.
 
 The GUS test-environment test needs no secret. GUS publishes limits for the service in general (3 requests per second, 120 per minute); it does not state whether the test service applies them, and 5 requests are far inside them either way. The production test runs only when `POLISHOPENDATA_REGON_KEY` holds your own key and is never run by CI: the production key does not go into GitHub secrets, and GUS forbids several accounts for one entity. GUS logs the IP address, time and content of every request and forbids enumerating identifiers, so run the production test sparingly, never in a loop.
 
@@ -62,4 +64,4 @@ One-time setup by the repository owner. Do steps 2, 3 and 5 only after the repos
 4. GitHub repository secret `NUGET_USER` = the nuget.org profile name (not the e-mail address).
 5. GitHub → Settings → Advanced Security → enable **Private vulnerability reporting** (`SECURITY.md` relies on it).
 
-Package validation compares each library package with the release named by `PackageValidationBaselineVersion` in `src/Directory.Build.props` (currently 1.1.0), so an accidental breaking change fails `dotnet pack`. After a release is on nuget.org, raise it to that version. The MCP tool package is not compared: the .NET SDK turns package validation off for tool packages. `PolishOpenData.Regon` overrides `PackageValidationBaselineVersion` with an empty value in its own project file, because no release of it exists yet to compare with: after 1.2.0 is on nuget.org, raise the baseline in `src/Directory.Build.props` to 1.2.0 and delete that override.
+Package validation compares each library package with the release named by `PackageValidationBaselineVersion` in `src/Directory.Build.props` (currently 1.2.0), so an accidental breaking change fails `dotnet pack`. After a release is on nuget.org, raise it to that version. The MCP tool package is not compared: the .NET SDK turns package validation off for tool packages. `PolishOpenData.BialaLista.Offline` overrides `PackageValidationBaselineVersion` with an empty value in its own project file, because no release of it exists yet to compare with: after 1.3.0 is on nuget.org, raise the baseline in `src/Directory.Build.props` to 1.3.0 and delete that override.
