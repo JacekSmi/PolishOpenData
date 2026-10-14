@@ -8,7 +8,7 @@ namespace PolishOpenData.Uldk;
 public static class UldkServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers <see cref="IUldkClient"/> as a typed HttpClient limited to 4 parallel connections (ULDK's request limit).
+    /// Registers <see cref="IUldkClient"/> as a typed HttpClient limited to 4 parallel connections (the project's default cap; GUGiK publishes no request limit).
     /// Returns the builder so callers can add resilience (e.g. <c>.AddStandardResilienceHandler()</c>).
     /// </summary>
     public static IHttpClientBuilder AddUldkClient(this IServiceCollection services, Action<UldkClientOptions>? configure = null)

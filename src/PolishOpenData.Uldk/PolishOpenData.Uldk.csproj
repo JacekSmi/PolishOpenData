@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>
     <RootNamespace>PolishOpenData.Uldk</RootNamespace>
-    <Description>Typed .NET client for ULDK (Usługa Lokalizacji Działek Katastralnych, uldk.gugik.gov.pl) of GUGiK: find a cadastral parcel by its TERYT identifier or by a point, with its boundary as WKT. Unofficial; not affiliated with the Polish government.</Description>
+    <Description>Typed .NET client for ULDK (Usługa Lokalizacji Działek Katastralnych, uldk.gugik.gov.pl) of GUGiK: find a cadastral parcel by its TERYT identifier, by a point or by region name and number, with its boundary as WKT. Unofficial; not affiliated with the Polish government.</Description>
     <PackageTags>$(PackageTags);uldk;gugik;cadastre;parcel;teryt</PackageTags>
     <!-- No release of this package exists on nuget.org yet, so there is nothing to compare against. After 1.4.0 is published, delete this line; the baseline in src/Directory.Build.props then applies (raise it first). -->
     <PackageValidationBaselineVersion />
