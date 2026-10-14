@@ -23,10 +23,12 @@ namespace PolishOpenData.SmokeTests;
 /// <item><term>Biała Lista checks</term><description>1 / 1 / 0 = 2</description></item>
 /// <item><term>KRS requests</term><description>5 to 9 (current, full, not-found in P and S, change feed of 1 to 5 weekdays) / 1 / 1 = 7 to 11</description></item>
 /// <item><term>Offline flat file (<c>BialaListaOfflineLiveTests</c>: one download of about 250 MB from MF, no quota; skips after 15 min of downloading, up to 20 min in all)</term><description>0 / 0 / 0, but one 2-NIP Biała Lista search (the oracle, counted in the searches row) and one flat-file download</description></item>
+/// <item><term>GUGiK ULDK requests (<c>GeoLiveTests</c>, no key)</term><description>5 / 0 / 0 = 5 (by ID and by extent centre; by ID and by its WGS-84 centre; by the UUG point)</description></item>
+/// <item><term>GUGiK UUG requests (<c>GeoLiveTests</c>, no key)</term><description>3 / 0 / 0 = 3 (geocode and reverse; geocode in the ULDK/UUG agreement test)</description></item>
 /// <item><term>GUS BIR test environment requests (published test key, no secret)</term><description>5 / 0 / 0 = 5</description></item>
 /// <item><term>GUS BIR production requests (needs <c>POLISHOPENDATA_REGON_KEY</c>, owner-run, skipped otherwise)</term><description>4 / 0 / 0 = 4</description></item>
 /// </list>
-/// Runtime: the 13 other network tests take at most 2 min each and the published-package test 5 min; the offline test adds
+/// Runtime: the 17 other network tests (4 of them GUGiK) take at most 2 min each and the published-package test 5 min; the offline test adds
 /// a few minutes when MF is fast and 15 min (then it skips) when MF is slow (it served 35 to 40 KB/s on 2026-10-13, 8 MB/s at night).
 /// The change feed asks for an earlier weekday only while the feeds it got were empty (a public holiday, or a feed not
 /// yet published). The MCP tests share one server session, so its cache answers repeated lookups without new upstream
