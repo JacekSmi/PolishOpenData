@@ -112,7 +112,7 @@ public sealed class BialaListaOfflineLiveTests
             Assert.True(missing.Count == 0, "The REST API lists these accounts, the offline index does not: " + string.Join(" | ", missing));
 
             // The same account under another taxpayer's NIP is not in the file.
-            var other = pairs.First(p => p.Nip != pairs[0].Nip).Nip;
+            var other = Taxpayers.First(n => n != pairs[0].Nip);
             Assert.Equal(VatWhitelistOfflineStatus.NotFound, (await offline.CheckAsync(other, pairs[0].Account, info.FileDate, ct)).Status);
         }
         finally
