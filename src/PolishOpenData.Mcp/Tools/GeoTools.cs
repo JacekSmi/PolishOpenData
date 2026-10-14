@@ -41,16 +41,22 @@ internal sealed class GeoTools(IUldkClient uldk, IUugClient uug, TimeProvider ti
     }
 
     [McpServerTool(Name = "find_parcel", Title = "Find a cadastral parcel", ReadOnly = true, OpenWorld = true, Idempotent = true, Destructive = false, UseStructuredContent = true, OutputSchemaType = typeof(FindParcelResult))]
-    [Description("Finds Polish cadastral parcels (działki ewidencyjne) with GUGiK's ULDK service, by exactly one of: a parcel ID (TERYT format, e.g. 146510_8.0507.41/1), WGS-84 coordinates (latitude + longitude; latitude comes first), an address, or a region name with a parcel number (e.g. \"Krzewina 134\", which can match several parcels). Returns the parcel ID, number, region, commune, county, voivodeship and the center of its bounding box in WGS-84; includeGeometry adds the full boundary as WKT in EPSG:4326 (can be long for a large parcel; not available for regionAndNumber searches). An address must resolve to a single address point to pick a parcel, otherwise the geocoder's candidates are returned. Data comes from EGiB via GUGiK. Never returns or accepts land-registry (KW) numbers or owner data.")]
+    [Description("Finds Polish cadastral parcels (działki ewidencyjne) with GUGiK's ULDK service, by exactly one of: a parcel ID (TERYT format, e.g. 146510_8.0507.41/1), WGS-84 coordinates (latitude + longitude; latitude comes first), an address, or a region name with a parcel number (e.g. \"Krzewina 134\", which can match several parcels). Returns the parcel ID, number, region, commune, county, voivodeship and the center of its bounding box in WGS-84; includeGeometry adds the full boundary as WKT in EPSG:4326 (longitude latitude order, as WKT writes it; can be long for a large parcel; not available for regionAndNumber searches). An address must resolve to a single address point to pick a parcel, otherwise the geocoder's candidates are returned. Data comes from EGiB via GUGiK. Never returns or accepts land-registry (KW) numbers or owner data.")]
     public async Task<CallToolResult> FindParcel(
         [Description("Parcel ID in TERYT format: commune code, region, optional sheet and number, e.g. 146510_8.0507.41/1.")] string? parcelId = null,
         [Description("WGS-84 latitude in degrees north, 48.9 to 55.0 (give together with longitude).")] double? latitude = null,
         [Description("WGS-84 longitude in degrees east, 14.0 to 24.2 (give together with latitude).")] double? longitude = null,
         [Description("Address with a house number, e.g. \"Warszawa, Krucza 50\". It is geocoded first, so a street or town alone gives candidates, not a parcel.")] string? address = null,
         [Description("Region name and parcel number, e.g. \"Krzewina 134\"; can match several parcels. No geometry is returned for this search.")] string? regionAndNumber = null,
-        [Description("Also return the parcel boundary as WKT in EPSG:4326 (not for regionAndNumber).")] bool includeGeometry = false,
+        [Description("Also return the parcel boundary as WKT in EPSG:4326 (longitude latitude order, as WKT writes it; not for regionAndNumber).")] bool includeGeometry = false,
         CancellationToken cancellationToken = default)
     {
+        // Checked first, before any request, and never echoed back.
+        if (KwNumber.TryParse(address, out _) || KwNumber.TryParse(regionAndNumber, out _))
+        {
+            return ToolResults.Error("find_parcel never accepts land-registry (KW) numbers. Give a parcel ID, coordinates, an address or a region name with a parcel number.");
+        }
+
         if ((latitude is null) != (longitude is null))
         {
             return ToolResults.Error("Give latitude and longitude together.");

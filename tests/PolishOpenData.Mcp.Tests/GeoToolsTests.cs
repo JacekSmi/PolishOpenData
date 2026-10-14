@@ -294,6 +294,37 @@ public sealed class GeoToolsTests : IAsyncDisposable
         }
     }
 
+    [Theory]
+    [InlineData("address")]
+    [InlineData("regionAndNumber")]
+    public async Task FindParcel_land_registry_number_is_refused_before_any_request(string argument)
+    {
+        const string Kw = "WA1M/00012345/1";   // the format example the README and validate_identifier already use
+
+        var result = await FindAsync((argument, Kw));
+
+        Assert.True(result.IsError == true);
+        Assert.Contains("never accepts land-registry (KW) numbers", Text(result), StringComparison.Ordinal);
+        Assert.DoesNotContain(Kw, Text(result), StringComparison.Ordinal);
+        Assert.Empty(_stub.RequestUris);
+    }
+
+    [Fact]
+    public async Task Rate_limit_is_not_retried()
+    {
+        var limited = new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.TooManyRequests));
+        await using var session = await McpTestSession.StartAsync(
+            http => http.ConfigurePrimaryHttpMessageHandler(() => limited),
+            null,
+            TestContext.Current.CancellationToken);
+
+        var result = await session.Client.CallToolAsync("find_parcel", new Dictionary<string, object?> { ["parcelId"] = ParcelId }, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.True(result.IsError == true);
+        Assert.Contains("rate-limiting", Text(result), StringComparison.Ordinal);
+        Assert.Single(limited.RequestUris);   // 429 means slow down: sent once, no retry
+    }
+
     [Fact]
     public async Task Upstream_failure_is_retried_once()
     {

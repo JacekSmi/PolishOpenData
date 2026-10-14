@@ -1,8 +1,10 @@
 using System;
+using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Http.Resilience;
 using ModelContextProtocol;
 using PolishOpenData.BialaLista;
 using PolishOpenData.BialaLista.Offline;
@@ -34,10 +36,11 @@ internal static class McpServerSetup
             o.Retry.ShouldHandle = static _ => ValueTask.FromResult(false);
         });
         // One retry for the GUGiK services (plain GETs with no request counter to protect); the libraries themselves never retry.
+        // A transient failure (5xx, 408, timeout) is retried, but never 429: GUGiK asked us to slow down.
         var uldk = services.AddUldkClient();
         var uug = services.AddUugClient();
-        uldk.AddStandardResilienceHandler(o => o.Retry.MaxRetryAttempts = 1);
-        uug.AddStandardResilienceHandler(o => o.Retry.MaxRetryAttempts = 1);
+        uldk.AddStandardResilienceHandler(RetryGugikOnce);
+        uug.AddStandardResilienceHandler(RetryGugikOnce);
         // No resilience handler: its timeouts would cut the 250 MB flat-file download (the library sets an infinite HttpClient timeout).
         var offlineDirectory = offlineDataDirectory ?? Environment.GetEnvironmentVariable(OfflineDirectoryVariable);
         var offline = services.AddVatWhitelistOffline(o =>
@@ -55,6 +58,13 @@ internal static class McpServerSetup
 
         services.AddTransient<CachedRegistries>();
         return services;
+    }
+
+    private static void RetryGugikOnce(HttpStandardResilienceOptions options)
+    {
+        options.Retry.MaxRetryAttempts = 1;
+        options.Retry.ShouldHandle = static args => ValueTask.FromResult(
+            HttpClientResiliencePredicates.IsTransient(args.Outcome) && args.Outcome.Result?.StatusCode != HttpStatusCode.TooManyRequests);
     }
 
     /// <summary>Registers the tools (AOT-safe JSON first in the chain) and maps exceptions to exact isError text.</summary>
