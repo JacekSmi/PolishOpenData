@@ -91,6 +91,20 @@ public class ToolErrorsTests
     }
 
     [Theory]
+    [InlineData("find_parcel")]
+    [InlineData("geocode_address")]
+    public void Gugik_rate_limit_says_to_wait_and_does_not_point_to_the_vat_tools(string tool)
+    {
+        var text = ToolErrors.Describe(new QuotaExceededException("ULDK rate limit reached (HTTP 429).", HttpStatusCode.TooManyRequests, null, null, TimeSpan.FromSeconds(30)), tool);
+
+        Assert.NotNull(text);
+        Assert.DoesNotContain("check_vat_bank_account", text, StringComparison.Ordinal);
+        Assert.Contains("Wait", text, StringComparison.Ordinal);
+        Assert.Contains("retry after 30 s", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("..", text, StringComparison.Ordinal);
+    }
+
+    [Theory]
     [InlineData("KRS returned a response that could not be read (HTTP 200): 'x' is invalid. Path: $.odpis.")]
     [InlineData("KRS returned a response without an extract.")]
     public void An_unreadable_success_response_is_not_called_a_rejection(string message)
