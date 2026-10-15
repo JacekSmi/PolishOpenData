@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using ModelContextProtocol.Client;
@@ -26,6 +27,11 @@ public sealed class PublishedMcpPackageTests
     private const string OfflineTool = "check_vat_bank_account_offline";
 
     private static readonly Version OfflineToolSince = new(1, 3, 0);
+
+    // Added in 1.4.0 (parcel and address lookup through GUGiK).
+    private static readonly string[] GeoTools = ["find_parcel", "geocode_address"];
+
+    private static readonly Version GeoToolsSince = new(1, 4, 0);
 
     private static readonly SearchValues<char> VersionRangeCharacters = SearchValues.Create("*[](),");
 
@@ -77,9 +83,10 @@ public sealed class PublishedMcpPackageTests
             }
 
             var tools = await client.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
-            var expected = Version.TryParse(client.ServerInfo.Version.Split('-', '+')[0], out var reported) && reported >= OfflineToolSince
-                ? [.. ExpectedTools, OfflineTool]
-                : ExpectedTools;
+            var hasVersion = Version.TryParse(client.ServerInfo.Version.Split('-', '+')[0], out var reported);
+            var expected = ExpectedTools
+                .Concat(hasVersion && reported >= OfflineToolSince ? [OfflineTool] : [])
+                .Concat(hasVersion && reported >= GeoToolsSince ? GeoTools : []);
             foreach (var name in expected)
             {
                 Assert.Contains(tools, t => string.Equals(t.Name, name, StringComparison.Ordinal));

@@ -84,6 +84,61 @@ public class HttpHelpersTests
         Assert.Equal(100_001, body.Length);
     }
 
+    [Theory]
+    [InlineData("text/html", "ok")]
+    [InlineData("text/plain", "  <html>Request Rejected</html>")]
+    public async Task Block_page_is_rejected_as_blocked_and_transient(string mediaType, string body)
+    {
+        using var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(body, Encoding.UTF8, mediaType) };
+
+        var exception = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => response.ReadBodyRejectingBlockPageAsync("SVC", TestContext.Current.CancellationToken));
+
+        Assert.Equal("blocked", exception.ErrorCode);
+        Assert.True(exception.IsTransient);
+        Assert.Equal("SVC blocked the request (HTML block page).", exception.Message);
+        Assert.Equal(body, exception.ResponseSnippet);
+    }
+
+    [Fact]
+    public async Task Non_html_body_is_returned_as_read()
+    {
+        using var response = new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{\"a\":1}", Encoding.UTF8, "application/json") };
+
+        Assert.Equal("{\"a\":1}", Encoding.UTF8.GetString(await response.ReadBodyRejectingBlockPageAsync("SVC", TestContext.Current.CancellationToken)));
+    }
+
+    [Fact]
+    public async Task Status_429_is_a_quota_error_with_retry_after()
+    {
+        using var response = new HttpResponseMessage((HttpStatusCode)429);
+        response.Headers.RetryAfter = new RetryConditionHeaderValue(TimeSpan.FromSeconds(7));
+
+        var exception = await Assert.ThrowsAsync<QuotaExceededException>(() => response.ThrowForStatusAsync("SVC", TestContext.Current.CancellationToken));
+
+        Assert.Equal("SVC rate limit reached (HTTP 429).", exception.Message);
+        Assert.Equal(TimeSpan.FromSeconds(7), exception.RetryAfter);
+    }
+
+    [Fact]
+    public async Task Status_5xx_throws_http_request_exception()
+    {
+        using var response = new HttpResponseMessage(HttpStatusCode.ServiceUnavailable);
+
+        _ = await Assert.ThrowsAsync<HttpRequestException>(() => response.ThrowForStatusAsync("SVC", TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task Status_4xx_throws_api_exception_with_the_body_start()
+    {
+        using var response = new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = new StringContent("bad input") };
+
+        var exception = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => response.ThrowForStatusAsync("SVC", TestContext.Current.CancellationToken));
+
+        Assert.Equal("SVC request failed with HTTP 400.", exception.Message);
+        Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+        Assert.Equal("bad input", exception.ResponseSnippet);
+    }
+
     [Fact]
     public void Reads_retry_after_delta()
     {

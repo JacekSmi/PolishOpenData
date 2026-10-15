@@ -62,5 +62,5 @@ jobs:
       - name: Drive the AOT binary over stdio
         run: >
           python3 build/mcp-stdio-check.py
-          --expect-tools lookup_company,check_vat_bank_account,check_vat_bank_account_offline,get_krs_extract,validate_identifier
+          --expect-tools lookup_company,check_vat_bank_account,check_vat_bank_account_offline,get_krs_extract,validate_identifier,find_parcel,geocode_address
           -- artifacts/aot/PolishOpenData.Mcp

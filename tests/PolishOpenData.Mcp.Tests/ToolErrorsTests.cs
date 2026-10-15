@@ -29,8 +29,22 @@ public class ToolErrorsTests
     [Fact]
     public void Daily_limit_error_points_to_offline_tool()
     {
-        var text = ToolErrors.Describe(new QuotaExceededException("Biała Lista daily request limit for this IP address is exhausted (WL-191).", (HttpStatusCode)429, "WL-191", null, null));
-        Assert.EndsWith("Use check_vat_bank_account_offline, which has no request limit.", text, StringComparison.Ordinal);
+        var quota = new QuotaExceededException("Biała Lista daily request limit for this IP address is exhausted (WL-191).", (HttpStatusCode)429, "WL-191", null, null);
+        foreach (var tool in new[] { "check_vat_bank_account", "lookup_company" })
+        {
+            Assert.EndsWith("Use check_vat_bank_account_offline, which has no request limit.", ToolErrors.Describe(quota, tool), StringComparison.Ordinal);
+        }
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("get_krs_extract")]
+    public void Krs_rate_limit_does_not_point_to_the_vat_tool(string? tool)
+    {
+        // KrsFailure (lookup_company) passes no tool name.
+        var text = ToolErrors.Describe(new QuotaExceededException("KRS rate limit reached (HTTP 429).", HttpStatusCode.TooManyRequests, null, null, null), tool);
+
+        Assert.Equal("Request limit reached: KRS rate limit reached (HTTP 429).", text);
     }
 
     [Fact]
@@ -79,6 +93,29 @@ public class ToolErrorsTests
     {
         Assert.Contains("Try again in a minute", ToolErrors.Describe(new PolishOpenDataApiException("x", HttpStatusCode.BadRequest, "WL-195", null, isTransient: true)), StringComparison.Ordinal);
         Assert.Contains("rejected the request", ToolErrors.Describe(new PolishOpenDataApiException("bad date", HttpStatusCode.BadRequest, "WL-103", null)), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Block_page_says_the_service_blocked_the_request()
+    {
+        var text = ToolErrors.Describe(new PolishOpenDataApiException("blocked", HttpStatusCode.OK, "blocked", "<html>", isTransient: true));
+
+        Assert.Contains("blocked the request", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("updating its data", text, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("find_parcel")]
+    [InlineData("geocode_address")]
+    public void Gugik_rate_limit_says_to_wait_and_does_not_point_to_the_vat_tools(string tool)
+    {
+        var text = ToolErrors.Describe(new QuotaExceededException("ULDK rate limit reached (HTTP 429).", HttpStatusCode.TooManyRequests, null, null, TimeSpan.FromSeconds(30)), tool);
+
+        Assert.NotNull(text);
+        Assert.DoesNotContain("check_vat_bank_account", text, StringComparison.Ordinal);
+        Assert.Contains("Wait", text, StringComparison.Ordinal);
+        Assert.Contains("retry after 30 s", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("..", text, StringComparison.Ordinal);
     }
 
     [Theory]

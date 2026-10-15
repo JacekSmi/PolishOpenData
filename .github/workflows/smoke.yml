@@ -14,10 +14,10 @@ jobs:
     # Forks do not run the live checks (or open issues about them).
     if: github.repository == 'JacekSmi/PolishOpenData'
     runs-on: ubuntu-latest
-    # Above the sum of the per-test timeouts (13 network tests x 2 min, the 14th (production REGON) test skipping itself without a key, the published-package test's 5 min and the offline flat-file test's 20 min, which skips after 15 min of a slow download) plus
+    # Above the sum of the per-test timeouts (17 network tests x 2 min, the production REGON test skipping itself without a key, the published-package test's 5 min and the offline flat-file test's 20 min, which skips after 15 min of a slow download) plus
     # setup and build, so a stalled registry ends as a failed test with its details. If the job still hits this
     # limit, it ends as cancelled, and the report job reports that too.
-    timeout-minutes: 60
+    timeout-minutes: 70
     permissions:
       contents: read
     env:

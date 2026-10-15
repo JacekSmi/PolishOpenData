@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>
+    <RootNamespace>PolishOpenData.Geo</RootNamespace>
+    <Description>Typed Polish coordinates: PL-1992 (EPSG:2180) and WGS-84 points with a built-in, dependency-free conversion between them, plus a bounding box. Shared by the ULDK and UUG clients. Unofficial; not affiliated with the Polish government.</Description>
+    <PackageTags>$(PackageTags);geo;coordinates;epsg-2180;pl-1992;wgs84;gugik</PackageTags>
+    <!-- No release of this package exists on nuget.org yet, so there is nothing to compare against. After 1.4.0 is published, delete this line; the baseline in src/Directory.Build.props then applies (raise it first). -->
+    <PackageValidationBaselineVersion />
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="Polyfill" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="PolishOpenData.Geo.Core.Tests" />
+  </ItemGroup>
+</Project>

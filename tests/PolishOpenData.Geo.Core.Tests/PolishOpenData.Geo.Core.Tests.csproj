@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net10.0;net472</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PolishOpenData.Geo.Core\PolishOpenData.Geo.Core.csproj" />
+  </ItemGroup>
+  <!-- the shared test helpers use DateOnly, which Geo.Core no longer brings in on .NET Framework -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <PackageReference Include="Portable.System.DateTimeOnly" />
+  </ItemGroup>
+</Project>

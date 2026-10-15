@@ -1,6 +1,6 @@
 # PolishOpenData
 
-**.NET libraries and an MCP server for Polish public registers** — company lookup in KRS, the VAT whitelist (Biała Lista) with bank-account checks (online, or offline against the Ministry of Finance flat file), a client for the GUS REGON register (library only), and offline validation of NIP, REGON, KRS, NRB and land-registry (KW) numbers.
+**.NET libraries and an MCP server for Polish public registers** — company lookup in KRS, the VAT whitelist (Biała Lista) with bank-account checks (online, or offline against the Ministry of Finance flat file), a client for the GUS REGON register (library only), cadastral parcel lookup (ULDK) and address geocoding (UUG) from GUGiK, and offline validation of NIP, REGON, KRS, NRB and land-registry (KW) numbers.
 
 [![CI](https://github.com/JacekSmi/PolishOpenData/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JacekSmi/PolishOpenData/actions/workflows/ci.yml?query=branch%3Amain)
 [![NuGet](https://img.shields.io/nuget/v/PolishOpenData.Mcp?label=PolishOpenData.Mcp)](https://www.nuget.org/packages/PolishOpenData.Mcp)
@@ -19,7 +19,10 @@
 | [`PolishOpenData.BialaLista`](https://www.nuget.org/packages/PolishOpenData.BialaLista) | VAT whitelist: status, bank-account check with request ID, batches, daily-limit guard | net10.0, netstandard2.0 |
 | [`PolishOpenData.BialaLista.Offline`](https://www.nuget.org/packages/PolishOpenData.BialaLista.Offline) | VAT whitelist checked offline against the Ministry of Finance daily flat file: no request limit, many pairs at once, no request ID | net10.0, netstandard2.0 |
 | [`PolishOpenData.Regon`](https://www.nuget.org/packages/PolishOpenData.Regon) | GUS REGON (BIR1.2): search by NIP/REGON/KRS, batches of 20, full reports, session and request limiter; needs your own free GUS key | net10.0, netstandard2.0 |
-| [`PolishOpenData.Mcp`](https://www.nuget.org/packages/PolishOpenData.Mcp) | MCP server for AI assistants: company lookup, VAT whitelist and bank-account check (online and offline), KRS extracts, identifier validation | .NET 10 tool |
+| [`PolishOpenData.Geo.Core`](https://www.nuget.org/packages/PolishOpenData.Geo.Core) | Typed Polish coordinates: `Pl1992Point` (EPSG:2180) and `Wgs84Point` with a built-in conversion, `Pl1992Bbox`, `ParcelId` (TERYT parcel identifier) | net10.0, netstandard2.0 |
+| [`PolishOpenData.Uldk`](https://www.nuget.org/packages/PolishOpenData.Uldk) | GUGiK ULDK: cadastral parcel by ID, by point or by region name and number, with its boundary as WKT | net10.0, netstandard2.0 |
+| [`PolishOpenData.Uug`](https://www.nuget.org/packages/PolishOpenData.Uug) | GUGiK UUG: geocode a Polish address to a WGS-84 point with a match accuracy, or find the nearest address to a point | net10.0, netstandard2.0 |
+| [`PolishOpenData.Mcp`](https://www.nuget.org/packages/PolishOpenData.Mcp) | MCP server for AI assistants: company lookup, VAT whitelist and bank-account check (online and offline), KRS extracts, parcels and address geocoding, identifier validation | .NET 10 tool |
 
 ## Offline validation
 
@@ -154,9 +157,51 @@ foreach (var c in checks)
 - **No request ID, no evidence.** The flat file gives no request identifier. When you need proof for the tax office, check with the REST client (`PolishOpenData.BialaLista`) and keep its `RequestId`.
 - **Time of the check and time of the data.** `FileDate` and `GeneratedOn` describe the data; record when you ran the check yourself.
 
+## Parcels and geocoding
+
+`PolishOpenData.Uldk` finds cadastral parcels (działki ewidencyjne) with GUGiK's ULDK service and `PolishOpenData.Uug` turns an address into coordinates with GUGiK's geocoder; the clients share the coordinate types of `PolishOpenData.Geo.Core`. Both services are public and need no key.
+
+```bash
+dotnet add package PolishOpenData.Uldk
+dotnet add package PolishOpenData.Uug
+```
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using PolishOpenData.Geo;
+using PolishOpenData.Uldk;
+using PolishOpenData.Uug;
+
+var services = new ServiceCollection();
+services.AddUldkClient();
+services.AddUugClient();
+using var provider = services.BuildServiceProvider();
+var uug = provider.GetRequiredService<IUugClient>();
+var uldk = provider.GetRequiredService<IUldkClient>();
+
+// Address -> coordinates -> parcel. Only an Address match is a point; a partial address gives a Street or City match.
+var matches = await uug.GeocodeAsync("Warszawa, Krucza 50");
+if (matches is [{ Kind: UugMatchKind.Address } match])
+{
+    var parcel = await uldk.GetParcelAtAsync(match.Location, ParcelGeometryKind.Wgs84);
+    Console.WriteLine($"{parcel?.Id}, {parcel?.CommuneName}");   // null: no parcel at that point
+    Console.WriteLine(parcel?.Geometry?.Wkt);                    // POLYGON((longitude latitude, ...)), EPSG:4326
+}
+
+// By identifier or by region name and number ("Krzewina 134" can match several parcels, so there is no geometry).
+var byId = await uldk.GetParcelByIdAsync(ParcelId.Parse("146510_8.0507.41/1"));
+var byName = await uldk.FindParcelsAsync("Krzewina 134");
+```
+
+- **Axis order.** No position is a bare pair of doubles: `Wgs84Point(Latitude, Longitude)` and `Pl1992Point(Easting, Northing)` name their axes, and there are no `X`/`Y` members. Latitude comes first in `Wgs84Point` (Warsaw is about 52.2, 21.0), whereas WKT, including the geometry the library returns, writes longitude first. A swapped WGS-84 pair is rejected with `ArgumentOutOfRangeException` before any request, because the ranges for Poland (latitude 48.9 to 55.0, longitude 14.0 to 24.2) do not overlap.
+- **Not found is not an error.** A parcel that does not exist is `null`, a search without a match an empty list. An answer that is an HTML page (the GUGiK firewall) throws `PolishOpenDataApiException` with `ErrorCode = "blocked"`.
+- **What a parcel has.** ID, number, region, commune, county, voivodeship, the bounding box in PL-1992 (`Extent`) and, on request, the boundary as WKT in PL-1992 or in WGS-84 (`ParcelGeometryKind`; WGS-84 costs one extra request). ULDK reports no area.
+- **An address point is not a property.** It marks a building entrance, so the parcel found at it is the one under that entrance, not necessarily the whole property.
+- **Retries and parallelism.** The libraries never retry. Registered with `AddUldkClient` or `AddUugClient`, a client opens at most 4 connections per service. If you want retries, add `.AddStandardResilienceHandler()` (from the `Microsoft.Extensions.Http.Resilience` package) to the returned builder, and keep them few.
+
 ## MCP server for AI assistants
 
-Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download). No API keys.
+Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download). No API keys. The parcel and geocoding tools send every request to GUGiK, and retry a transient failure once.
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_MCP_server-0098FF?logo=visualstudiocode)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522polish-open-data%2522%252C%2522type%2522%253A%2522stdio%2522%252C%2522command%2522%253A%2522dotnet%2522%252C%2522args%2522%253A%255B%2522dnx%2522%252C%2522PolishOpenData.Mcp%2522%252C%2522--yes%2522%255D%257D)
 [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_MCP_server-24bfa5?logo=visualstudiocode)](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522polish-open-data%2522%252C%2522type%2522%253A%2522stdio%2522%252C%2522command%2522%253A%2522dotnet%2522%252C%2522args%2522%253A%255B%2522dnx%2522%252C%2522PolishOpenData.Mcp%2522%252C%2522--yes%2522%255D%257D)
@@ -193,6 +238,8 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 | `check_vat_bank_account` | "Can I pay this invoice to this account?" — whitelist check with request ID |
 | `check_vat_bank_account_offline` | Same question against the Ministry of Finance daily flat file: no request limit, up to 50 pairs at once, nothing about the pairs leaves your machine, no request ID (use `check_vat_bank_account` when you need one). The first call for a date downloads about 250 MB (the file is deleted once the index is built) and takes several minutes, or much longer when the Ministry's server is slow; the tool reports progress. `not_found` means not found in the file, not proof of absence. Prepared indexes are kept in the user's local application data folder; set `POLISHOPENDATA_OFFLINE_DIR` to use another local folder (not a network share) |
 | `get_krs_extract` | Board and supervisory members (masked by the ministry), capital, shareholders, PKD activities |
+| `find_parcel` | "Which parcel is this?" — by parcel ID, WGS-84 coordinates (latitude first), address or region name and number ("Krzewina 134", all matches). Returns the parcel ID, number, region, commune, county, voivodeship and the center of its bounding box; `includeGeometry` adds the full boundary as WKT in EPSG:4326 (not for region searches). An address gives a parcel only when it resolves to exactly one address point (a building entrance, not necessarily the whole property); otherwise the geocoder's candidates. No parcel area (ULDK has none). Sources: ULDK, and UUG for an address (`sources`) |
+| `geocode_address` | "Where is this address?" — WGS-84 coordinates and match accuracy; every match says whether it is an address, a street or a city (a partial address gives a representative point of the street or city). Source: UUG (`source`) |
 | `validate_identifier` | Offline checksum validation of NIP, REGON, KRS, NRB and KW numbers, with typo suggestions |
 
 ## Land-registry (KW) numbers
@@ -208,11 +255,12 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 - GUS records the IP address, time and content of every REGON request. Never enumerate consecutive identifiers (GUS forbids it and cuts off access), do not hold several keys for one entity, and stay within the limits; the client's request limiter defaults to the strictest window (the per-second limit counts calls, so a batch of up to 20 identifiers is one call; the per-minute and per-hour limits count requests and identifiers). Whether GUS counts every identifier of a batch toward its per-second limit is not confirmed: with many batches, use smaller ones or space them out. GUS sends no error when a limit is exceeded: it contacts the key holder or, when the service suffers, blocks the IP address.
 - The REGON library returns data as published. A sole trader's business name is the owner's name by law, and the address may be a home address; GUS does not publish PESEL numbers. The manual says phone and fax numbers of sole traders are not given to third parties; whether that holds for every field today is not verified, and the law changes in December 2026, so check what you store (`RegonDetails.Fields` holds every field GUS sent). Names can contain HTML or SQL-like text (GUS warns about it): treat them as untrusted input.
 - Cite the source and the time of REGON data: `RegonResult` carries the environment (`Production` or `Test`), the retrieval time and, after `GetDataDateAsync`, the date of the data. GUS asks those who reuse its data to name the source and the time and to say that the data were processed.
-- No scraping, no bulk harvesting, no linking of parcels to land-registry numbers.
+- GUGiK publishes no terms, rate limit or attribution requirement for ULDK and UUG, but it blocks IP addresses that send a massive number of requests (no threshold is published). Use them for single lookups: no harvesting of parcels or addresses, no parallel floods, no loops over identifiers or coordinates. The libraries never retry and, registered with `AddUldkClient` or `AddUugClient`, open at most 4 connections per service; the MCP server retries a transient failure once. For bulk needs, contact GUGiK (`uslugi.iip@gugik.gov.pl`) first. Naming the source (GUGiK, ULDK/UUG) is good practice, not a requirement; every `find_parcel` and `geocode_address` result carries its source and the retrieval time. Parcel data are EGiB cadastre records, informational only.
+- No scraping, no bulk harvesting, and never land-registry (KW) numbers: the parcel tools neither accept nor return them or owner data, and nothing in this project links a parcel to a land-registry number. Do not try to build such a link from parcel data.
 
 ## Possible next steps
 
-Ideas, not commitments: property data (ULDK parcels, GUGiK geocoder, transaction prices). A REGON tool for the MCP server is under consideration, but only if GUS confirms its rules for user keys. If one of them would help you, [open an issue](https://github.com/JacekSmi/PolishOpenData/issues) to show interest.
+Ideas, not commitments: more property data (transaction prices). A REGON tool for the MCP server is under consideration, but only if GUS confirms its rules for user keys. If one of them would help you, [open an issue](https://github.com/JacekSmi/PolishOpenData/issues) to show interest.
 
 ## Contributing and license
 
