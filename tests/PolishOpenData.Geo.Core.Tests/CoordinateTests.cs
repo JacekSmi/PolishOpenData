@@ -5,22 +5,45 @@ namespace PolishOpenData.Geo.Core.Tests;
 
 public class CoordinateTests
 {
-    // Control pair from ULDK's own answers for parcel 146510_8.0507.41/1 (first vertex, srid 2180 and 4326).
-    [Fact]
-    public void Pl1992_to_wgs84_matches_gugik_within_1e7_degree()
+    // Control pairs from ULDK's own answers (first vertex of result=geom_wkt, srid 2180 and 4326):
+    // 146510_8.0507.41/1 in Warsaw, and 200505_2.0014.51 near Poland's eastern edge (recorded 2026-10-15).
+    [Theory]
+    [InlineData(638144.500192729, 486022.681429996, 52.2229074776239, 21.0230574318539)]
+    [InlineData(811786.778983666, 536805.693048013, 52.6072959061805, 23.6068998827821)]
+    public void Pl1992_to_wgs84_matches_gugik_within_1e9_degree(double easting, double northing, double latitude, double longitude)
     {
-        var wgs = new Pl1992Point(638144.500192729, 486022.681429996).ToWgs84();
-        Assert.Equal(52.2229074776239, wgs.Latitude, 1e-7);
-        Assert.Equal(21.0230574318539, wgs.Longitude, 1e-7);
+        var wgs = new Pl1992Point(easting, northing).ToWgs84();
+        Assert.Equal(latitude, wgs.Latitude, 1e-9);
+        Assert.Equal(longitude, wgs.Longitude, 1e-9);
+    }
+
+    [Theory]
+    [InlineData(638144.500192729, 486022.681429996, 52.2229074776239, 21.0230574318539)]
+    [InlineData(811786.778983666, 536805.693048013, 52.6072959061805, 23.6068998827821)]
+    public void Wgs84_to_pl1992_matches_gugik_within_1mm(double easting, double northing, double latitude, double longitude)
+    {
+        var pl = new Wgs84Point(latitude, longitude).ToPl1992();
+        Assert.Equal(easting, pl.Easting, 0.001);
+        Assert.Equal(northing, pl.Northing, 0.001);
     }
 
     [Fact]
-    public void Wgs84_to_pl1992_matches_gugik_within_1cm()
+    public void Pl1992_point_outside_the_wgs84_range_throws_without_the_swapped_axes_hint()
     {
-        var pl = new Wgs84Point(52.2229074776239, 21.0230574318539).ToPl1992();
-        Assert.Equal(638144.500192729, pl.Easting, 0.01);
-        Assert.Equal(486022.681429996, pl.Northing, 0.01);
+        // The south-west corner of the grid box lies south of latitude 48.9.
+        var exception = Assert.Throws<ArgumentOutOfRangeException>(() => new Pl1992Point(100_000, 100_000).ToWgs84());
+
+        Assert.Contains("PL-1992 point lies outside", exception.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("latitude comes first", exception.Message, StringComparison.Ordinal);
     }
+
+    [Theory]
+    [InlineData(52.2, 21.0, true)]
+    [InlineData(21.0, 52.2, false)]
+    [InlineData(0, 0, false)]
+    [InlineData(double.NaN, 21.0, false)]
+    public void Wgs84Point_IsInPoland(double latitude, double longitude, bool expected) =>
+        Assert.Equal(expected, Wgs84Point.IsInPoland(latitude, longitude));
 
     [Theory]
     [InlineData(49.0, 14.1)]
@@ -55,6 +78,12 @@ public class CoordinateTests
         var bbox = new Pl1992Bbox(new Pl1992Point(600000, 480000), new Pl1992Point(600100, 480300));
         Assert.Equal(new Pl1992Point(600050, 480150), bbox.Center);
     }
+
+    [Theory]
+    [InlineData(600100, 480000)]
+    [InlineData(600000, 480300)]
+    public void Bbox_with_min_east_or_north_of_max_throws(double minEasting, double minNorthing) =>
+        Assert.Throws<ArgumentException>(() => new Pl1992Bbox(new Pl1992Point(minEasting, minNorthing), new Pl1992Point(600050, 480150)));
 
     [Fact]
     public void ToString_uses_invariant_culture()

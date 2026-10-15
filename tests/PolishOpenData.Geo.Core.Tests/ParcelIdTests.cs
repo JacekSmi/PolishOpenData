@@ -48,6 +48,10 @@ public class ParcelIdTests
     [InlineData("146510_8.0507.41/")]
     [InlineData("146510_8.0507.AR_2.")]
     [InlineData("146510_8.507.41")]
+    [InlineData("146510_8.0507.ar_2.41/1")]
+    [InlineData("146510_8.0507.٤١/1")]
+    [InlineData("١٤٦٥١٠_8.0507.41/1")]
+    [InlineData("146510_8.0507.41//1")]
     public void ParcelId_rejects(string? text)
     {
         Assert.False(ParcelId.TryParse(text, out var id));
@@ -56,6 +60,19 @@ public class ParcelIdTests
         {
             Assert.Throws<FormatException>(() => ParcelId.Parse(text));
         }
+    }
+
+    [Fact]
+    public void Default_ParcelId_is_empty_with_empty_parts()
+    {
+        var id = default(ParcelId);
+        Assert.True(id.IsEmpty);
+        Assert.Equal(string.Empty, id.Unit);
+        Assert.Equal(string.Empty, id.Region);
+        Assert.Null(id.Sheet);
+        Assert.Equal(string.Empty, id.Number);
+        Assert.Equal(string.Empty, id.ToString());
+        Assert.False(ParcelId.Parse("146510_8.0507.41/1").IsEmpty);
     }
 
     [Fact]

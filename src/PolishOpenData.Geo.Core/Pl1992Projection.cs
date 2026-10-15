@@ -87,7 +87,12 @@ internal static class Pl1992Projection
         }
 
         var lambda = CentralMeridian + Math.Atan2(Math.Sinh(eta0), Math.Cos(xi0));
-        return new Wgs84Point(Snap(phi * 180 / Math.PI, 48.9, 55.0), Snap(lambda * 180 / Math.PI, 14.0, 24.2));
+        var latitude = Snap(phi * 180 / Math.PI, 48.9, 55.0);
+        var longitude = Snap(lambda * 180 / Math.PI, 14.0, 24.2);
+        // The grid box is wider than the WGS-84 box at its corners; the Wgs84Point message (swapped axes) would mislead here.
+        return Wgs84Point.IsInPoland(latitude, longitude)
+            ? new Wgs84Point(latitude, longitude)
+            : throw new ArgumentOutOfRangeException(null, p, "The PL-1992 point lies outside the area the conversion to WGS-84 supports (latitude 48.9-55.0, longitude 14.0-24.2).");
     }
 
     // A point on the edge of the range can round-trip a few ulps outside it; pull such results back onto the edge.

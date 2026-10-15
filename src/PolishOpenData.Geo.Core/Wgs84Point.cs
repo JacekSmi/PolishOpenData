@@ -16,8 +16,8 @@ public readonly record struct Wgs84Point
     /// <exception cref="ArgumentOutOfRangeException">A coordinate is NaN, infinite or outside the range that covers Poland.</exception>
     public Wgs84Point(double Latitude, double Longitude)
     {
-        this.Latitude = Latitude >= 48.9 && Latitude <= 55.0 ? Latitude : throw Out(nameof(Latitude), Latitude);
-        this.Longitude = Longitude >= 14.0 && Longitude <= 24.2 ? Longitude : throw Out(nameof(Longitude), Longitude);
+        this.Latitude = InRange(Latitude, 48.9, 55.0) ? Latitude : throw Out(nameof(Latitude), Latitude);
+        this.Longitude = InRange(Longitude, 14.0, 24.2) ? Longitude : throw Out(nameof(Longitude), Longitude);
     }
 
     /// <summary>Degrees north.</summary>
@@ -26,12 +26,18 @@ public readonly record struct Wgs84Point
     /// <summary>Degrees east.</summary>
     public double Longitude { get; }
 
+    /// <summary>True when both coordinates are finite and inside the range that covers Poland.</summary>
+    public static bool IsInPoland(double latitude, double longitude) =>
+        InRange(latitude, 48.9, 55.0) && InRange(longitude, 14.0, 24.2);
+
     /// <summary>Converts to PL-1992 (EPSG:2180), accurate to well under a millimetre.</summary>
     public Pl1992Point ToPl1992() => Pl1992Projection.ToPl1992(this);
 
     /// <summary>Formats as <c>52.2229075, 21.0230574</c> (invariant culture, 7 decimals, about 1 cm).</summary>
     public override string ToString() =>
         FormattableString.Invariant($"{Latitude:F7}, {Longitude:F7}");
+
+    private static bool InRange(double value, double min, double max) => value >= min && value <= max;
 
     private static ArgumentOutOfRangeException Out(string name, double value) =>
         new(name, value, "Outside the WGS-84 range that covers Poland (latitude 48.9-55.0, longitude 14.0-24.2; latitude comes first).");
