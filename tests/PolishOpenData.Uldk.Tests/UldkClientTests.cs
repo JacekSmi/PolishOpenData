@@ -98,6 +98,8 @@ public class UldkClientTests
     [InlineData("0\n146510_8.0507.41/1|41/1|5-05-07|W|p|m|637928.3,485970.8,abc,486033.1|s|SRID=2180;POLYGON((1 2))\n")]
     [InlineData("0\n146510_8.0507.41/1|41/1|5-05-07|W|p|m|0,0,1,1|s|SRID=2180;POLYGON((1 2))\n")]
     [InlineData("0\n146510_8.0507.41/1|41/1|5-05-07|W|p|m|637928.3,485970.8,638215.3,486033.1|s|POLYGON((1 2))\n")]
+    [InlineData("0\n146510_8.0507.41/1|41/1|5-05-07|W|p|m|638215.3,485970.8,637928.3,486033.1|s|SRID=2180;POLYGON((1 2))\n")]   // min east of max
+    [InlineData("0\n146510_8.0507.41/1|41/1|5-05-07|W|p|m|100000,100000,100010,100010|s|SRID=2180;POLYGON((1 2))\n")]   // centre is on the grid but not in WGS-84 Poland
     public async Task GetParcelById_unreadable_answer_throws_api_exception_with_http_200(string body)
     {
         var (client, _) = Create(_ => Text(body));
@@ -113,8 +115,11 @@ public class UldkClientTests
     {
         var (client, stub) = Create(_ => FromFixture("xy-warsaw.txt"));
 
-        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => client.GetParcelAtAsync(default(Wgs84Point), cancellationToken: TestContext.Current.CancellationToken));
-        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => client.GetParcelAtAsync(default(Pl1992Point), cancellationToken: TestContext.Current.CancellationToken));
+        var wgs84 = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => client.GetParcelAtAsync(default(Wgs84Point), cancellationToken: TestContext.Current.CancellationToken));
+        var pl1992 = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => client.GetParcelAtAsync(default(Pl1992Point), cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.Equal("point", wgs84.ParamName);
+        Assert.Equal("point", pl1992.ParamName);
 
         Assert.Empty(stub.RequestUris);
     }
@@ -188,6 +193,55 @@ public class UldkClientTests
     }
 
     [Fact]
+    public async Task GetParcelById_pl1992_geometry_requests_geom_wkt_in_one_request()
+    {
+        var (client, stub) = Create(_ => FromFixture("parcel-146510_8.0507.41_1.txt"));
+
+        _ = await client.GetParcelByIdAsync(Parcel, ParcelGeometryKind.Pl1992, TestContext.Current.CancellationToken);
+
+        var query = Query(Assert.Single(stub.RequestUris));
+        Assert.Contains("&result=id,parcel,region,commune,county,voivodeship,geom_extent,datasource,geom_wkt&", query, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetParcelAt_wgs84_geometry_asks_for_the_geometry_of_the_parcel_found()
+    {
+        var (client, stub) = Create(request => FromFixture(Query(request.RequestUri!).Contains("result=geom_wkt", StringComparison.Ordinal)
+            ? "parcel-146510_8.0507.41_1-wgs84-geom.txt"
+            : "xy-warsaw.txt"));
+
+        var parcel = await client.GetParcelAtAsync(new Wgs84Point(52.2229, 21.0231), ParcelGeometryKind.Wgs84, TestContext.Current.CancellationToken);
+
+        Assert.Equal(2, stub.RequestUris.Count);
+        Assert.Contains("xy=21.0231,52.2229,4326", Query(stub.RequestUris[0]), StringComparison.Ordinal);
+        Assert.Equal("?request=GetParcelById&id=146510_8.0507.41/1&result=geom_wkt&srid=4326", Query(stub.RequestUris[1]));
+        Assert.Equal(4326, parcel!.Geometry!.Srid);
+    }
+
+    [Fact]
+    public async Task GetParcelById_wgs84_geometry_missing_in_second_answer_throws_api_exception()
+    {
+        var (client, _) = Create(request => FromFixture(Query(request.RequestUri!).Contains("result=geom_wkt", StringComparison.Ordinal)
+            ? "count-not-found.txt"
+            : "xy-warsaw.txt"));
+
+        var exception = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.GetParcelByIdAsync(Parcel, ParcelGeometryKind.Wgs84, TestContext.Current.CancellationToken));
+
+        Assert.Equal(HttpStatusCode.OK, exception.StatusCode);
+        Assert.Contains("disappeared between the two requests", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Answer_with_a_utf8_byte_order_mark_is_parsed()
+    {
+        var (client, _) = Create(_ => Text("\uFEFF" + Fixture.Read("uldk/xy-warsaw.txt")));
+
+        var parcel = await client.GetParcelByIdAsync(Parcel, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal("146510_8.0507.41/1", parcel!.Id.ToString());
+    }
+
+    [Fact]
     public async Task FindParcels_returns_every_match()
     {
         var (client, stub) = Create(_ => FromFixture("count-krzewina-134.txt"));
@@ -212,6 +266,16 @@ public class UldkClientTests
     }
 
     [Fact]
+    public async Task FindParcels_encodes_a_full_parcel_id_with_a_slash()
+    {
+        var (client, stub) = Create(_ => FromFixture("count-not-found.txt"));
+
+        _ = await client.FindParcelsAsync("146510_8.0507.41/1", TestContext.Current.CancellationToken);
+
+        Assert.Contains("id=146510_8.0507.41%2F1&", stub.RequestUris[0].Query, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task FindParcels_not_found_returns_empty()
     {
         var (client, _) = Create(_ => FromFixture("count-not-found.txt"));
@@ -221,11 +285,12 @@ public class UldkClientTests
 
     [Theory]
     [InlineData(null)]
+    [InlineData("")]
     [InlineData(" ")]
     public async Task FindParcels_blank_text_throws(string? text) =>
-        _ = await Assert.ThrowsAsync<ArgumentException>(() => client().FindParcelsAsync(text!, TestContext.Current.CancellationToken));
+        _ = await Assert.ThrowsAsync<ArgumentException>(() => CreateClient().FindParcelsAsync(text!, TestContext.Current.CancellationToken));
 
-    private static UldkClient client() => Create(_ => FromFixture("count-not-found.txt")).Client;
+    private static UldkClient CreateClient() => Create(_ => FromFixture("count-not-found.txt")).Client;
 
     [Fact]
     public async Task Requests_send_the_user_agent()

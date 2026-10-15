@@ -42,8 +42,8 @@ public class UugClientTests
         Assert.Equal(0.76, match.Accuracy);
         Assert.Null(match.DistanceMeters);
         var expected = new Pl1992Point(637659.46, 486969.16).ToWgs84();
-        Assert.Equal(expected.Latitude, match.Location.Latitude, 6);
-        Assert.Equal(expected.Longitude, match.Location.Longitude, 6);
+        Assert.Equal(expected.Latitude, match.Location.Latitude, 1e-6);
+        Assert.Equal(expected.Longitude, match.Location.Longitude, 1e-6);
         Assert.Equal("?request=GetAddress&address=Warszawa%2C%20Krucza%2050", Assert.Single(stub.RequestUris).Query);
     }
 
@@ -69,6 +69,38 @@ public class UugClientTests
         var (client, _) = Create(_ => FromFixture("none.json"));
 
         Assert.Empty(await client.GeocodeAsync("Qwertyuiop 999", TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData("""{"type":"address","results":[]}""")]
+    [InlineData("""{"type":"address","results":null}""")]
+    [InlineData("""{"type":"address"}""")]
+    public async Task Geocode_empty_array_null_or_missing_results_return_empty(string body)
+    {
+        var (client, _) = Create(_ => Json(body));
+
+        Assert.Empty(await client.GeocodeAsync("x", TestContext.Current.CancellationToken));
+    }
+
+    [Theory]
+    [InlineData("""{"type":"address","results":[{"city":"A"}]}""")]
+    [InlineData("""{"type":"address","results":"none"}""")]
+    [InlineData("""{"type":"address","results":{"1":null}}""")]
+    public async Task Geocode_unexpected_results_throw_api_exception_with_http_200(string body)
+    {
+        var (client, _) = Create(_ => Json(body));
+
+        var exception = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.GeocodeAsync("x", TestContext.Current.CancellationToken));
+
+        Assert.Equal(HttpStatusCode.OK, exception.StatusCode);
+    }
+
+    [Fact]
+    public async Task Reverse_empty_array_results_return_null()
+    {
+        var (client, _) = Create(_ => Json("""{"type":"address","results":[]}"""));
+
+        Assert.Null(await client.ReverseGeocodeAsync(new Wgs84Point(54.9, 18.0), TestContext.Current.CancellationToken));
     }
 
     [Fact]
@@ -111,8 +143,9 @@ public class UugClientTests
     {
         var (client, stub) = Create(_ => FromFixture("reverse-zurawia.json"));
 
-        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => client.ReverseGeocodeAsync(default, TestContext.Current.CancellationToken));
+        var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => client.ReverseGeocodeAsync(default, TestContext.Current.CancellationToken));
 
+        Assert.Equal("point", exception.ParamName);
         Assert.Empty(stub.RequestUris);
     }
 

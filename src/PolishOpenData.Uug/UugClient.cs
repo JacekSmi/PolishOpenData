@@ -36,10 +36,10 @@ public sealed class UugClient : IUugClient
             throw new ArgumentException("The address is empty.", nameof(address));
         }
 
-        var response = await SendAsync("?request=GetAddress&address=" + Uri.EscapeDataString(address.Trim()), cancellationToken).ConfigureAwait(false);
-        var kind = ToKind(response.Type);
+        var (type, rows) = await SendAsync("?request=GetAddress&address=" + Uri.EscapeDataString(address.Trim()), cancellationToken).ConfigureAwait(false);
+        var kind = ToKind(type);
         // GetAddress answers x = easting, y = northing in EPSG:2180.
-        return OrderedRows(response)
+        return rows
             .Select(row => ToMatch(row, kind, Location(() => new Pl1992Point(Required(row.X), Required(row.Y)).ToWgs84())))
             .ToList();
     }
@@ -47,14 +47,18 @@ public sealed class UugClient : IUugClient
     /// <inheritdoc/>
     public async Task<UugMatch?> ReverseGeocodeAsync(Wgs84Point point, CancellationToken cancellationToken = default)
     {
-        // default(Wgs84Point) skips the validating constructor; rebuilding the point re-runs its range check.
-        point = new Wgs84Point(point.Latitude, point.Longitude);
+        // default(Wgs84Point) skips the validating constructor (0, 0 is outside Poland).
+        if (!Wgs84Point.IsInPoland(point.Latitude, point.Longitude))
+        {
+            throw new ArgumentOutOfRangeException(nameof(point), point, "Outside the WGS-84 range that covers Poland.");
+        }
+
         // WKT order: longitude first, the reverse of Wgs84Point's constructor.
         var location = "POINT(" + Number(point.Longitude) + " " + Number(point.Latitude) + ")";
-        var response = await SendAsync("?request=GetAddressReverse&location=" + Uri.EscapeDataString(location) + "&srid=" + Wgs84Srid.ToString(CultureInfo.InvariantCulture), cancellationToken).ConfigureAwait(false);
-        var kind = ToKind(response.Type);
+        var (type, rows) = await SendAsync("?request=GetAddressReverse&location=" + Uri.EscapeDataString(location) + "&srid=" + Wgs84Srid.ToString(CultureInfo.InvariantCulture), cancellationToken).ConfigureAwait(false);
+        var kind = ToKind(type);
         // With srid=4326 the service answers x = longitude, y = latitude.
-        return OrderedRows(response)
+        return rows
             .Select(row => ToMatch(row, kind, Location(() => new Wgs84Point(Required(row.Y), Required(row.X)))))
             .FirstOrDefault();
     }
@@ -77,12 +81,17 @@ public sealed class UugClient : IUugClient
         }
     }
 
-    private static IEnumerable<UugRow> OrderedRows(UugResponse response) =>
-        response.Results is null
-            ? []
-            : response.Results
-                .OrderBy(pair => int.TryParse(pair.Key, NumberStyles.None, CultureInfo.InvariantCulture, out var key) ? key : int.MaxValue)
-                .Select(pair => pair.Value);
+    /// <summary>The rows of <c>results</c> in key order: an object keyed "1", "2", …, or null / an empty array for no match.</summary>
+    private static List<UugRow> ReadRows(JsonElement results) => results.ValueKind switch
+    {
+        JsonValueKind.Undefined or JsonValueKind.Null => [],
+        JsonValueKind.Array when results.GetArrayLength() == 0 => [],
+        JsonValueKind.Object => results.EnumerateObject()
+            .OrderBy(property => int.TryParse(property.Name, NumberStyles.None, CultureInfo.InvariantCulture, out var key) ? key : int.MaxValue)
+            .Select(property => property.Value.Deserialize(UugJson.Row) ?? throw new JsonException("A result is null."))
+            .ToList(),
+        _ => throw new JsonException("The results are neither an object nor empty."),
+    };
 
     private static UugMatchKind ToKind(string? type) => type switch
     {
@@ -108,7 +117,7 @@ public sealed class UugClient : IUugClient
         DistanceMeters = row.Distance,
     };
 
-    private async Task<UugResponse> SendAsync(string query, CancellationToken cancellationToken)
+    private async Task<(string? Type, List<UugRow> Rows)> SendAsync(string query, CancellationToken cancellationToken)
     {
         using var request = HttpHelpers.CreateGet(new Uri(_options.BaseAddress, query));
         using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
@@ -120,8 +129,9 @@ public sealed class UugClient : IUugClient
         var body = await response.ReadBodyRejectingBlockPageAsync("UUG", cancellationToken).ConfigureAwait(false);
         try
         {
-            return JsonSerializer.Deserialize(body, UugJson.Response)
+            var answer = JsonSerializer.Deserialize(body, UugJson.Response)
                 ?? throw HttpHelpers.UnreadableResponse("UUG returned an empty response.", response, body);
+            return (answer.Type, ReadRows(answer.Results));
         }
         catch (JsonException exception)
         {

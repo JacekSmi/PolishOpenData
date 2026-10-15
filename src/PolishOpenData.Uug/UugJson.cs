@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
@@ -7,12 +6,15 @@ namespace PolishOpenData.Uug;
 
 // Wire DTOs for services.gugik.gov.pl/uug. Internal: the public surface is UugMatch.
 
-/// <summary>The answer to GetAddress and GetAddressReverse. <c>results</c> is null when nothing matched, else an object keyed "1", "2", …</summary>
+/// <summary>
+/// The answer to GetAddress and GetAddressReverse. <c>results</c> is null (or an empty array) when nothing matched,
+/// else an object keyed "1", "2", …; it stays a <see cref="JsonElement"/> so that either shape reads.
+/// </summary>
 internal sealed class UugResponse
 {
     public string? Type { get; set; }
 
-    public Dictionary<string, UugRow>? Results { get; set; }
+    public JsonElement Results { get; set; }
 }
 
 /// <summary>
@@ -38,22 +40,19 @@ internal sealed class UugRow
 
     public string? Code { get; set; }
 
-    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public double? X { get; set; }
 
-    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public double? Y { get; set; }
 
-    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public double? Accuracy { get; set; }
 
-    [JsonNumberHandling(JsonNumberHandling.AllowReadingFromString)]
     public double? Distance { get; set; }
 }
 
 #if NET
 [JsonSourceGenerationOptions(JsonSerializerDefaults.Web)]
 [JsonSerializable(typeof(UugResponse))]
+[JsonSerializable(typeof(UugRow))]
 internal sealed partial class UugJsonContext : JsonSerializerContext;
 #endif
 
@@ -62,10 +61,16 @@ internal static class UugJson
 {
 #if NET
     public static JsonTypeInfo<UugResponse> Response => UugJsonContext.Default.UugResponse;
+
+    public static JsonTypeInfo<UugRow> Row => UugJsonContext.Default.UugRow;
 #else
-    public static JsonTypeInfo<UugResponse> Response { get; } = (JsonTypeInfo<UugResponse>)new JsonSerializerOptions(JsonSerializerDefaults.Web)
+    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
     {
         TypeInfoResolver = new DefaultJsonTypeInfoResolver(),
-    }.GetTypeInfo(typeof(UugResponse));
+    };
+
+    public static JsonTypeInfo<UugResponse> Response { get; } = (JsonTypeInfo<UugResponse>)Options.GetTypeInfo(typeof(UugResponse));
+
+    public static JsonTypeInfo<UugRow> Row { get; } = (JsonTypeInfo<UugRow>)Options.GetTypeInfo(typeof(UugRow));
 #endif
 }

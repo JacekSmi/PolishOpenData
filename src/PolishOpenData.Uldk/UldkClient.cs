@@ -81,8 +81,12 @@ public sealed class UldkClient : IUldkClient
     /// <summary>ULDK wants longitude first for 4326 (WKT order), the reverse of <see cref="Wgs84Point"/>'s constructor.</summary>
     internal static string FormatXy(Wgs84Point point)
     {
-        // default(Wgs84Point) skips the validating constructor; rebuilding the point re-runs its range check.
-        point = new Wgs84Point(point.Latitude, point.Longitude);
+        // default(Wgs84Point) skips the validating constructor (0, 0 is outside Poland).
+        if (!Wgs84Point.IsInPoland(point.Latitude, point.Longitude))
+        {
+            throw new ArgumentOutOfRangeException(nameof(point), point, "Outside the WGS-84 range that covers Poland.");
+        }
+
         return Number(point.Longitude) + "," + Number(point.Latitude) + "," + Wgs84Srid.ToString(CultureInfo.InvariantCulture);
     }
 
@@ -104,7 +108,9 @@ public sealed class UldkClient : IUldkClient
         }
 
         var geometryRows = await SendAsync("?request=GetParcelById&id=" + Uri.EscapeDataString(parcel.Id.ToString()) + "&result=geom_wkt&srid=4326", cancellationToken).ConfigureAwait(false);
-        return geometryRows.Count == 0 ? parcel : ToParcel(rows[0], geometryRows[0][0]);
+        return geometryRows.Count == 0
+            ? throw new PolishOpenDataApiException("ULDK found the parcel but returned no geometry for it: the parcel disappeared between the two requests.", HttpStatusCode.OK, null, null)
+            : ToParcel(rows[0], geometryRows[0][0]);
     }
 
     private async Task<IReadOnlyList<string[]>> SendAsync(string query, CancellationToken cancellationToken)
@@ -117,7 +123,8 @@ public sealed class UldkClient : IUldkClient
         }
 
         var body = await response.ReadBodyRejectingBlockPageAsync("ULDK", cancellationToken).ConfigureAwait(false);
-        return UldkResponse.Parse(Encoding.UTF8.GetString(body));
+        // Encoding.UTF8.GetString keeps a byte order mark as U+FEFF; drop it as HttpHelpers.Snippet does.
+        return UldkResponse.Parse(Encoding.UTF8.GetString(body).TrimStart('\uFEFF'));
     }
 
     private static UldkParcel ToParcel(string[] row, string? wkt = null)
@@ -125,8 +132,7 @@ public sealed class UldkClient : IUldkClient
         // ULDK appends a geom_wkt field only when asked; row order is the order of `result=`.
         wkt ??= row.Length > 8 ? row[8] : null;
         var extent = row.Length > 7 ? row[6].Split(',') : [];
-        if (extent.Length != 4 || !ParcelId.TryParse(row[0], out var id) ||
-            !TryCorner(extent[0], extent[1], out var min) || !TryCorner(extent[2], extent[3], out var max))
+        if (!ParcelId.TryParse(row[0], out var id) || !TryExtent(extent, out var bbox))
         {
             throw new PolishOpenDataApiException("ULDK returned a parcel that could not be read.", HttpStatusCode.OK, null, HttpHelpers.Truncate(string.Join("|", row)));
         }
@@ -139,7 +145,7 @@ public sealed class UldkClient : IUldkClient
             CommuneName = NullIfEmpty(row[3]),
             CountyName = NullIfEmpty(row[4]),
             VoivodeshipName = NullIfEmpty(row[5]),
-            Extent = new Pl1992Bbox(min, max),
+            Extent = bbox,
             DataSource = NullIfEmpty(row[7]),
             Geometry = wkt is null ? null : ToGeometry(wkt),
         };
@@ -157,6 +163,28 @@ public sealed class UldkClient : IUldkClient
 
         corner = default;
         return false;
+    }
+
+    private static bool TryExtent(string[] extent, out Pl1992Bbox bbox)
+    {
+        bbox = default;
+        if (extent.Length != 4 || !TryCorner(extent[0], extent[1], out var min) || !TryCorner(extent[2], extent[3], out var max) ||
+            min.Easting > max.Easting || min.Northing > max.Northing)
+        {
+            return false;
+        }
+
+        bbox = new Pl1992Bbox(min, max);
+        try
+        {
+            // The grid box is wider than Poland's WGS-84 box at its corners, and callers convert the centre to WGS-84.
+            _ = bbox.Center.ToWgs84();
+            return true;
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            return false;
+        }
     }
 
     private static string? NullIfEmpty(string text) => text.Length == 0 ? null : text;
