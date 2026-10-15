@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.JacekSmi/PolishOpenData",
   "title": "Polish Open Data (unofficial)",
-  "description": "Polish registers: KRS, VAT whitelist and bank checks, parcels and geocoding (GUGiK), ID validation.",
+  "description": "Polish registers: KRS, VAT, bank checks, parcels, geocoding (GUGiK), optional REGON, ID validation.",
   "version": "0.0.0-dev",
   "websiteUrl": "https://github.com/JacekSmi/PolishOpenData",
   "repository": { "url": "https://github.com/JacekSmi/PolishOpenData", "source": "github" },
@@ -20,6 +20,12 @@
           "name": "POLISHOPENDATA_OFFLINE_DIR",
           "description": "Folder for the prepared VAT whitelist flat-file indexes used by check_vat_bank_account_offline (a local disk, not a network share). Default: PolishOpenData/BialaListaOffline under the user's local application data folder.",
           "isRequired": false
+        },
+        {
+          "name": "POLISHOPENDATA_REGON_KEY",
+          "description": "Optional. Your own free GUS BIR key (regon_bir@stat.gov.pl); enables the lookup_regon tool. Stays on your machine.",
+          "isRequired": false,
+          "isSecret": true
         }
       ]
     }

@@ -16,7 +16,6 @@ builder.Services
     .AddMcpServer(o =>
     {
         o.ServerInfo = new Implementation { Name = "polish-open-data", Title = "Polish Open Data (unofficial)", Version = ServerInfo.Version };
-        o.ServerInstructions = ServerInfo.Instructions;
     })
     .WithStdioServerTransport()
     .AddPolishOpenDataTools();

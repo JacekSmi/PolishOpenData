@@ -8,4 +8,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\PolishOpenData.Mcp\PolishOpenData.Mcp.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- The fake BIR service of the REGON library's tests, so lookup_regon is tested against the same recorded answers. -->
+    <Compile Include="..\PolishOpenData.Regon.Tests\FakeBirServer.cs" LinkBase="RegonTestShared" />
+    <Compile Include="..\PolishOpenData.Regon.Tests\RegonTestResponses.cs" LinkBase="RegonTestShared" />
+  </ItemGroup>
 </Project>

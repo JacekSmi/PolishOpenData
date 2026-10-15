@@ -64,3 +64,11 @@ jobs:
           python3 build/mcp-stdio-check.py
           --expect-tools lookup_company,check_vat_bank_account,check_vat_bank_account_offline,get_krs_extract,validate_identifier,find_parcel,geocode_address
           -- artifacts/aot/PolishOpenData.Mcp
+      - name: Drive the AOT binary with a REGON key set (opt-in tool is registered)
+        env:
+          # tools/list makes no network call, and this value is not a secret.
+          POLISHOPENDATA_REGON_KEY: dummy-key-not-a-secret
+        run: >
+          python3 build/mcp-stdio-check.py
+          --expect-tools lookup_company,check_vat_bank_account,check_vat_bank_account_offline,get_krs_extract,validate_identifier,find_parcel,geocode_address,lookup_regon
+          -- artifacts/aot/PolishOpenData.Mcp
