@@ -12,6 +12,7 @@
     <Project Path="src/PolishOpenData.Geo.Core/PolishOpenData.Geo.Core.csproj" />
     <Project Path="src/PolishOpenData.Krs/PolishOpenData.Krs.csproj" />
     <Project Path="src/PolishOpenData.Mcp/PolishOpenData.Mcp.csproj" />
+    <Project Path="src/PolishOpenData.Rcn/PolishOpenData.Rcn.csproj" />
     <Project Path="src/PolishOpenData.Regon/PolishOpenData.Regon.csproj" />
     <Project Path="src/PolishOpenData.Uldk/PolishOpenData.Uldk.csproj" />
     <Project Path="src/PolishOpenData.Uug/PolishOpenData.Uug.csproj" />
@@ -23,6 +24,7 @@
     <Project Path="tests/PolishOpenData.Geo.Core.Tests/PolishOpenData.Geo.Core.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Krs.Tests/PolishOpenData.Krs.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Mcp.Tests/PolishOpenData.Mcp.Tests.csproj" />
+    <Project Path="tests/PolishOpenData.Rcn.Tests/PolishOpenData.Rcn.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Regon.Tests/PolishOpenData.Regon.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Shared.Tests/PolishOpenData.Shared.Tests.csproj" />
     <Project Path="tests/PolishOpenData.SmokeTests/PolishOpenData.SmokeTests.csproj" />
