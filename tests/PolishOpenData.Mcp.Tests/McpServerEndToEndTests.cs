@@ -103,6 +103,9 @@ public sealed class McpServerEndToEndTests
         Assert.Equal(listed, (session.Client.ServerInstructions ?? string.Empty).Contains("lookup_regon", StringComparison.Ordinal));
         if (listed)
         {
+            var instructions = session.Client.ServerInstructions!;
+            Assert.Contains("status and dates, main PKD activity", instructions, StringComparison.Ordinal);   // what the model needs to pick the tool
+            Assert.Contains("REGON: GUS", instructions, StringComparison.Ordinal);                           // and to cite the source
             var tool = tools.Single(t => t.Name == "lookup_regon");
             Assert.Equal(["krs", "nip", "regon"], tool.JsonSchema.GetProperty("properties").EnumerateObject().Select(p => p.Name).Order(StringComparer.Ordinal).ToArray());
         }

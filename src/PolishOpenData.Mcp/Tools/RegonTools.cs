@@ -71,21 +71,34 @@ internal sealed class RegonTools(IRegonClient client)
         var rows = result.Value;
         var views = new List<RegonEntityView>(rows.Count);
         var warnings = new List<string>();
+        var stopDetails = false;
         for (var i = 0; i < rows.Count; i++)
         {
             var row = rows[i];
             var view = ToView(row);
-            if (i < MaxDetailed && row.Regon is { } rowRegon && row.Type != RegonEntityType.Unknown)
+            if (!stopDetails && i < MaxDetailed && row.Regon is { } rowRegon && row.Type != RegonEntityType.Unknown)
             {
-                var found = (await client.GetDetailsAsync(row, RegonInclude.Pkd, cancellationToken).ConfigureAwait(false)).Value;
-                var details = found.Count > 0 ? found[0] : null;
-                if (details is null)
+                try
                 {
-                    warnings.Add("GUS returned no details for REGON " + rowRegon.ToString() + ".");
+                    var found = (await client.GetDetailsAsync(row, RegonInclude.Pkd, cancellationToken).ConfigureAwait(false)).Value;
+                    var details = found.Count > 0 ? found[0] : null;
+                    if (details is null)
+                    {
+                        warnings.Add("GUS returned no details for REGON " + rowRegon.ToString() + ".");
+                    }
+                    else
+                    {
+                        view = AddDetails(view, row, details);
+                    }
                 }
-                else
+                catch (PolishOpenDataApiException ex) when (ex is not RegonAuthenticationException)
                 {
-                    view = AddDetails(view, row, details);
+                    // The search and earlier reports were already sent (and logged by GUS): keep what we have instead of
+                    // failing the call and inviting a retry that spends them again. A refused quota ends the detail requests.
+                    var reason = ToolErrors.Describe(ex, "lookup_regon") ?? ex.Message;
+                    var quota = ex is QuotaExceededException;
+                    warnings.Add("Details for REGON " + rowRegon.ToString() + " could not be fetched: " + reason + (quota ? " The remaining entries are listed without details." : string.Empty));
+                    stopDetails = quota;
                 }
             }
 
@@ -114,6 +127,14 @@ internal sealed class RegonTools(IRegonClient client)
     private static RegonEntityView ToView(RegonEntity entity) => new()
     {
         Type = TypeName(entity.Type),
+        Activity = entity.Silo switch
+        {
+            RegonSilo.Ceidg => "ceidg",
+            RegonSilo.Agricultural => "agricultural",
+            RegonSilo.Other => "other",
+            RegonSilo.RemovedBefore2014 => "removed_before_2014",
+            _ => null,   // legal persons (silo 6) have no activity types
+        },
         Name = Clean(entity.Name) ?? string.Empty,
         Regon = entity.Regon?.ToString(),
         Nip = entity.Nip?.ToString(),

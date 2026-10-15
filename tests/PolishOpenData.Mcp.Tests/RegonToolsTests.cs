@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using PolishOpenData.Bir;
 using ModelContextProtocol.Protocol;
 using PolishOpenData.Bir.Tests;
 using PolishOpenData.Tests.Shared;
@@ -107,6 +108,8 @@ public sealed class RegonToolsTests : IAsyncDisposable
             Assert.Contains("owner's name", e.GetProperty("note").GetString(), StringComparison.Ordinal);
             Assert.False(e.TryGetProperty("legalForm", out var legalForm) && legalForm.ValueKind == JsonValueKind.String);
         });
+        Assert.Equal("ceidg", entities[0].GetProperty("activity").GetString());    // one row per activity type, same REGON and name
+        Assert.Equal("agricultural", entities[1].GetProperty("activity").GetString());
         Assert.Equal("active", entities[0].GetProperty("status").GetString());   // suspended 2012-05, resumed 2012-09
         Assert.Equal("6201Z", entities[0].GetProperty("mainPkd").GetProperty("code").GetString());
         Assert.Equal("ended", entities[1].GetProperty("status").GetString());    // the search row carries an end date
@@ -132,6 +135,51 @@ public sealed class RegonToolsTests : IAsyncDisposable
         Assert.Equal(7, data.GetProperty("entities").GetArrayLength());
         Assert.Equal(first, server.Calls.Where(c => c.Operation == "DanePobierzPelnyRaport" && c.Arg("pNazwaRaportu") == "BIR12OsPrawna").Select(c => c.Arg("pRegon")).ToArray());
         Assert.Equal("2 more matches are listed without details; ask for one of them by its REGON.", Assert.Single(data.GetProperty("warnings").EnumerateArray()).GetString());
+    }
+
+    [Fact]
+    public async Task A_failed_details_report_keeps_the_other_rows_and_warns()
+    {
+        var server = new FakeBirServer().Search("Nip", "5261040828", "synthetic-search-seven-rows");
+        foreach (var regon in new[] { "000331501", "010418973", "999999990", "651536363" })
+        {
+            server.Report(regon, "BIR12OsPrawna", "synthetic-report-osprawna-gus").Report(regon, "BIR12OsPrawnaPkd", "synthetic-report-osprawna-pkd");
+        }
+
+        server.Report("142396858", "BIR12OsPrawna", "synthetic-report-error-5");   // GUS answers one report with an error code
+
+        var data = Data(await LookupAsync(server, Key, ("nip", "5261040828")));
+
+        var entities = data.GetProperty("entities").EnumerateArray().ToArray();
+        Assert.Equal(7, entities.Length);
+        Assert.Equal("active", entities[0].GetProperty("status").GetString());
+        Assert.False(entities[1].TryGetProperty("status", out var failed) && failed.ValueKind == JsonValueKind.String);
+        Assert.Equal("active", entities[2].GetProperty("status").GetString());   // the later rows are still enriched
+        var warnings = data.GetProperty("warnings").EnumerateArray().Select(w => w.GetString()!).ToArray();
+        Assert.Contains(warnings, w => w.StartsWith("Details for REGON 142396858 could not be fetched: ", StringComparison.Ordinal));
+        Assert.DoesNotContain(Key, string.Join(' ', warnings), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task A_quota_refusal_stops_further_details_and_keeps_the_rows()
+    {
+        // MaxRateLimitWait of zero: the library's 3-requests-per-second limiter refuses the 4th request of the call at once.
+        var server = new FakeBirServer().Search("Nip", "5261040828", "synthetic-search-seven-rows");
+        server.Report("000331501", "BIR12OsPrawna", "synthetic-report-osprawna-gus").Report("000331501", "BIR12OsPrawnaPkd", "synthetic-report-osprawna-pkd");
+        var services = new ServiceCollection();
+        services.AddRegonClient(o => { o.UserKey = Key; o.MaxRateLimitWait = TimeSpan.Zero; }).ConfigurePrimaryHttpMessageHandler(() => server.Handler);
+        await using var provider = services.BuildServiceProvider();
+        var tools = new RegonTools(provider.GetRequiredService<IRegonClient>());
+
+        var result = await tools.LookupRegon(nip: "5261040828", cancellationToken: TestContext.Current.CancellationToken);
+
+        var data = Data(result);
+        Assert.Equal(7, data.GetProperty("entities").GetArrayLength());
+        var warnings = data.GetProperty("warnings").EnumerateArray().Select(w => w.GetString()!).ToArray();
+        Assert.Contains(warnings, w => w.StartsWith("Details for REGON 000331501 could not be fetched: ", StringComparison.Ordinal));
+        Assert.Contains(warnings, w => w.Contains("The remaining entries are listed without details.", StringComparison.Ordinal));
+        Assert.Equal(1, server.Calls.Count(c => c.Operation == "DanePobierzPelnyRaport" && c.Arg("pNazwaRaportu") == "BIR12OsPrawna"));
+        Assert.Equal(0, server.Calls.Count(c => c.Operation == "DanePobierzPelnyRaport" && c.Arg("pRegon") == "142396858"));   // no details asked after the refusal
     }
 
     [Fact]

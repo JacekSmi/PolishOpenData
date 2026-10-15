@@ -1,13 +1,15 @@
+using System;
 using System.Reflection;
 
 namespace PolishOpenData.Mcp;
 
 internal static class ServerInfo
 {
-    public static string InstructionsFor(bool regonEnabled) => regonEnabled ? Base + RegonSentence : Base;
+    public static string InstructionsFor(bool regonEnabled) =>
+        regonEnabled ? Base.Replace("Biała Lista: Ministry of Finance)", "Biała Lista: Ministry of Finance; REGON: GUS)", StringComparison.Ordinal) + RegonSentence : Base;
 
     private const string RegonSentence =
-        " lookup_regon: the GUS REGON register by NIP, REGON or KRS number (name, address, entity type); needs the user's own GUS key, so call it only when the other tools do not answer the question.";
+        " lookup_regon: the GUS REGON register by NIP, REGON or KRS number (name, address, entity type, and for the first matches status and dates, main PKD activity, legal form); needs the user's own GUS key, so call it only when the other tools do not answer the question.";
 
     private const string Base =
         "Tools for Polish public registers. lookup_company: a company's VAT status, seat address, bank accounts and KRS data by NIP, REGON or KRS number. " +

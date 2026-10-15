@@ -9,6 +9,12 @@ internal sealed record RegonEntityView
     /// <summary>"legal_person", "natural_person", "legal_person_local_unit", "natural_person_local_unit" or "unknown".</summary>
     public required string Type { get; init; }
 
+    /// <summary>
+    /// For sole traders GUS lists one row per activity type, all with the same REGON and name: "ceidg", "agricultural", "other" or
+    /// "removed_before_2014". Tells those rows apart (each has its own status). Null for legal persons.
+    /// </summary>
+    public string? Activity { get; init; }
+
     /// <summary>Name as GUS holds it; untrusted text (may contain markup).</summary>
     public required string Name { get; init; }
 
