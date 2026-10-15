@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -6,8 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http.Resilience;
 using ModelContextProtocol;
+using ModelContextProtocol.Server;
 using PolishOpenData.BialaLista;
 using PolishOpenData.BialaLista.Offline;
+using PolishOpenData.Bir;
 using PolishOpenData.Krs;
 using PolishOpenData.Uldk;
 using PolishOpenData.Uug;
@@ -19,8 +22,11 @@ internal static class McpServerSetup
     /// <summary>Environment variable that overrides where the offline flat-file indexes are kept (default: the library's per-user folder).</summary>
     public const string OfflineDirectoryVariable = "POLISHOPENDATA_OFFLINE_DIR";
 
+    /// <summary>Environment variable with the user's own GUS BIR key. The REGON tool exists only when it is set.</summary>
+    public const string RegonKeyVariable = "POLISHOPENDATA_REGON_KEY";
+
     /// <summary>Registers the registry clients (with resilience and the Biała Lista quota guard) and the cache.</summary>
-    public static IServiceCollection AddPolishOpenDataServices(this IServiceCollection services, Action<IHttpClientBuilder>? configureHttp = null, string? offlineDataDirectory = null)
+    public static IServiceCollection AddPolishOpenDataServices(this IServiceCollection services, Action<IHttpClientBuilder>? configureHttp = null, string? offlineDataDirectory = null, string? regonKey = null)
     {
         services.TryAddSingleton(TimeProvider.System);
         services.AddMemoryCache();
@@ -50,6 +56,16 @@ internal static class McpServerSetup
                 o.DataDirectory = offlineDirectory;
             }
         });
+        // Opt-in: without the user's own GUS key there is no BIR client and no BIR traffic. Production only, never retried
+        // (every request counts against GUS's limits and GUS logs its content).
+        var key = (regonKey ?? Environment.GetEnvironmentVariable(RegonKeyVariable))?.Trim();
+        if (!string.IsNullOrEmpty(key))
+        {
+            var regon = services.AddRegonClient(o => o.UserKey = key);
+            regon.AddStandardResilienceHandler(o => o.Retry.ShouldHandle = static _ => ValueTask.FromResult(false));
+            configureHttp?.Invoke(regon);
+        }
+
         configureHttp?.Invoke(krs);
         configureHttp?.Invoke(vat);
         configureHttp?.Invoke(offline);
@@ -75,6 +91,14 @@ internal static class McpServerSetup
         var json = new JsonSerializerOptions(McpJsonUtilities.DefaultOptions);
         json.TypeInfoResolverChain.Insert(0, McpJsonContext.Default);
         json.MakeReadOnly();
+
+        // The tool is registered exactly when AddPolishOpenDataServices found a key; the instructions follow it.
+        var regonEnabled = builder.Services.Any(d => d.ServiceType == typeof(IRegonClient));
+        builder.Services.Configure<McpServerOptions>(o => o.ServerInstructions = ServerInfo.InstructionsFor(regonEnabled));
+        if (regonEnabled)
+        {
+            builder.WithTools<RegonTools>(json);
+        }
 
         return builder
             .WithTools<CompanyTools>(json)

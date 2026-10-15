@@ -1,0 +1,128 @@
+<root>
+  <dane>
+    <Regon>000331501</Regon>
+    <Nip>5261040828</Nip>
+    <StatusNip />
+    <Nazwa>JEDNOSTKA TESTOWA 1</Nazwa>
+    <Wojewodztwo>MAZOWIECKIE</Wojewodztwo>
+    <Powiat>m. st. Warszawa</Powiat>
+    <Gmina>Śródmieście</Gmina>
+    <Miejscowosc>Warszawa</Miejscowosc>
+    <KodPocztowy>00-001</KodPocztowy>
+    <Ulica>ul. Test-Prosta</Ulica>
+    <NrNieruchomosci>1</NrNieruchomosci>
+    <NrLokalu />
+    <Typ>P</Typ>
+    <SilosID>6</SilosID>
+    <DataZakonczeniaDzialalnosci />
+    <MiejscowoscPoczty>Warszawa</MiejscowoscPoczty>
+  </dane>
+  <dane>
+    <Regon>142396858</Regon>
+    <Nip>5261040828</Nip>
+    <StatusNip />
+    <Nazwa>JEDNOSTKA TESTOWA 2</Nazwa>
+    <Wojewodztwo>MAZOWIECKIE</Wojewodztwo>
+    <Powiat>m. st. Warszawa</Powiat>
+    <Gmina>Śródmieście</Gmina>
+    <Miejscowosc>Warszawa</Miejscowosc>
+    <KodPocztowy>00-001</KodPocztowy>
+    <Ulica>ul. Test-Prosta</Ulica>
+    <NrNieruchomosci>2</NrNieruchomosci>
+    <NrLokalu />
+    <Typ>P</Typ>
+    <SilosID>6</SilosID>
+    <DataZakonczeniaDzialalnosci />
+    <MiejscowoscPoczty>Warszawa</MiejscowoscPoczty>
+  </dane>
+  <dane>
+    <Regon>010418973</Regon>
+    <Nip>5261040828</Nip>
+    <StatusNip />
+    <Nazwa>JEDNOSTKA TESTOWA 3</Nazwa>
+    <Wojewodztwo>MAZOWIECKIE</Wojewodztwo>
+    <Powiat>m. st. Warszawa</Powiat>
+    <Gmina>Śródmieście</Gmina>
+    <Miejscowosc>Warszawa</Miejscowosc>
+    <KodPocztowy>00-001</KodPocztowy>
+    <Ulica>ul. Test-Prosta</Ulica>
+    <NrNieruchomosci>3</NrNieruchomosci>
+    <NrLokalu />
+    <Typ>P</Typ>
+    <SilosID>6</SilosID>
+    <DataZakonczeniaDzialalnosci />
+    <MiejscowoscPoczty>Warszawa</MiejscowoscPoczty>
+  </dane>
+  <dane>
+    <Regon>999999990</Regon>
+    <Nip>5261040828</Nip>
+    <StatusNip />
+    <Nazwa>JEDNOSTKA TESTOWA 4</Nazwa>
+    <Wojewodztwo>MAZOWIECKIE</Wojewodztwo>
+    <Powiat>m. st. Warszawa</Powiat>
+    <Gmina>Śródmieście</Gmina>
+    <Miejscowosc>Warszawa</Miejscowosc>
+    <KodPocztowy>00-001</KodPocztowy>
+    <Ulica>ul. Test-Prosta</Ulica>
+    <NrNieruchomosci>4</NrNieruchomosci>
+    <NrLokalu />
+    <Typ>P</Typ>
+    <SilosID>6</SilosID>
+    <DataZakonczeniaDzialalnosci />
+    <MiejscowoscPoczty>Warszawa</MiejscowoscPoczty>
+  </dane>
+  <dane>
+    <Regon>651536363</Regon>
+    <Nip>5261040828</Nip>
+    <StatusNip />
+    <Nazwa>JEDNOSTKA TESTOWA 5</Nazwa>
+    <Wojewodztwo>MAZOWIECKIE</Wojewodztwo>
+    <Powiat>m. st. Warszawa</Powiat>
+    <Gmina>Śródmieście</Gmina>
+    <Miejscowosc>Warszawa</Miejscowosc>
+    <KodPocztowy>00-001</KodPocztowy>
+    <Ulica>ul. Test-Prosta</Ulica>
+    <NrNieruchomosci>5</NrNieruchomosci>
+    <NrLokalu />
+    <Typ>P</Typ>
+    <SilosID>6</SilosID>
+    <DataZakonczeniaDzialalnosci />
+    <MiejscowoscPoczty>Warszawa</MiejscowoscPoczty>
+  </dane>
+  <dane>
+    <Regon>021625560</Regon>
+    <Nip>5261040828</Nip>
+    <StatusNip />
+    <Nazwa>JEDNOSTKA TESTOWA 6</Nazwa>
+    <Wojewodztwo>MAZOWIECKIE</Wojewodztwo>
+    <Powiat>m. st. Warszawa</Powiat>
+    <Gmina>Śródmieście</Gmina>
+    <Miejscowosc>Warszawa</Miejscowosc>
+    <KodPocztowy>00-001</KodPocztowy>
+    <Ulica>ul. Test-Prosta</Ulica>
+    <NrNieruchomosci>6</NrNieruchomosci>
+    <NrLokalu />
+    <Typ>P</Typ>
+    <SilosID>6</SilosID>
+    <DataZakonczeniaDzialalnosci />
+    <MiejscowoscPoczty>Warszawa</MiejscowoscPoczty>
+  </dane>
+  <dane>
+    <Regon>002003735</Regon>
+    <Nip>5261040828</Nip>
+    <StatusNip />
+    <Nazwa>JEDNOSTKA TESTOWA 7</Nazwa>
+    <Wojewodztwo>MAZOWIECKIE</Wojewodztwo>
+    <Powiat>m. st. Warszawa</Powiat>
+    <Gmina>Śródmieście</Gmina>
+    <Miejscowosc>Warszawa</Miejscowosc>
+    <KodPocztowy>00-001</KodPocztowy>
+    <Ulica>ul. Test-Prosta</Ulica>
+    <NrNieruchomosci>7</NrNieruchomosci>
+    <NrLokalu />
+    <Typ>P</Typ>
+    <SilosID>6</SilosID>
+    <DataZakonczeniaDzialalnosci />
+    <MiejscowoscPoczty>Warszawa</MiejscowoscPoczty>
+  </dane>
+</root>

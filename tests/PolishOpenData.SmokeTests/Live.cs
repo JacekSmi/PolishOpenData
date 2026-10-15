@@ -26,7 +26,7 @@ namespace PolishOpenData.SmokeTests;
 /// <item><term>GUGiK ULDK requests (<c>GeoLiveTests</c>, no key)</term><description>5 / 0 / 0 = 5 (by ID and by extent centre; by ID and by its WGS-84 centre; by the UUG point)</description></item>
 /// <item><term>GUGiK UUG requests (<c>GeoLiveTests</c>, no key)</term><description>3 / 0 / 0 = 3 (geocode and reverse; geocode in the ULDK/UUG agreement test)</description></item>
 /// <item><term>GUS BIR test environment requests (published test key, no secret)</term><description>5 / 0 / 0 = 5</description></item>
-/// <item><term>GUS BIR production requests (needs <c>POLISHOPENDATA_REGON_KEY</c>, owner-run, skipped otherwise)</term><description>4 / 0 / 0 = 4</description></item>
+/// <item><term>GUS BIR production requests (needs <c>POLISHOPENDATA_REGON_KEY</c>, owner-run, skipped otherwise)</term><description>4 / 4 / 0 = 8 (the library test: login, search, report, logout; the lookup_regon test: login, search, core report, PKD report)</description></item>
 /// </list>
 /// Runtime: the 17 other network tests (4 of them GUGiK) take at most 2 min each and the published-package test 5 min; the offline test adds
 /// a few minutes when MF is fast and 15 min (then it skips) when MF is slow (it served 35 to 40 KB/s on 2026-10-13, 8 MB/s at night).

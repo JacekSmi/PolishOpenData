@@ -132,6 +132,14 @@ public class ToolErrorsTests
     }
 
     [Fact]
+    public void Regon_authentication_failure_has_its_own_text()
+    {
+        var text = ToolErrors.Describe(new PolishOpenData.Bir.RegonAuthenticationException("login failed"), "lookup_regon");
+
+        Assert.Equal("GUS did not accept the key in POLISHOPENDATA_REGON_KEY. Check it, or remove the variable to hide lookup_regon.", text);
+    }
+
+    [Fact]
     public void Transport_errors_and_cancellation()
     {
         Assert.Contains("unavailable", ToolErrors.Describe(new HttpRequestException("503")), StringComparison.Ordinal);

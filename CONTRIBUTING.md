@@ -31,7 +31,7 @@ One run costs, per IP address:
 | Biała Lista checks | 1 | 1 | 0 | **2** |
 | KRS requests | 5 (up to 9) | 1 | 1 | **7** (up to 11) |
 | GUS BIR test environment requests (published test key, no secret) | 5 | 0 | 0 | **5** |
-| GUS BIR production requests (needs `POLISHOPENDATA_REGON_KEY`, owner-run, skipped otherwise) | 4 | 0 | 0 | **4** |
+| GUS BIR production requests (needs `POLISHOPENDATA_REGON_KEY`, owner-run, skipped otherwise) | 4 | 4 | 0 | **8** |
 | GUGiK ULDK requests (no key) | 5 | 0 | 0 | **5** |
 | GUGiK UUG requests (no key) | 3 | 0 | 0 | **3** |
 

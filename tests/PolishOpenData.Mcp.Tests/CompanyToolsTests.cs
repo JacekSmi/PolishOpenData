@@ -54,13 +54,13 @@ public sealed class CompanyToolsTests : IDisposable
 
     public void Dispose() => _provider.Dispose();
 
-    private static (ServiceProvider Provider, CompanyTools Tools) Build(TimeProvider clock, HttpMessageHandler stub)
+    private static (ServiceProvider Provider, CompanyTools Tools) Build(TimeProvider clock, HttpMessageHandler stub, string regonKey = "")
     {
         var services = new ServiceCollection();
         services.AddSingleton(clock);
-        services.AddPolishOpenDataServices(http => http.ConfigurePrimaryHttpMessageHandler(() => stub));
+        services.AddPolishOpenDataServices(http => http.ConfigurePrimaryHttpMessageHandler(() => stub), regonKey: regonKey);
         var provider = services.BuildServiceProvider();
-        return (provider, new CompanyTools(provider.GetRequiredService<CachedRegistries>(), provider.GetRequiredService<TimeProvider>()));
+        return (provider, new CompanyTools(provider.GetRequiredService<CachedRegistries>(), provider.GetRequiredService<TimeProvider>(), provider.GetRequiredService<IServiceProviderIsService>()));
     }
 
     private static HttpResponseMessage Route(HttpRequestMessage request)
@@ -227,6 +227,23 @@ public sealed class CompanyToolsTests : IDisposable
         Assert.True(tomorrow.IsError == true);
         Assert.Contains("is in the future", Text(tomorrow), StringComparison.Ordinal);
         Assert.Equal(requests, stub.RequestUris.Count);
+    }
+
+    [Theory]
+    [InlineData("", false)]
+    [InlineData("dummy-key-not-a-secret", true)]
+    public async Task Dead_end_warning_points_to_lookup_regon_only_when_the_tool_is_enabled(string regonKey, bool hinted)
+    {
+        var stub = new StubHttpMessageHandler(Route);
+        var (provider, tools) = Build(new FakeTimeProvider(new DateTimeOffset(2026, 9, 24, 8, 0, 0, TimeSpan.Zero)), stub, regonKey);
+        using var _ = provider;
+
+        var root = Json(await tools.LookupCompany(nip: "5213003700", cancellationToken: TestContext.Current.CancellationToken));
+
+        var warnings = root.GetProperty("warnings").EnumerateArray().Select(w => w.GetString()!).ToArray();
+        Assert.Contains(warnings, w => w.Contains("try again with 'krs'", StringComparison.Ordinal));
+        Assert.Equal(hinted, warnings.Any(w => w.Contains("The REGON register may know this identifier: call lookup_regon.", StringComparison.Ordinal)));
+        Assert.DoesNotContain(stub.RequestUris, u => u.Host == "wyszukiwarkaregon.stat.gov.pl");   // lookup_company never calls BIR
     }
 
     [Fact]

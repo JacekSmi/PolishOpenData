@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using Polly;
 using PolishOpenData.BialaLista.Offline;
+using PolishOpenData.Bir;
 
 namespace PolishOpenData.Mcp;
 
@@ -22,6 +23,8 @@ internal static class ToolErrors
     public static string? Describe(Exception exception, string? toolName = null) => exception switch
     {
         OperationCanceledException => null,
+        // GUS answers an unknown or revoked key with an empty login result. Never echo the key.
+        RegonAuthenticationException => "GUS did not accept the key in " + McpServerSetup.RegonKeyVariable + ". Check it, or remove the variable to hide lookup_regon.",
         // Only the offline tool waits for a lock file held by another process (the library's lock timeout).
         TimeoutException => "Another process is preparing this date; try again later.",
         // The offline library reports an unusable data directory as an IOException whose message names the folder.

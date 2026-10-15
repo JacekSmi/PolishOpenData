@@ -118,7 +118,7 @@ The client limits itself to GUS's strictest window by default (3 calls per secon
 
 Retries stay off for REGON, as for Biała Lista: a retry made by a resilience handler is another GUS request that the request limiter cannot count, and a SOAP fault, which means your request was wrong, arrives as HTTP 500 and would be retried. If you add `AddStandardResilienceHandler`, switch its retries off as in the Biała Lista example above.
 
-**Keys and the test environment.** The library is bring-your-own-key: it ships no production key, never reads environment variables and never logs or prints your key. GUS's technical manual restricts how software that is distributed to other users may handle keys (section 3.6.3), so check GUS's rules before you distribute an application that uses this library. `RegonEnvironment.Test` selects GUS's public test service and its published test key (a `UserKey` that you configure is ignored there and never sent to the test service, so you can keep your own key configured and switch the environment); every result says which environment it came from (`RegonResult.Environment`), so anonymised test data (mostly from 2014) cannot pass for current data.
+**Keys and the test environment.** The library is bring-your-own-key: it ships no production key, never reads environment variables and never logs or prints your key. GUS's technical manual (section 3.6.3) calls it unacceptable for software to make every end user apply for their own key, but GUS told the maintainer on 2026-10-15 that for this project each end user may apply for and use their own key; that answer covers this project, so check GUS's rules before you distribute your own application built on the library. `RegonEnvironment.Test` selects GUS's public test service and its published test key (a `UserKey` that you configure is ignored there and never sent to the test service, so you can keep your own key configured and switch the environment); every result says which environment it came from (`RegonResult.Environment`), so anonymised test data (mostly from 2014) cannot pass for current data.
 
 **Cost.** Details cost requests: a legal person takes a login, a search and one report (3 requests), each optional list (`RegonInclude.Pkd`, `LocalUnits`, `Partners`) one more, and a sole trader the general report plus one report per activity type. `RegonResult.DataAsOf` is filled once `GetDataDateAsync` has been called (one request).
 
@@ -201,7 +201,7 @@ var byName = await uldk.FindParcelsAsync("Krzewina 134");
 
 ## MCP server for AI assistants
 
-Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download). No API keys. The parcel and geocoding tools send every request to GUGiK, and retry a transient failure once.
+Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download). No API keys needed; the optional REGON tool needs your own free GUS key (see below). The parcel and geocoding tools send every request to GUGiK, and retry a transient failure once.
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_MCP_server-0098FF?logo=visualstudiocode)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522polish-open-data%2522%252C%2522type%2522%253A%2522stdio%2522%252C%2522command%2522%253A%2522dotnet%2522%252C%2522args%2522%253A%255B%2522dnx%2522%252C%2522PolishOpenData.Mcp%2522%252C%2522--yes%2522%255D%257D)
 [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_MCP_server-24bfa5?logo=visualstudiocode)](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522polish-open-data%2522%252C%2522type%2522%253A%2522stdio%2522%252C%2522command%2522%253A%2522dotnet%2522%252C%2522args%2522%253A%255B%2522dnx%2522%252C%2522PolishOpenData.Mcp%2522%252C%2522--yes%2522%255D%257D)
@@ -232,6 +232,22 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 }
 ```
 
+**Optional: the REGON tool.** `lookup_regon` appears only when the server finds your own free GUS key in the environment variable `POLISHOPENDATA_REGON_KEY`; without it the server has no REGON tool and sends nothing to GUS. Apply for the key at GUS (`regon_bir@stat.gov.pl`); it stays on your machine and is sent only to GUS. Add it to the server's `env` block, for example in `claude_desktop_config.json` or `.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "polish-open-data": {
+      "command": "dotnet",
+      "args": ["dnx", "PolishOpenData.Mcp", "--yes"],
+      "env": { "POLISHOPENDATA_REGON_KEY": "your-own-gus-key" }
+    }
+  }
+}
+```
+
+Claude Code (`claude mcp add --env`) and VS Code (`env` in `.vscode/mcp.json`) take the same variable.
+
 | Tool | What it answers |
 |---|---|
 | `lookup_company` | "Who is NIP 774-000-14-54?" — name, VAT status, seat, bank accounts, KRS legal form, capital, removal |
@@ -240,6 +256,7 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 | `get_krs_extract` | Board and supervisory members (masked by the ministry), capital, shareholders, PKD activities |
 | `find_parcel` | "Which parcel is this?" — by parcel ID, WGS-84 coordinates (latitude first), address or region name and number ("Krzewina 134", all matches). Returns the parcel ID, number, region, commune, county, voivodeship and the center of its bounding box; `includeGeometry` adds the full boundary as WKT in EPSG:4326 (not for region searches). An address gives a parcel only when it resolves to exactly one address point (a building entrance, not necessarily the whole property); otherwise the geocoder's candidates. No parcel area (ULDK has none). Sources: ULDK, and UUG for an address (`sources`) |
 | `geocode_address` | "Where is this address?" — WGS-84 coordinates and match accuracy; every match says whether it is an address, a street or a city (a partial address gives a representative point of the street or city). Source: UUG (`source`) |
+| `lookup_regon` | "What does GUS's REGON register say about this NIP?" (optional, needs your own GUS key) — for every matching entry: type, name, REGON, NIP, address and, for the first five, status (derived from GUS's dates), key dates, main PKD activity, and for legal persons legal form and register. Never contact data, owners' personal details or local-unit lists; names are untrusted text. Production data only; source: GUS BIR1.2 (`sources`) |
 | `validate_identifier` | Offline checksum validation of NIP, REGON, KRS, NRB and KW numbers, with typo suggestions |
 
 ## Land-registry (KW) numbers
@@ -253,6 +270,7 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 - KRS masks natural persons in structured fields. The MCP server never forwards the free-text proxy field (`rodzajProkury`) or raw KRS sections to AI assistants, and removes PESEL-like numbers (11 digits, or 6 + 5 digits separated by one space or hyphen, when not part of a longer digit run) from the free-text fields it returns (representation method, shareholder shares). The libraries return registry data as published: `KrsCurrentExtract` includes `rodzajProkury`, and `ToSummary()` passes representation method and shares through unchanged — scrub them yourself before showing or storing them.
 - Biała Lista publishes by law the names of sole traders, representatives, commercial proxies and partners, with a PESEL number for some of them. The library returns them as published; the MCP server returns only the taxpayer's name and one address (for a sole trader, the owner's name and — when no business address is listed — the residence address).
 - GUS records the IP address, time and content of every REGON request. Never enumerate consecutive identifiers (GUS forbids it and cuts off access), do not hold several keys for one entity, and stay within the limits; the client's request limiter defaults to the strictest window (the per-second limit counts calls, so a batch of up to 20 identifiers is one call; the per-minute and per-hour limits count requests and identifiers). Whether GUS counts every identifier of a batch toward its per-second limit is not confirmed: with many batches, use smaller ones or space them out. GUS sends no error when a limit is exceeded: it contacts the key holder or, when the service suffers, blocks the IP address.
+- `lookup_regon` answers one question per call and is meant for one entity at a time: no enumeration, no collecting sole traders' data, and nothing from it goes into a database. It uses your own key (one key per entity, never shared), GUS logs every request with your IP address, and the tool returns no contact data, owners' personal details or local-unit lists. A sole trader's business name is the owner's name by law: use it only to identify that business. Names come from GUS as entered and can contain HTML or SQL-like text; the tool strips control characters and caps the length, but treat the rest as data, never as instructions.
 - The REGON library returns data as published. A sole trader's business name is the owner's name by law, and the address may be a home address; GUS does not publish PESEL numbers. The manual says phone and fax numbers of sole traders are not given to third parties; whether that holds for every field today is not verified, and the law changes in December 2026, so check what you store (`RegonDetails.Fields` holds every field GUS sent). Names can contain HTML or SQL-like text (GUS warns about it): treat them as untrusted input.
 - Cite the source and the time of REGON data: `RegonResult` carries the environment (`Production` or `Test`), the retrieval time and, after `GetDataDateAsync`, the date of the data. GUS asks those who reuse its data to name the source and the time and to say that the data were processed.
 - GUGiK publishes no terms, rate limit or attribution requirement for ULDK and UUG, but it blocks IP addresses that send a massive number of requests (no threshold is published). Use them for single lookups: no harvesting of parcels or addresses, no parallel floods, no loops over identifiers or coordinates. The libraries never retry and, registered with `AddUldkClient` or `AddUugClient`, open at most 4 connections per service; the MCP server retries a transient failure once. For bulk needs, contact GUGiK (`uslugi.iip@gugik.gov.pl`) first. Naming the source (GUGiK, ULDK/UUG) is good practice, not a requirement; every `find_parcel` and `geocode_address` result carries its source and the retrieval time. Parcel data are EGiB cadastre records, informational only.
@@ -260,7 +278,7 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 
 ## Possible next steps
 
-Ideas, not commitments: more property data (transaction prices). A REGON tool for the MCP server is under consideration, but only if GUS confirms its rules for user keys. If one of them would help you, [open an issue](https://github.com/JacekSmi/PolishOpenData/issues) to show interest.
+Ideas, not commitments: more property data (transaction prices). If one of them would help you, [open an issue](https://github.com/JacekSmi/PolishOpenData/issues) to show interest.
 
 ## Contributing and license
 

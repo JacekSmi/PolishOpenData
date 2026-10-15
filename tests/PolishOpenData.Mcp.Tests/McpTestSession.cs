@@ -36,7 +36,8 @@ internal sealed class McpTestSession : IAsyncDisposable
     /// <param name="clock">Registered as the server's <see cref="TimeProvider"/>; null keeps the production default (system clock).</param>
     /// <param name="cancellationToken">Cancels start-up and the MCP handshake.</param>
     /// <param name="offlineDataDirectory">Where the offline flat-file indexes go; null keeps the production default (env var or user folder).</param>
-    public static async Task<McpTestSession> StartAsync(Action<IHttpClientBuilder> configureHttp, TimeProvider? clock, CancellationToken cancellationToken, string? offlineDataDirectory = null)
+    /// <param name="regonKey">The GUS key that enables lookup_regon. Empty (the default) leaves it off whatever the environment holds, so the tests behave the same on a machine that has the variable set.</param>
+    public static async Task<McpTestSession> StartAsync(Action<IHttpClientBuilder> configureHttp, TimeProvider? clock, CancellationToken cancellationToken, string? offlineDataDirectory = null, string regonKey = "")
     {
         ArgumentNullException.ThrowIfNull(configureHttp);
         var builder = Host.CreateApplicationBuilder();
@@ -46,7 +47,7 @@ internal sealed class McpTestSession : IAsyncDisposable
             builder.Services.AddSingleton(clock);
         }
 
-        builder.Services.AddPolishOpenDataServices(configureHttp, offlineDataDirectory);
+        builder.Services.AddPolishOpenDataServices(configureHttp, offlineDataDirectory, regonKey);
 
         var clientToServer = new Pipe();
         var serverToClient = new Pipe();

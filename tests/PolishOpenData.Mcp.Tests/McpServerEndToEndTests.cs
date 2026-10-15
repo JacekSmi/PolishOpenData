@@ -75,6 +75,43 @@ public sealed class McpServerEndToEndTests
     }
 
     [Fact]
+    public async Task Without_a_key_the_tool_list_is_unchanged()
+    {
+        await using var session = await StartAsync(new StubHttpMessageHandler(_ => StubHttpMessageHandler.Empty(HttpStatusCode.NotFound)));
+        var tools = await session.Client.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.DoesNotContain(tools, t => t.Name == "lookup_regon");
+        Assert.Equal(7, tools.Count);
+        Assert.DoesNotContain("lookup_regon", session.Client.ServerInstructions ?? string.Empty, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("dummy-key-not-a-secret", true)]
+    [InlineData(" \n", false)]
+    [InlineData("", false)]
+    public async Task Lookup_regon_is_listed_only_for_a_non_blank_key(string key, bool listed)
+    {
+        await using var session = await McpTestSession.StartAsync(
+            http => http.ConfigurePrimaryHttpMessageHandler(() => new StubHttpMessageHandler(_ => StubHttpMessageHandler.Empty(HttpStatusCode.NotFound))),
+            new FakeTimeProvider(new DateTimeOffset(2026, 10, 15, 8, 0, 0, TimeSpan.Zero)),
+            TestContext.Current.CancellationToken,
+            regonKey: key);
+        var tools = await session.Client.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal(listed, tools.Any(t => t.Name == "lookup_regon"));
+        Assert.Equal(listed ? 8 : 7, tools.Count);
+        Assert.Equal(listed, (session.Client.ServerInstructions ?? string.Empty).Contains("lookup_regon", StringComparison.Ordinal));
+        if (listed)
+        {
+            var instructions = session.Client.ServerInstructions!;
+            Assert.Contains("status and dates, main PKD activity", instructions, StringComparison.Ordinal);   // what the model needs to pick the tool
+            Assert.Contains("REGON: GUS", instructions, StringComparison.Ordinal);                           // and to cite the source
+            var tool = tools.Single(t => t.Name == "lookup_regon");
+            Assert.Equal(["krs", "nip", "regon"], tool.JsonSchema.GetProperty("properties").EnumerateObject().Select(p => p.Name).Order(StringComparer.Ordinal).ToArray());
+        }
+    }
+
+    [Fact]
     public void Function_factory_has_the_fix_for_injected_parameters_leaking_into_tool_schemas()
     {
         // dotnet/extensions#7675: before 10.9.0, concurrent tool creation could put `progress` into the offline tool's schema.

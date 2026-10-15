@@ -1,10 +1,17 @@
+using System;
 using System.Reflection;
 
 namespace PolishOpenData.Mcp;
 
 internal static class ServerInfo
 {
-    public const string Instructions =
+    public static string InstructionsFor(bool regonEnabled) =>
+        regonEnabled ? Base.Replace("Biała Lista: Ministry of Finance)", "Biała Lista: Ministry of Finance; REGON: GUS)", StringComparison.Ordinal) + RegonSentence : Base;
+
+    private const string RegonSentence =
+        " lookup_regon: the GUS REGON register by NIP, REGON or KRS number (name, address, entity type, and for the first matches status and dates, main PKD activity, legal form); needs the user's own GUS key, so call it only when the other tools do not answer the question.";
+
+    private const string Base =
         "Tools for Polish public registers. lookup_company: a company's VAT status, seat address, bank accounts and KRS data by NIP, REGON or KRS number. " +
         "check_vat_bank_account: whether a bank account is on the VAT whitelist for a taxpayer (use before paying a Polish invoice; keep the request ID). " +
         "check_vat_bank_account_offline: the same whitelist check from the Ministry of Finance daily flat file: no request limit, many pairs at once, but no request ID; the first call for a date downloads about 250 MB and takes several minutes, much longer when the Ministry's server is slow, and not_found means not found in the file, not proof of absence. " +
