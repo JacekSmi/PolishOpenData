@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using PolishOpenData.Geo;
 using PolishOpenData.Uldk;
@@ -11,6 +13,19 @@ public sealed class GeoLiveTests
 {
     // A parcel in Warsaw (Śródmieście), the same one the ULDK fixtures use.
     private static readonly ParcelId Parcel = ParcelId.Parse("146510_8.0507.41/1");
+
+    // The service may add more matches (streets, other towns); the test needs the one address point in Warsaw.
+    private static UugMatch KruczaInWarsaw(IReadOnlyList<UugMatch> matches)
+    {
+        var found = matches.Where(m => m.Kind == UugMatchKind.Address && m.City == "Warszawa").ToList();
+        if (found.Count != 1)
+        {
+            Assert.Fail("Expected exactly one address match in Warszawa for \"Warszawa, Krucza 50\" but UUG returned " + matches.Count + ": "
+                + string.Join("; ", matches.Select(m => m.Kind + " " + m.City + ", " + m.Street + " " + m.Number + " (" + m.Location + ")")));
+        }
+
+        return found[0];
+    }
 
     [Fact(Timeout = Live.TestTimeout)]
     public async Task Uldk_finds_the_parcel_by_id_and_by_its_extent_center()
@@ -51,10 +66,8 @@ public sealed class GeoLiveTests
         using var http = Live.CreateHttpClient();
         var client = new UugClient(http);
 
-        var matches = await client.GeocodeAsync("Warszawa, Krucza 50", TestContext.Current.CancellationToken);
+        var match = KruczaInWarsaw(await client.GeocodeAsync("Warszawa, Krucza 50", TestContext.Current.CancellationToken));
 
-        var match = Assert.Single(matches);
-        Assert.Equal(UugMatchKind.Address, match.Kind);
         Assert.InRange(match.Location.Latitude, 52.1, 52.4);
         Assert.InRange(match.Location.Longitude, 20.8, 21.3);
 
@@ -73,7 +86,7 @@ public sealed class GeoLiveTests
         var uug = new UugClient(http);
         var uldk = new UldkClient(http);
 
-        var match = Assert.Single(await uug.GeocodeAsync("Warszawa, Krucza 50", TestContext.Current.CancellationToken));
+        var match = KruczaInWarsaw(await uug.GeocodeAsync("Warszawa, Krucza 50", TestContext.Current.CancellationToken));
         var parcel = await uldk.GetParcelAtAsync(match.Location, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(parcel);
