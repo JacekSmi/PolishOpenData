@@ -36,7 +36,12 @@ internal sealed class GeoTools(IUldkClient uldk, IUugClient uug, TimeProvider ti
 
         var matches = await uug.GeocodeAsync(address, cancellationToken).ConfigureAwait(false);
         return ToolResults.Ok(
-            new GeocodeResult { Matches = [.. matches.Select(ToMatch)], Source = UugSource() },
+            new GeocodeResult
+            {
+                Matches = [.. matches.Select(ToMatch)],
+                Note = matches.Count == 0 ? "No address matched; check the spelling or add the town." : null,
+                Source = UugSource(),
+            },
             McpJson.Relaxed.GeocodeResult);
     }
 
@@ -51,8 +56,8 @@ internal sealed class GeoTools(IUldkClient uldk, IUugClient uug, TimeProvider ti
         [Description("Also return the parcel boundary as WKT in EPSG:4326 (longitude latitude order, as WKT writes it; not for regionAndNumber).")] bool includeGeometry = false,
         CancellationToken cancellationToken = default)
     {
-        // Checked first, before any request, and never echoed back.
-        if (KwNumber.TryParse(address, out _) || KwNumber.TryParse(regionAndNumber, out _))
+        // Checked first, before any request, and never echoed back. Shape only: a KW with a wrong check digit is refused too.
+        if (IdentifierTools.LooksLikeKw(parcelId) || IdentifierTools.LooksLikeKw(address) || IdentifierTools.LooksLikeKw(regionAndNumber))
         {
             return ToolResults.Error("find_parcel never accepts land-registry (KW) numbers. Give a parcel ID, coordinates, an address or a region name with a parcel number.");
         }
@@ -117,6 +122,7 @@ internal sealed class GeoTools(IUldkClient uldk, IUugClient uug, TimeProvider ti
     private async Task<CallToolResult> FindByAddressAsync(string address, ParcelGeometryKind kind, CancellationToken cancellationToken)
     {
         var matches = await uug.GeocodeAsync(address, cancellationToken).ConfigureAwait(false);
+        var uugSource = UugSource();   // when UUG answered, not when ULDK does
 
         // The same address may come back more than once (e.g. one point per entrance record); one distinct address is enough.
         var points = matches
@@ -126,12 +132,12 @@ internal sealed class GeoTools(IUldkClient uldk, IUugClient uug, TimeProvider ti
         if (points.Count != 1)
         {
             return ToolResults.Ok(
-                new FindParcelResult { Parcels = [], Candidates = [.. matches.Select(ToMatch)], Note = UnresolvedAddressNote, Sources = [UugSource()] },
+                new FindParcelResult { Parcels = [], Candidates = [.. matches.Select(ToMatch)], Note = UnresolvedAddressNote, Sources = [uugSource] },
                 McpJson.Relaxed.FindParcelResult);
         }
 
         var parcel = await uldk.GetParcelAtAsync(points[0].Location, kind, cancellationToken).ConfigureAwait(false);
-        return Single(parcel, ToMatch(points[0]), AddressPointNote, UugSource(), UldkSource());
+        return Single(parcel, ToMatch(points[0]), AddressPointNote, uugSource, UldkSource());
     }
 
     private static CallToolResult Single(UldkParcel? parcel, GeocodeMatch? matched, string? note, params SourceInfo[] sources) =>

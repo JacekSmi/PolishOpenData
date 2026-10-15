@@ -33,6 +33,9 @@ internal sealed record GeocodeResult
 {
     public required IReadOnlyList<GeocodeMatch> Matches { get; init; }
 
+    /// <summary>Set when there is no match.</summary>
+    public string? Note { get; init; }
+
     public required SourceInfo Source { get; init; }
 }
 

@@ -63,8 +63,10 @@ internal static class McpServerSetup
     private static void RetryGugikOnce(HttpStandardResilienceOptions options)
     {
         options.Retry.MaxRetryAttempts = 1;
+#pragma warning disable EXTEXP0001 // the overload that takes the call's cancellation token is experimental
         options.Retry.ShouldHandle = static args => ValueTask.FromResult(
-            HttpClientResiliencePredicates.IsTransient(args.Outcome) && args.Outcome.Result?.StatusCode != HttpStatusCode.TooManyRequests);
+            HttpClientResiliencePredicates.IsTransient(args.Outcome, args.Context.CancellationToken) && args.Outcome.Result?.StatusCode != HttpStatusCode.TooManyRequests);
+#pragma warning restore EXTEXP0001
     }
 
     /// <summary>Registers the tools (AOT-safe JSON first in the chain) and maps exceptions to exact isError text.</summary>

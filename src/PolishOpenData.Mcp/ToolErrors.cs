@@ -12,6 +12,8 @@ namespace PolishOpenData.Mcp;
 internal static class ToolErrors
 {
     private const string OfflineTool = "check_vat_bank_account_offline";
+    private const string VatTool = "check_vat_bank_account";
+    private const string CompanyTool = "lookup_company";
     private const string GeocodeTool = "geocode_address";
     private const string ParcelTool = "find_parcel";
 
@@ -30,9 +32,10 @@ internal static class ToolErrors
             "GUGiK is rate-limiting requests: " + quota.Message.TrimEnd('.') +
             (quota.RetryAfter is { } wait ? " (retry after " + ((int)Math.Ceiling(wait.TotalSeconds)).ToString(CultureInfo.InvariantCulture) + " s)" : string.Empty) +
             ". Wait a minute before trying again and avoid repeated or parallel lookups.",
+        // The pointer to the offline VAT tool only helps for Biała Lista; a KRS 429 (no tool name) gets none.
         QuotaExceededException quota => "Request limit reached: " + quota.Message +
             (quota.ResetsAt is { } at ? " (resets " + at.UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) + " UTC)." : string.Empty) +
-            " Use check_vat_bank_account_offline, which has no request limit.",
+            (toolName is VatTool or CompanyTool ? " Use check_vat_bank_account_offline, which has no request limit." : string.Empty),
         VatWhitelistDataUnavailableException { Reason: VatWhitelistDataUnavailableReason.NotPublishedYet } unavailable =>
             "MF has not published the file for " + unavailable.Date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + " yet; it usually appears on the evening before.",
         VatWhitelistDataUnavailableException unavailable => unavailable.Message + (unavailable.Reason == VatWhitelistDataUnavailableReason.DownloadFailed ? " Try again later." : string.Empty),

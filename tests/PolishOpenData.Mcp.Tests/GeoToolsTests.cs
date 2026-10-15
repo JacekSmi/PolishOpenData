@@ -4,9 +4,11 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Globalization;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Time.Testing;
 using ModelContextProtocol.Protocol;
 using PolishOpenData.Geo;
@@ -104,6 +106,23 @@ public sealed class GeoToolsTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task GeocodeAddress_without_a_match_says_so()
+    {
+        var data = Data(await CallAsync("geocode_address", new() { ["address"] = "Qwertyuiop 999" }));
+
+        Assert.Equal(0, data.GetProperty("matches").GetArrayLength());
+        Assert.Equal("No address matched; check the spelling or add the town.", data.GetProperty("note").GetString());
+    }
+
+    [Fact]
+    public async Task GeocodeAddress_with_a_match_has_no_note()
+    {
+        var data = Data(await CallAsync("geocode_address", new() { ["address"] = "Warszawa, Krucza 50" }));
+
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("note").ValueKind);
+    }
+
+    [Fact]
     public async Task GeocodeAddress_blank_address_is_a_tool_error()
     {
         var result = await CallAsync("geocode_address", new() { ["address"] = "  " });
@@ -168,6 +187,32 @@ public sealed class GeoToolsTests : IAsyncDisposable
         Assert.Equal(2, _stub.RequestUris.Count);
         Assert.Equal("services.gugik.gov.pl", _stub.RequestUris[0].Host);
         Assert.Equal("uldk.gugik.gov.pl", _stub.RequestUris[1].Host);
+        // the parcel is looked up at the geocoded point, longitude first, formatted as the client does
+        var point = new Pl1992Point(637659.46, 486969.16).ToWgs84();
+        var xy = point.Longitude.ToString("R", CultureInfo.InvariantCulture) + "," + point.Latitude.ToString("R", CultureInfo.InvariantCulture) + ",4326";
+        Assert.Contains("xy=" + xy + "&", _stub.RequestUris[1].Query, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task FindParcel_by_address_stamps_the_geocoder_source_when_the_geocoder_answered()
+    {
+        var clock = new FakeTimeProvider(Now);
+        var stub = new StubHttpMessageHandler(request =>
+        {
+            if (request.RequestUri!.Host == "uldk.gugik.gov.pl")
+            {
+                clock.Advance(TimeSpan.FromSeconds(5));   // the parcel lookup is slow
+            }
+
+            return Respond(request);
+        });
+        await using var session = await McpTestSession.StartAsync(http => http.ConfigurePrimaryHttpMessageHandler(() => stub), clock, TestContext.Current.CancellationToken);
+
+        var result = await session.Client.CallToolAsync("find_parcel", new Dictionary<string, object?> { ["address"] = "Warszawa, Krucza 50" }, cancellationToken: TestContext.Current.CancellationToken);
+
+        var sources = Data(result).GetProperty("sources").EnumerateArray().ToList();
+        Assert.Equal(Now, sources[0].GetProperty("retrievedAt").GetDateTimeOffset());   // UUG
+        Assert.Equal(Now.AddSeconds(5), sources[1].GetProperty("retrievedAt").GetDateTimeOffset());   // ULDK
     }
 
     [Fact]
@@ -295,12 +340,14 @@ public sealed class GeoToolsTests : IAsyncDisposable
     }
 
     [Theory]
-    [InlineData("address")]
-    [InlineData("regionAndNumber")]
-    public async Task FindParcel_land_registry_number_is_refused_before_any_request(string argument)
+    [InlineData("address", "WA1M/00012345/1")]   // the format example the README and validate_identifier already use
+    [InlineData("regionAndNumber", "WA1M/00012345/1")]
+    [InlineData("parcelId", "WA1M/00012345/1")]
+    [InlineData("address", "WA1M/00012345/9")]   // wrong check digit: still the shape of a KW
+    [InlineData("regionAndNumber", "wa1m 00012345 9")]
+    [InlineData("parcelId", "WA1M/00012345/9")]
+    public async Task FindParcel_land_registry_number_is_refused_before_any_request(string argument, string Kw)
     {
-        const string Kw = "WA1M/00012345/1";   // the format example the README and validate_identifier already use
-
         var result = await FindAsync((argument, Kw));
 
         Assert.True(result.IsError == true);
@@ -328,10 +375,14 @@ public sealed class GeoToolsTests : IAsyncDisposable
     [Fact]
     public async Task Upstream_failure_is_retried_once()
     {
-        // Real clock: the resilience handler's retry delay runs on the TimeProvider.
+        // Real clock: the resilience handler's retry delay runs on the TimeProvider, so shorten the delay instead.
         var failing = new StubHttpMessageHandler(_ => new HttpResponseMessage(HttpStatusCode.ServiceUnavailable));
         await using var session = await McpTestSession.StartAsync(
-            http => http.ConfigurePrimaryHttpMessageHandler(() => failing),
+            http =>
+            {
+                _ = http.ConfigurePrimaryHttpMessageHandler(() => failing);
+                _ = http.Services.Configure<HttpStandardResilienceOptions>(http.Name + "-standard", o => o.Retry.Delay = TimeSpan.Zero);
+            },
             null,
             TestContext.Current.CancellationToken);
 

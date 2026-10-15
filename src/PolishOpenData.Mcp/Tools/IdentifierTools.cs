@@ -138,6 +138,10 @@ internal sealed partial class IdentifierTools
         return new IdentifierValidation { Kind = "kw", IsValid = false, Details = reasons, Suggestions = suggestions };
     }
 
+    /// <summary>True for text shaped like a KW number (court code, 8 digits, check digit) whether or not the check digit is right.</summary>
+    internal static bool LooksLikeKw(string? text) =>
+        text is not null && KwShape().IsMatch(text.Trim().ToUpperInvariant().Replace(" ", string.Empty, StringComparison.Ordinal));
+
     private static IdentifierValidation Valid(string kind, string normalized, string detail) =>
         new() { Kind = kind, IsValid = true, Normalized = normalized, Details = [detail] };
 

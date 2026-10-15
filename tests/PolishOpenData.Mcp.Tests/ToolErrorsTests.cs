@@ -29,8 +29,22 @@ public class ToolErrorsTests
     [Fact]
     public void Daily_limit_error_points_to_offline_tool()
     {
-        var text = ToolErrors.Describe(new QuotaExceededException("Biała Lista daily request limit for this IP address is exhausted (WL-191).", (HttpStatusCode)429, "WL-191", null, null));
-        Assert.EndsWith("Use check_vat_bank_account_offline, which has no request limit.", text, StringComparison.Ordinal);
+        var quota = new QuotaExceededException("Biała Lista daily request limit for this IP address is exhausted (WL-191).", (HttpStatusCode)429, "WL-191", null, null);
+        foreach (var tool in new[] { "check_vat_bank_account", "lookup_company" })
+        {
+            Assert.EndsWith("Use check_vat_bank_account_offline, which has no request limit.", ToolErrors.Describe(quota, tool), StringComparison.Ordinal);
+        }
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("get_krs_extract")]
+    public void Krs_rate_limit_does_not_point_to_the_vat_tool(string? tool)
+    {
+        // KrsFailure (lookup_company) passes no tool name.
+        var text = ToolErrors.Describe(new QuotaExceededException("KRS rate limit reached (HTTP 429).", HttpStatusCode.TooManyRequests, null, null, null), tool);
+
+        Assert.Equal("Request limit reached: KRS rate limit reached (HTTP 429).", text);
     }
 
     [Fact]
