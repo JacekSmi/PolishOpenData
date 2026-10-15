@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using PolishOpenData.Bir;
+using PolishOpenData.Tests.Shared;
 
 namespace PolishOpenData.SmokeTests;
 
@@ -134,5 +136,38 @@ public sealed class RegonLiveTests
             // also after a failed assertion or a quota refusal: the session on the owner's production key must not stay open
             await client.LogoutAsync(ct);
         }
+    }
+}
+
+/// <summary>
+/// The opt-in <c>lookup_regon</c> MCP tool against production GUS. Like the library's production test it runs only with your own
+/// <c>POLISHOPENDATA_REGON_KEY</c> and is for the owner to run by hand: CI never sets it. Four requests: login, search by NIP, the core
+/// report and the PKD report (the in-process server does not log out).
+/// </summary>
+public sealed class RegonMcpLiveTests
+{
+    [Fact(Timeout = Live.TestTimeout)]
+    public async Task Lookup_regon_by_nip_finds_gus_with_details()
+    {
+        Live.SkipUnlessEnabled();
+        var key = Environment.GetEnvironmentVariable(Live.RegonKeyVariable);
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            Assert.Skip("The production lookup_regon test runs only when " + Live.RegonKeyVariable + " holds your own GUS key; CI never sets it.");
+        }
+
+        var ct = TestContext.Current.CancellationToken;
+        await using var session = await McpTestSession.StartAsync(http => http.ConfigureHttpClient(c => c.Timeout = Live.HttpTimeout), clock: null, ct, regonKey: key);
+
+        var result = await session.Client.CallToolAsync("lookup_regon", new Dictionary<string, object?> { ["nip"] = RegonTestEnvironmentLiveTests.GusNip }, cancellationToken: ct);
+
+        Assert.True(result.IsError != true, ((ModelContextProtocol.Protocol.TextContentBlock)result.Content[0]).Text);
+        var data = result.StructuredContent!.Value;
+        Assert.True(data.GetProperty("found").GetBoolean());
+        Assert.Equal("production", data.GetProperty("environment").GetString());
+        var gus = Assert.Single(data.GetProperty("entities").EnumerateArray(), e => e.GetProperty("regon").GetString() == RegonTestEnvironmentLiveTests.GusRegon);
+        Assert.Equal("legal_person", gus.GetProperty("type").GetString());
+        Assert.Equal("active", gus.GetProperty("status").GetString());
+        Assert.True(gus.TryGetProperty("mainPkd", out var pkd) && pkd.ValueKind == System.Text.Json.JsonValueKind.Object, "GUS should have a main PKD activity");
     }
 }
