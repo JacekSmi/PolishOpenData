@@ -6,17 +6,19 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 using PolishOpenData.BialaLista;
+using PolishOpenData.Bir;
 using PolishOpenData.Internal;
 using PolishOpenData.Krs;
 
 namespace PolishOpenData.Mcp;
 
 [McpServerToolType]
-internal sealed partial class CompanyTools(CachedRegistries registries, TimeProvider timeProvider)
+internal sealed partial class CompanyTools(CachedRegistries registries, TimeProvider timeProvider, IServiceProviderIsService services)
 {
     private const int MaxListedAccounts = 20;
     private const string KrsSource = "KRS Open API (Ministerstwo Sprawiedliwości)";
@@ -140,7 +142,9 @@ internal sealed partial class CompanyTools(CachedRegistries registries, TimeProv
             // that's a sole trader, not a dead end) and no KRS number came back from it either: KRS itself has no
             // search by NIP or REGON, so this is a dead end unless the caller happens to know the KRS number.
             warnings.Add("Not on the VAT whitelist, and no KRS number is known for it. If this is an organisation " +
-                "not registered for VAT (KRS has no search by NIP or REGON), try again with 'krs' if you know its KRS number.");
+                "not registered for VAT (KRS has no search by NIP or REGON), try again with 'krs' if you know its KRS number." +
+                // lookup_regon exists only with the user's own GUS key; this tool itself never calls BIR.
+                (services.IsService(typeof(IRegonClient)) ? " The REGON register may know this identifier: call lookup_regon." : string.Empty));
         }
 
         // A KRS-first query: take the NIP from the extract and ask the VAT whitelist.
