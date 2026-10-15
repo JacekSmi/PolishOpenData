@@ -20,7 +20,39 @@ internal sealed record RegonEntityView
 
     /// <summary>One line: street and number, postal code, town.</summary>
     public string? Address { get; init; }
+
+    /// <summary>"active", "suspended" or "ended", derived from GUS's dates. Null when GUS gave no details.</summary>
+    public string? Status { get; init; }
+
+    public DateOnly? ActivityStartDate { get; init; }
+
+    public DateOnly? SuspensionDate { get; init; }
+
+    public DateOnly? ResumptionDate { get; init; }
+
+    public DateOnly? EndDate { get; init; }
+
+    public DateOnly? RegonRemovalDate { get; init; }
+
+    /// <summary>Legal persons only.</summary>
+    public string? LegalForm { get; init; }
+
+    /// <summary>Legal persons only: the register the entity is entered in (for example a court register).</summary>
+    public string? RegisterType { get; init; }
+
+    /// <summary>Legal persons only. Not necessarily a KRS number: do not treat it as one.</summary>
+    public string? RegisterNumber { get; init; }
+
+    public RegonPkdView? MainPkd { get; init; }
+
+    /// <summary>How many local units GUS lists; the units themselves are never returned.</summary>
+    public int? LocalUnitCount { get; init; }
+
+    /// <summary>Set for sole traders: the business name contains the owner's name and the address may be a home address.</summary>
+    public string? Note { get; init; }
 }
+
+internal sealed record RegonPkdView(string Code, string? Name, string? Version);
 
 internal sealed record RegonOverview
 {

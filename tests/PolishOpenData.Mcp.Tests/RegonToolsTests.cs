@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Time.Testing;
 using ModelContextProtocol.Protocol;
 using PolishOpenData.Bir.Tests;
 using PolishOpenData.Tests.Shared;
@@ -17,8 +16,6 @@ public sealed class RegonToolsTests : IAsyncDisposable
 {
     private const string Key = "dummy-key-not-a-secret";
     private const string GusRegon = "000331501";
-
-    private static readonly DateTimeOffset Now = new(2026, 10, 15, 8, 0, 0, TimeSpan.Zero);
 
     private McpTestSession? _session;
 
@@ -39,7 +36,7 @@ public sealed class RegonToolsTests : IAsyncDisposable
 
         _session = await McpTestSession.StartAsync(
             http => http.ConfigurePrimaryHttpMessageHandler(() => server.Handler),
-            new FakeTimeProvider(Now),
+            null,   // the real clock: the library's 3-requests-per-second limiter waits on it and would never wake under a fake one
             TestContext.Current.CancellationToken,
             regonKey: key);
         return await _session.Client.CallToolAsync("lookup_regon", arguments.ToDictionary(a => a.Name, a => a.Value), cancellationToken: TestContext.Current.CancellationToken);
@@ -69,6 +66,102 @@ public sealed class RegonToolsTests : IAsyncDisposable
         Assert.Equal("legal_person", entity.GetProperty("type").GetString());
         Assert.Equal(GusRegon, entity.GetProperty("regon").GetString());
         Assert.Equal("Rejestr REGON, GUS (usługa BIR1.2)", Assert.Single(data.GetProperty("sources").EnumerateArray()).GetProperty("name").GetString());
+    }
+
+    [Fact]
+    public async Task Legal_person_gets_details_and_main_pkd()
+    {
+        var data = Data(await LookupAsync(LegalPersonServer(), Key, ("regon", GusRegon)));
+
+        var entity = Assert.Single(data.GetProperty("entities").EnumerateArray());
+        Assert.Equal("PAŃSTWOWA JEDNOSTKA BUDŻETOWA", entity.GetProperty("legalForm").GetString());
+        Assert.Equal("BRAK REJESTRU", entity.GetProperty("registerType").GetString());
+        Assert.Equal("0000135115", entity.GetProperty("registerNumber").GetString());
+        Assert.Equal("1975-12-15", entity.GetProperty("activityStartDate").GetString());
+        Assert.Equal("active", entity.GetProperty("status").GetString());
+        Assert.Equal(1, entity.GetProperty("localUnitCount").GetInt32());
+        var pkd = entity.GetProperty("mainPkd");
+        Assert.Equal("8411Z", pkd.GetProperty("code").GetString());
+        Assert.Equal("Działalność testowa A", pkd.GetProperty("name").GetString());
+        Assert.Equal("2007", pkd.GetProperty("version").GetString());
+    }
+
+    [Fact]
+    public async Task Natural_person_gets_the_note_and_no_personal_fields()
+    {
+        var server = new FakeBirServer()
+            .Search("Regon", "999999990", "synthetic-search-natural-person")
+            .Report("999999990", "BIR12OsFizycznaDaneOgolne", "synthetic-report-fiz-daneogolne")
+            .Report("999999990", "BIR12OsFizycznaDzialalnoscCeidg", "synthetic-report-fiz-ceidg")
+            .Report("999999990", "BIR12OsFizycznaDzialalnoscRolnicza", "synthetic-report-fiz-rolnicza")
+            .Report("999999990", "BIR12OsFizycznaPkd", "synthetic-report-fiz-pkd");
+
+        var result = await LookupAsync(server, Key, ("regon", "999999990"));
+
+        var data = Data(result);
+        var entities = data.GetProperty("entities").EnumerateArray().ToArray();
+        Assert.Equal(2, entities.Length);
+        Assert.All(entities, e =>
+        {
+            Assert.Equal("natural_person", e.GetProperty("type").GetString());
+            Assert.Contains("owner's name", e.GetProperty("note").GetString(), StringComparison.Ordinal);
+            Assert.False(e.TryGetProperty("legalForm", out var legalForm) && legalForm.ValueKind == JsonValueKind.String);
+        });
+        Assert.Equal("active", entities[0].GetProperty("status").GetString());   // suspended 2012-05, resumed 2012-09
+        Assert.Equal("6201Z", entities[0].GetProperty("mainPkd").GetProperty("code").GetString());
+        Assert.Equal("ended", entities[1].GetProperty("status").GetString());    // the search row carries an end date
+        var json = data.GetRawText().ToLowerInvariant();
+        foreach (var forbidden in new[] { "imie", "nazwisko", "telefon", "phone", "email", "e-mail", "www", "faks", "fax", "jan.kowalski@example.test", "partner", "localunits" })
+        {
+            Assert.DoesNotContain(forbidden, json, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
+    public async Task Several_matches_are_all_listed_and_details_are_capped()
+    {
+        var server = new FakeBirServer().Search("Nip", "5261040828", "synthetic-search-seven-rows");
+        var first = new[] { "000331501", "142396858", "010418973", "999999990", "651536363" };
+        foreach (var regon in first)
+        {
+            server.Report(regon, "BIR12OsPrawna", "synthetic-report-osprawna-gus").Report(regon, "BIR12OsPrawnaPkd", "synthetic-report-osprawna-pkd");
+        }
+
+        var data = Data(await LookupAsync(server, Key, ("nip", "5261040828")));
+
+        Assert.Equal(7, data.GetProperty("entities").GetArrayLength());
+        Assert.Equal(first, server.Calls.Where(c => c.Operation == "DanePobierzPelnyRaport" && c.Arg("pNazwaRaportu") == "BIR12OsPrawna").Select(c => c.Arg("pRegon")).ToArray());
+        Assert.Equal("2 more matches are listed without details; ask for one of them by its REGON.", Assert.Single(data.GetProperty("warnings").EnumerateArray()).GetString());
+    }
+
+    [Fact]
+    public async Task Names_are_sanitised()
+    {
+        var server = new FakeBirServer()
+            .Search("Regon", "142396858", "synthetic-search-control-char")
+            .Report("142396858", "BIR12OsPrawna", "synthetic-report-osprawna-gus")
+            .Report("142396858", "BIR12OsPrawnaPkd", "synthetic-report-osprawna-pkd");
+
+        var data = Data(await LookupAsync(server, Key, ("regon", "142396858")));
+
+        var name = Assert.Single(data.GetProperty("entities").EnumerateArray()).GetProperty("name").GetString()!;
+        Assert.DoesNotContain(name, char.IsControl);
+        Assert.Equal("SPÓŁKATESTOWA SP. Z O.O.", name);
+    }
+
+    [Fact]
+    public async Task No_details_keeps_the_row_and_warns()
+    {
+        var server = new FakeBirServer()
+            .Search("Regon", GusRegon, "search-regon-gus")
+            .Report(GusRegon, "BIR12OsPrawna", "synthetic-report-error-4");
+
+        var data = Data(await LookupAsync(server, Key, ("regon", GusRegon)));
+
+        var entity = Assert.Single(data.GetProperty("entities").EnumerateArray());
+        Assert.Equal(GusRegon, entity.GetProperty("regon").GetString());
+        Assert.False(entity.TryGetProperty("legalForm", out var legalForm) && legalForm.ValueKind == JsonValueKind.String);
+        Assert.Equal("GUS returned no details for REGON " + GusRegon + ".", Assert.Single(data.GetProperty("warnings").EnumerateArray()).GetString());
     }
 
     [Fact]
