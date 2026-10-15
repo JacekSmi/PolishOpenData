@@ -1,0 +1,160 @@
+<?xml version='1.0' encoding="UTF-8" ?>
+<wfs:FeatureCollection
+   xmlns:ms="http://mapserver.gis.umn.edu/mapserver"
+   xmlns:gml="http://www.opengis.net/gml/3.2"
+   xmlns:wfs="http://www.opengis.net/wfs/2.0"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://mapserver.gis.umn.edu/mapserver https://mapy.geoportal.gov.pl/wss/service/rcn?SERVICE=WFS&amp;VERSION=2.0.0&amp;REQUEST=DescribeFeatureType&amp;TYPENAME=ms:lokale&amp;OUTPUTFORMAT=application%2Fgml%2Bxml%3B%20version%3D3.2 http://www.opengis.net/wfs/2.0 http://schemas.opengis.net/wfs/2.0/wfs.xsd http://www.opengis.net/gml/3.2 http://schemas.opengis.net/gml/3.2.1/gml.xsd"
+   timeStamp="2026-10-15T19:41:43" numberMatched="unknown" numberReturned="3">
+      <wfs:boundedBy>
+      	<gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+      		<gml:lowerCorner>486317.574367 637803.204077</gml:lowerCorner>
+      		<gml:upperCorner>486416.937983 638064.788397</gml:upperCorner>
+      	</gml:Envelope>
+      </wfs:boundedBy>
+    <wfs:member>
+      <ms:lokale gml:id="lokale.23392775">
+        <gml:boundedBy>
+        	<gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+        		<gml:lowerCorner>486387.107712 637803.204077</gml:lowerCorner>
+        		<gml:upperCorner>486387.107712 637803.204077</gml:upperCorner>
+        	</gml:Envelope>
+        </gml:boundedBy>
+        <ms:GEOMETRIA>
+          <gml:Point gml:id="lokale.23392775.1" srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:pos>486387.107712 637803.204077</gml:pos>
+          </gml:Point>
+        </ms:GEOMETRIA>
+        <ms:gid>23392775</ms:gid>
+        <ms:SERWIS_RCN></ms:SERWIS_RCN>
+        <ms:TERYT>1465</ms:TERYT>
+        <ms:TRAN_PRZESTRZEN_NAZW>PL.PZGiK.5346.RCN</ms:TRAN_PRZESTRZEN_NAZW>
+        <ms:TRAN_LOKALNY_ID_IIP>00000000-0000-4000-8000-000000000001</ms:TRAN_LOKALNY_ID_IIP>
+        <ms:TRAN_WERSJA_ID gml:id="lokale.23392775.TRAN_WERSJA_ID"><gml:timePosition>2026-04-10T10:59:16Z</gml:timePosition></ms:TRAN_WERSJA_ID>
+        <ms:TRAN_OZNACZENIE_TRANS>617867</ms:TRAN_OZNACZENIE_TRANS>
+        <ms:TRAN_RODZAJ_TRANS>wolnyRynek</ms:TRAN_RODZAJ_TRANS>
+        <ms:TRAN_RODZAJ_RYNKU>rynekWtorny</ms:TRAN_RODZAJ_RYNKU>
+        <ms:TRAN_SPRZEDAJACY>osobaFizyczna</ms:TRAN_SPRZEDAJACY>
+        <ms:TRAN_KUPUJACY>osobaFizyczna</ms:TRAN_KUPUJACY>
+        <ms:TRAN_CENA_BRUTTO>750000</ms:TRAN_CENA_BRUTTO>
+        <ms:TRAN_VAT></ms:TRAN_VAT>
+        <ms:DOK_OZNACZENIE>11038/2025</ms:DOK_OZNACZENIE>
+        <ms:DOK_DATA gml:id="lokale.23392775.DOK_DATA"><gml:timePosition>2025-12-19</gml:timePosition></ms:DOK_DATA>
+        <ms:DOK_TWORCA>NOTARY-REDACTED</ms:DOK_TWORCA>
+        <ms:NIER_RODZAJ>nieruchomoscLokalowa</ms:NIER_RODZAJ>
+        <ms:NIER_PRAWO>wlasnoscLokaluWrazZPrawemZwiazanym</ms:NIER_PRAWO>
+        <ms:NIER_UDZIAL>1/1</ms:NIER_UDZIAL>
+        <ms:NIER_POW_GRUNTU></ms:NIER_POW_GRUNTU>
+        <ms:NIER_OPIS></ms:NIER_OPIS>
+        <ms:NIER_CENA_BRUTTO>750000</ms:NIER_CENA_BRUTTO>
+        <ms:NIER_VAT></ms:NIER_VAT>
+        <ms:LOK_ID_LOKALU>146510_8.0504.40_BUD.40_LOK</ms:LOK_ID_LOKALU>
+        <ms:LOK_FUNKCJA>mieszkalna</ms:LOK_FUNKCJA>
+        <ms:LOK_LICZBA_IZB>2</ms:LOK_LICZBA_IZB>
+        <ms:LOK_NR_KOND>3</ms:LOK_NR_KOND>
+        <ms:LOK_POW_UZYT>36</ms:LOK_POW_UZYT>
+        <ms:LOK_POW_PRZYN></ms:LOK_POW_PRZYN>
+        <ms:LOK_CENA_BRUTTO>750000</ms:LOK_CENA_BRUTTO>
+        <ms:LOK_VAT></ms:LOK_VAT>
+        <ms:LOK_INFO></ms:LOK_INFO>
+        <ms:LOK_ADRES>MSC:Testowo;UL:ulica Przykładowa;NR_PORZ:11</ms:LOK_ADRES>
+      </ms:lokale>
+    </wfs:member>
+    <wfs:member>
+      <ms:lokale gml:id="lokale.23515540">
+        <gml:boundedBy>
+        	<gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+        		<gml:lowerCorner>486317.574367 638033.471385</gml:lowerCorner>
+        		<gml:upperCorner>486317.574367 638033.471385</gml:upperCorner>
+        	</gml:Envelope>
+        </gml:boundedBy>
+        <ms:GEOMETRIA>
+          <gml:Point gml:id="lokale.23515540.1" srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:pos>486317.574367 638033.471385</gml:pos>
+          </gml:Point>
+        </ms:GEOMETRIA>
+        <ms:gid>23515540</ms:gid>
+        <ms:SERWIS_RCN></ms:SERWIS_RCN>
+        <ms:TERYT>1465</ms:TERYT>
+        <ms:TRAN_PRZESTRZEN_NAZW>PL.PZGiK.5346.RCN</ms:TRAN_PRZESTRZEN_NAZW>
+        <ms:TRAN_LOKALNY_ID_IIP>00000000-0000-4000-8000-000000000002</ms:TRAN_LOKALNY_ID_IIP>
+        <ms:TRAN_WERSJA_ID gml:id="lokale.23515540.TRAN_WERSJA_ID"><gml:timePosition>2026-03-30T09:55:13Z</gml:timePosition></ms:TRAN_WERSJA_ID>
+        <ms:TRAN_OZNACZENIE_TRANS>616477</ms:TRAN_OZNACZENIE_TRANS>
+        <ms:TRAN_RODZAJ_TRANS>wolnyRynek</ms:TRAN_RODZAJ_TRANS>
+        <ms:TRAN_RODZAJ_RYNKU>rynekWtorny</ms:TRAN_RODZAJ_RYNKU>
+        <ms:TRAN_SPRZEDAJACY>osobaFizyczna</ms:TRAN_SPRZEDAJACY>
+        <ms:TRAN_KUPUJACY>osobaFizyczna</ms:TRAN_KUPUJACY>
+        <ms:TRAN_CENA_BRUTTO>300000</ms:TRAN_CENA_BRUTTO>
+        <ms:TRAN_VAT></ms:TRAN_VAT>
+        <ms:DOK_OZNACZENIE>8885/2025</ms:DOK_OZNACZENIE>
+        <ms:DOK_DATA gml:id="lokale.23515540.DOK_DATA"><gml:timePosition>2025-12-12</gml:timePosition></ms:DOK_DATA>
+        <ms:DOK_TWORCA>NOTARY-REDACTED</ms:DOK_TWORCA>
+        <ms:NIER_RODZAJ>nieruchomoscLokalowa</ms:NIER_RODZAJ>
+        <ms:NIER_PRAWO>wlasnoscLokaluWrazZPrawemZwiazanym</ms:NIER_PRAWO>
+        <ms:NIER_UDZIAL>1/1</ms:NIER_UDZIAL>
+        <ms:NIER_POW_GRUNTU></ms:NIER_POW_GRUNTU>
+        <ms:NIER_OPIS></ms:NIER_OPIS>
+        <ms:NIER_CENA_BRUTTO>300000</ms:NIER_CENA_BRUTTO>
+        <ms:NIER_VAT></ms:NIER_VAT>
+        <ms:LOK_ID_LOKALU>146510_8.0504.102_BUD.102_LOK</ms:LOK_ID_LOKALU>
+        <ms:LOK_FUNKCJA>mieszkalna</ms:LOK_FUNKCJA>
+        <ms:LOK_LICZBA_IZB>2</ms:LOK_LICZBA_IZB>
+        <ms:LOK_NR_KOND>2</ms:LOK_NR_KOND>
+        <ms:LOK_POW_UZYT>62.16</ms:LOK_POW_UZYT>
+        <ms:LOK_POW_PRZYN>2</ms:LOK_POW_PRZYN>
+        <ms:LOK_CENA_BRUTTO>300000</ms:LOK_CENA_BRUTTO>
+        <ms:LOK_VAT></ms:LOK_VAT>
+        <ms:LOK_INFO></ms:LOK_INFO>
+        <ms:LOK_ADRES>MSC:Testowo;UL:ulica Przykładowa;NR_PORZ:12</ms:LOK_ADRES>
+      </ms:lokale>
+    </wfs:member>
+    <wfs:member>
+      <ms:lokale gml:id="lokale.23484557">
+        <gml:boundedBy>
+        	<gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+        		<gml:lowerCorner>486416.937983 638064.788397</gml:lowerCorner>
+        		<gml:upperCorner>486416.937983 638064.788397</gml:upperCorner>
+        	</gml:Envelope>
+        </gml:boundedBy>
+        <ms:GEOMETRIA>
+          <gml:Point gml:id="lokale.23484557.1" srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:pos>486416.937983 638064.788397</gml:pos>
+          </gml:Point>
+        </ms:GEOMETRIA>
+        <ms:gid>23484557</ms:gid>
+        <ms:SERWIS_RCN></ms:SERWIS_RCN>
+        <ms:TERYT>1465</ms:TERYT>
+        <ms:TRAN_PRZESTRZEN_NAZW>PL.PZGiK.5346.RCN</ms:TRAN_PRZESTRZEN_NAZW>
+        <ms:TRAN_LOKALNY_ID_IIP>00000000-0000-4000-8000-000000000003</ms:TRAN_LOKALNY_ID_IIP>
+        <ms:TRAN_WERSJA_ID gml:id="lokale.23484557.TRAN_WERSJA_ID"><gml:timePosition>2026-02-02T09:18:00Z</gml:timePosition></ms:TRAN_WERSJA_ID>
+        <ms:TRAN_OZNACZENIE_TRANS>612188</ms:TRAN_OZNACZENIE_TRANS>
+        <ms:TRAN_RODZAJ_TRANS>wolnyRynek</ms:TRAN_RODZAJ_TRANS>
+        <ms:TRAN_RODZAJ_RYNKU>rynekWtorny</ms:TRAN_RODZAJ_RYNKU>
+        <ms:TRAN_SPRZEDAJACY>osobaFizyczna</ms:TRAN_SPRZEDAJACY>
+        <ms:TRAN_KUPUJACY>osobaFizyczna</ms:TRAN_KUPUJACY>
+        <ms:TRAN_CENA_BRUTTO>950000</ms:TRAN_CENA_BRUTTO>
+        <ms:TRAN_VAT></ms:TRAN_VAT>
+        <ms:DOK_OZNACZENIE>11512/2025</ms:DOK_OZNACZENIE>
+        <ms:DOK_DATA gml:id="lokale.23484557.DOK_DATA"><gml:timePosition>2025-11-14</gml:timePosition></ms:DOK_DATA>
+        <ms:DOK_TWORCA>NOTARY-REDACTED</ms:DOK_TWORCA>
+        <ms:NIER_RODZAJ>nieruchomoscLokalowa</ms:NIER_RODZAJ>
+        <ms:NIER_PRAWO>wlasnoscLokaluWrazZPrawemZwiazanym</ms:NIER_PRAWO>
+        <ms:NIER_UDZIAL>1/1</ms:NIER_UDZIAL>
+        <ms:NIER_POW_GRUNTU></ms:NIER_POW_GRUNTU>
+        <ms:NIER_OPIS></ms:NIER_OPIS>
+        <ms:NIER_CENA_BRUTTO>950000</ms:NIER_CENA_BRUTTO>
+        <ms:NIER_VAT></ms:NIER_VAT>
+        <ms:LOK_ID_LOKALU>146510_8.0504.6_BUD.29_LOK</ms:LOK_ID_LOKALU>
+        <ms:LOK_FUNKCJA>mieszkalna</ms:LOK_FUNKCJA>
+        <ms:LOK_LICZBA_IZB>0</ms:LOK_LICZBA_IZB>
+        <ms:LOK_NR_KOND>1</ms:LOK_NR_KOND>
+        <ms:LOK_POW_UZYT>33.45</ms:LOK_POW_UZYT>
+        <ms:LOK_POW_PRZYN></ms:LOK_POW_PRZYN>
+        <ms:LOK_CENA_BRUTTO>950000</ms:LOK_CENA_BRUTTO>
+        <ms:LOK_VAT></ms:LOK_VAT>
+        <ms:LOK_INFO></ms:LOK_INFO>
+        <ms:LOK_ADRES>MSC:Testowo;UL:ulica Przykładowa;NR_PORZ:13</ms:LOK_ADRES>
+      </ms:lokale>
+    </wfs:member>
+</wfs:FeatureCollection>
+

@@ -1,0 +1,122 @@
+<?xml version='1.0' encoding="UTF-8" ?>
+<wfs:FeatureCollection
+   xmlns:ms="http://mapserver.gis.umn.edu/mapserver"
+   xmlns:gml="http://www.opengis.net/gml/3.2"
+   xmlns:wfs="http://www.opengis.net/wfs/2.0"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://mapserver.gis.umn.edu/mapserver https://mapy.geoportal.gov.pl/wss/service/rcn?SERVICE=WFS&amp;VERSION=2.0.0&amp;REQUEST=DescribeFeatureType&amp;TYPENAME=ms:budynki&amp;OUTPUTFORMAT=application%2Fgml%2Bxml%3B%20version%3D3.2 http://www.opengis.net/wfs/2.0 http://schemas.opengis.net/wfs/2.0/wfs.xsd http://www.opengis.net/gml/3.2 http://schemas.opengis.net/gml/3.2.1/gml.xsd"
+   timeStamp="2026-10-15T19:41:44" numberMatched="unknown" numberReturned="2">
+      <wfs:boundedBy>
+      	<gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+      		<gml:lowerCorner>484223.094855 629689.891576</gml:lowerCorner>
+      		<gml:upperCorner>486713.229586 640272.277961</gml:upperCorner>
+      	</gml:Envelope>
+      </wfs:boundedBy>
+    <wfs:member>
+      <ms:budynki gml:id="budynki.52221560">
+        <gml:boundedBy>
+        	<gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+        		<gml:lowerCorner>486678.760186 640238.081614</gml:lowerCorner>
+        		<gml:upperCorner>486713.229586 640272.277961</gml:upperCorner>
+        	</gml:Envelope>
+        </gml:boundedBy>
+        <ms:GEOMETRIA>
+          <gml:MultiSurface gml:id="budynki.52221560.1" srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:surfaceMember>
+              <gml:Polygon gml:id="budynki.52221560.2">
+                <gml:exterior>
+                  <gml:LinearRing>
+                    <gml:posList srsDimension="2">486696.497152 640238.081614 486678.760186 640257.391205 486683.856776 640260.890516 486684.964187 640259.709949 486684.686946 640259.447602 486696.039800 640247.234230 486696.349501 640247.585681 486696.647617 640247.517452 486697.357841 640247.887847 486693.004363 640253.558014 486698.941780 640258.174115 486699.171719 640260.707765 486698.197519 640262.004656 486693.766032 640267.746977 486700.251100 640272.277961 486704.410247 640266.813157 486703.217141 640265.976092 486711.437717 640255.129181 486710.468030 640254.415949 486713.229586 640250.849722 486706.293332 640245.551195 486703.483643 640243.388755 486700.082536 640240.812641 486696.497152 640238.081614 </gml:posList>
+                  </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+            </gml:surfaceMember>
+          </gml:MultiSurface>
+        </ms:GEOMETRIA>
+        <ms:gid>52221560</ms:gid>
+        <ms:SERWIS_RCN></ms:SERWIS_RCN>
+        <ms:TERYT>1465</ms:TERYT>
+        <ms:TRAN_PRZESTRZEN_NAZW>PL.PZGiK.5346.RCN</ms:TRAN_PRZESTRZEN_NAZW>
+        <ms:TRAN_LOKALNY_ID_IIP>00000000-0000-4000-8000-000000000005</ms:TRAN_LOKALNY_ID_IIP>
+        <ms:TRAN_WERSJA_ID gml:id="budynki.52221560.TRAN_WERSJA_ID"><gml:timePosition>2026-05-18T15:09:04Z</gml:timePosition></ms:TRAN_WERSJA_ID>
+        <ms:TRAN_OZNACZENIE_TRANS>622583</ms:TRAN_OZNACZENIE_TRANS>
+        <ms:TRAN_RODZAJ_TRANS>wolnyRynek</ms:TRAN_RODZAJ_TRANS>
+        <ms:TRAN_RODZAJ_RYNKU>rynekWtorny</ms:TRAN_RODZAJ_RYNKU>
+        <ms:TRAN_SPRZEDAJACY>osobaPrawna</ms:TRAN_SPRZEDAJACY>
+        <ms:TRAN_KUPUJACY>osobaFizyczna</ms:TRAN_KUPUJACY>
+        <ms:TRAN_CENA_BRUTTO>10900000</ms:TRAN_CENA_BRUTTO>
+        <ms:TRAN_VAT></ms:TRAN_VAT>
+        <ms:DOK_OZNACZENIE>1937/2026</ms:DOK_OZNACZENIE>
+        <ms:DOK_DATA gml:id="budynki.52221560.DOK_DATA"><gml:timePosition>2026-03-31</gml:timePosition></ms:DOK_DATA>
+        <ms:DOK_TWORCA>NOTARY-REDACTED</ms:DOK_TWORCA>
+        <ms:NIER_RODZAJ>nieruchomoscGruntowaZabudowana</ms:NIER_RODZAJ>
+        <ms:NIER_PRAWO>wlasnoscNieruchomosciGruntowej</ms:NIER_PRAWO>
+        <ms:NIER_UDZIAL>1/1</ms:NIER_UDZIAL>
+        <ms:NIER_POW_GRUNTU></ms:NIER_POW_GRUNTU>
+        <ms:NIER_OPIS></ms:NIER_OPIS>
+        <ms:NIER_CENA_BRUTTO>10900000</ms:NIER_CENA_BRUTTO>
+        <ms:NIER_VAT></ms:NIER_VAT>
+        <ms:BUD_ID_BUDYNKU>146507_8.0112.323_BUD</ms:BUD_ID_BUDYNKU>
+        <ms:BUD_RODZAJ>mieszkalny</ms:BUD_RODZAJ>
+        <ms:BUD_POW_UZYT></ms:BUD_POW_UZYT>
+        <ms:BUD_CENA_BRUTTO></ms:BUD_CENA_BRUTTO>
+        <ms:BUD_VAT></ms:BUD_VAT>
+        <ms:BUD_INFO></ms:BUD_INFO>
+        <ms:BUD_ADRES>MSC:Testowo;UL:ulica Przykładowa;NR_PORZ:15</ms:BUD_ADRES>
+      </ms:budynki>
+    </wfs:member>
+    <wfs:member>
+      <ms:budynki gml:id="budynki.52287677">
+        <gml:boundedBy>
+        	<gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+        		<gml:lowerCorner>484223.094855 629689.891576</gml:lowerCorner>
+        		<gml:upperCorner>484235.004916 629697.616840</gml:upperCorner>
+        	</gml:Envelope>
+        </gml:boundedBy>
+        <ms:GEOMETRIA>
+          <gml:MultiSurface gml:id="budynki.52287677.1" srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:surfaceMember>
+              <gml:Polygon gml:id="budynki.52287677.2">
+                <gml:exterior>
+                  <gml:LinearRing>
+                    <gml:posList srsDimension="2">484235.004916 629692.566928 484224.331475 629689.891576 484223.094855 629695.085513 484233.914316 629697.616840 484235.004916 629692.566928 </gml:posList>
+                  </gml:LinearRing>
+                </gml:exterior>
+              </gml:Polygon>
+            </gml:surfaceMember>
+          </gml:MultiSurface>
+        </ms:GEOMETRIA>
+        <ms:gid>52287677</ms:gid>
+        <ms:SERWIS_RCN></ms:SERWIS_RCN>
+        <ms:TERYT>1465</ms:TERYT>
+        <ms:TRAN_PRZESTRZEN_NAZW>PL.PZGiK.5346.RCN</ms:TRAN_PRZESTRZEN_NAZW>
+        <ms:TRAN_LOKALNY_ID_IIP>00000000-0000-4000-8000-000000000006</ms:TRAN_LOKALNY_ID_IIP>
+        <ms:TRAN_WERSJA_ID gml:id="budynki.52287677.TRAN_WERSJA_ID"><gml:timePosition>2026-04-29T12:28:32Z</gml:timePosition></ms:TRAN_WERSJA_ID>
+        <ms:TRAN_OZNACZENIE_TRANS>620333</ms:TRAN_OZNACZENIE_TRANS>
+        <ms:TRAN_RODZAJ_TRANS>wolnyRynek</ms:TRAN_RODZAJ_TRANS>
+        <ms:TRAN_RODZAJ_RYNKU>rynekWtorny</ms:TRAN_RODZAJ_RYNKU>
+        <ms:TRAN_SPRZEDAJACY>osobaFizyczna</ms:TRAN_SPRZEDAJACY>
+        <ms:TRAN_KUPUJACY>osobaFizyczna</ms:TRAN_KUPUJACY>
+        <ms:TRAN_CENA_BRUTTO>1180000</ms:TRAN_CENA_BRUTTO>
+        <ms:TRAN_VAT></ms:TRAN_VAT>
+        <ms:DOK_OZNACZENIE>1403/2026</ms:DOK_OZNACZENIE>
+        <ms:DOK_DATA gml:id="budynki.52287677.DOK_DATA"><gml:timePosition>2026-03-31</gml:timePosition></ms:DOK_DATA>
+        <ms:DOK_TWORCA>NOTARY-REDACTED</ms:DOK_TWORCA>
+        <ms:NIER_RODZAJ>nieruchomoscGruntowaZabudowana</ms:NIER_RODZAJ>
+        <ms:NIER_PRAWO>wlasnoscNieruchomosciGruntowej</ms:NIER_PRAWO>
+        <ms:NIER_UDZIAL>1/1</ms:NIER_UDZIAL>
+        <ms:NIER_POW_GRUNTU>261</ms:NIER_POW_GRUNTU>
+        <ms:NIER_OPIS></ms:NIER_OPIS>
+        <ms:NIER_CENA_BRUTTO>1180000</ms:NIER_CENA_BRUTTO>
+        <ms:NIER_VAT></ms:NIER_VAT>
+        <ms:BUD_ID_BUDYNKU>146517_8.0805.179_BUD</ms:BUD_ID_BUDYNKU>
+        <ms:BUD_RODZAJ>mieszkalny</ms:BUD_RODZAJ>
+        <ms:BUD_POW_UZYT>165</ms:BUD_POW_UZYT>
+        <ms:BUD_CENA_BRUTTO></ms:BUD_CENA_BRUTTO>
+        <ms:BUD_VAT></ms:BUD_VAT>
+        <ms:BUD_INFO></ms:BUD_INFO>
+        <ms:BUD_ADRES>MSC:Testowo;UL:ulica Przykładowa;NR_PORZ:16</ms:BUD_ADRES>
+      </ms:budynki>
+    </wfs:member>
+</wfs:FeatureCollection>
+

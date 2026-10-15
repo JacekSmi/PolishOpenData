@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding="UTF-8" ?>
+<wfs:FeatureCollection
+   xmlns:ms="http://mapserver.gis.umn.edu/mapserver"
+   xmlns:gml="http://www.opengis.net/gml/3.2"
+   xmlns:wfs="http://www.opengis.net/wfs/2.0"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="http://mapserver.gis.umn.edu/mapserver https://mapy.geoportal.gov.pl/wss/service/rcn?SERVICE=WFS&amp;VERSION=2.0.0&amp;REQUEST=DescribeFeatureType&amp;TYPENAME=ms:dzialki&amp;OUTPUTFORMAT=application%2Fgml%2Bxml%3B%20version%3D3.2 http://www.opengis.net/wfs/2.0 http://schemas.opengis.net/wfs/2.0/wfs.xsd http://www.opengis.net/gml/3.2 http://schemas.opengis.net/gml/3.2.1/gml.xsd"
+   timeStamp="2026-10-15T19:41:43" numberMatched="unknown" numberReturned="2">
+      <wfs:boundedBy>
+      	<gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+      		<gml:lowerCorner>477533.419603 640234.285475</gml:lowerCorner>
+      		<gml:upperCorner>486719.873877 645210.726345</gml:upperCorner>
+      	</gml:Envelope>
+      </wfs:boundedBy>
+    <wfs:member>
+      <ms:dzialki gml:id="dzialki.86953001">
+        <gml:boundedBy>
+        	<gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+        		<gml:lowerCorner>477533.419603 645161.967647</gml:lowerCorner>
+        		<gml:upperCorner>477596.339217 645210.726345</gml:upperCorner>
+        	</gml:Envelope>
+        </gml:boundedBy>
+        <ms:GEOMETRIA>
+          <gml:Polygon gml:id="dzialki.86953001.1" srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:exterior>
+              <gml:LinearRing>
+                <gml:posList srsDimension="2">477584.605822 645161.967647 477573.208270 645166.051970 477565.566227 645167.432703 477533.419603 645165.759047 477549.499711 645210.726345 477590.727168 645195.379361 477596.339217 645193.274589 477595.572712 645191.225693 477584.605822 645161.967647 </gml:posList>
+              </gml:LinearRing>
+            </gml:exterior>
+          </gml:Polygon>
+        </ms:GEOMETRIA>
+        <ms:gid>86953001</ms:gid>
+        <ms:SERWIS_RCN></ms:SERWIS_RCN>
+        <ms:TERYT>1465</ms:TERYT>
+        <ms:TRAN_PRZESTRZEN_NAZW>PL.PZGiK.5346.RCN</ms:TRAN_PRZESTRZEN_NAZW>
+        <ms:TRAN_LOKALNY_ID_IIP>00000000-0000-4000-8000-000000000004</ms:TRAN_LOKALNY_ID_IIP>
+        <ms:TRAN_WERSJA_ID gml:id="dzialki.86953001.TRAN_WERSJA_ID"><gml:timePosition>2026-05-18T08:42:47Z</gml:timePosition></ms:TRAN_WERSJA_ID>
+        <ms:TRAN_OZNACZENIE_TRANS>620362</ms:TRAN_OZNACZENIE_TRANS>
+        <ms:TRAN_RODZAJ_TRANS>wolnyRynek</ms:TRAN_RODZAJ_TRANS>
+        <ms:TRAN_RODZAJ_RYNKU></ms:TRAN_RODZAJ_RYNKU>
+        <ms:TRAN_SPRZEDAJACY>osobaFizyczna</ms:TRAN_SPRZEDAJACY>
+        <ms:TRAN_KUPUJACY>osobaFizyczna</ms:TRAN_KUPUJACY>
+        <ms:TRAN_CENA_BRUTTO>1680000</ms:TRAN_CENA_BRUTTO>
+        <ms:TRAN_VAT></ms:TRAN_VAT>
+        <ms:DOK_OZNACZENIE>1151/2026</ms:DOK_OZNACZENIE>
+        <ms:DOK_DATA gml:id="dzialki.86953001.DOK_DATA"><gml:timePosition>2026-03-31</gml:timePosition></ms:DOK_DATA>
+        <ms:DOK_TWORCA>NOTARY-REDACTED</ms:DOK_TWORCA>
+        <ms:NIER_RODZAJ>nieruchomoscGruntowaNiezabudowana</ms:NIER_RODZAJ>
+        <ms:NIER_PRAWO>wlasnoscNieruchomosciGruntowej</ms:NIER_PRAWO>
+        <ms:NIER_UDZIAL>1/1</ms:NIER_UDZIAL>
+        <ms:NIER_POW_GRUNTU>1907</ms:NIER_POW_GRUNTU>
+        <ms:NIER_OPIS></ms:NIER_OPIS>
+        <ms:NIER_CENA_BRUTTO>1614230</ms:NIER_CENA_BRUTTO>
+        <ms:NIER_VAT></ms:NIER_VAT>
+        <ms:DZI_ID_DZIALKI>146516_8.0659.3/7</ms:DZI_ID_DZIALKI>
+        <ms:DZI_NR_DZIALKI>3/7</ms:DZI_NR_DZIALKI>
+        <ms:DZI_PRZEZN_WMPZP></ms:DZI_PRZEZN_WMPZP>
+        <ms:DZI_POW_EWID>1907</ms:DZI_POW_EWID>
+        <ms:DZI_SPOSOB_UZYT>gruntyRolne</ms:DZI_SPOSOB_UZYT>
+        <ms:DZI_CENA_BRUTTO>1614230</ms:DZI_CENA_BRUTTO>
+        <ms:DZI_VAT></ms:DZI_VAT>
+        <ms:DZI_INFO></ms:DZI_INFO>
+        <ms:DZI_ADRES></ms:DZI_ADRES>
+      </ms:dzialki>
+    </wfs:member>
+    <wfs:member>
+      <ms:dzialki gml:id="dzialki.86953179">
+        <gml:boundedBy>
+        	<gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+        		<gml:lowerCorner>486678.744402 640234.285475</gml:lowerCorner>
+        		<gml:upperCorner>486719.873877 640275.309988</gml:upperCorner>
+        	</gml:Envelope>
+        </gml:boundedBy>
+        <ms:GEOMETRIA>
+          <gml:Polygon gml:id="dzialki.86953179.1" srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:exterior>
+              <gml:LinearRing>
+                <gml:posList srsDimension="2">486713.179308 640244.681116 486706.659086 640239.601104 486700.342360 640234.285475 486678.744402 640257.181641 486704.524792 640275.309988 486710.127479 640267.075339 486715.565448 640257.945237 486719.873877 640249.556315 486713.179308 640244.681116 </gml:posList>
+              </gml:LinearRing>
+            </gml:exterior>
+          </gml:Polygon>
+        </ms:GEOMETRIA>
+        <ms:gid>86953179</ms:gid>
+        <ms:SERWIS_RCN></ms:SERWIS_RCN>
+        <ms:TERYT>1465</ms:TERYT>
+        <ms:TRAN_PRZESTRZEN_NAZW>PL.PZGiK.5346.RCN</ms:TRAN_PRZESTRZEN_NAZW>
+        <ms:TRAN_LOKALNY_ID_IIP>00000000-0000-4000-8000-000000000005</ms:TRAN_LOKALNY_ID_IIP>
+        <ms:TRAN_WERSJA_ID gml:id="dzialki.86953179.TRAN_WERSJA_ID"><gml:timePosition>2026-05-18T15:09:04Z</gml:timePosition></ms:TRAN_WERSJA_ID>
+        <ms:TRAN_OZNACZENIE_TRANS>622583</ms:TRAN_OZNACZENIE_TRANS>
+        <ms:TRAN_RODZAJ_TRANS>wolnyRynek</ms:TRAN_RODZAJ_TRANS>
+        <ms:TRAN_RODZAJ_RYNKU>rynekWtorny</ms:TRAN_RODZAJ_RYNKU>
+        <ms:TRAN_SPRZEDAJACY>osobaPrawna</ms:TRAN_SPRZEDAJACY>
+        <ms:TRAN_KUPUJACY>osobaFizyczna</ms:TRAN_KUPUJACY>
+        <ms:TRAN_CENA_BRUTTO>10900000</ms:TRAN_CENA_BRUTTO>
+        <ms:TRAN_VAT></ms:TRAN_VAT>
+        <ms:DOK_OZNACZENIE>1937/2026</ms:DOK_OZNACZENIE>
+        <ms:DOK_DATA gml:id="dzialki.86953179.DOK_DATA"><gml:timePosition>2026-03-31</gml:timePosition></ms:DOK_DATA>
+        <ms:DOK_TWORCA>NOTARY-REDACTED</ms:DOK_TWORCA>
+        <ms:NIER_RODZAJ>nieruchomoscGruntowaZabudowana</ms:NIER_RODZAJ>
+        <ms:NIER_PRAWO>wlasnoscNieruchomosciGruntowej</ms:NIER_PRAWO>
+        <ms:NIER_UDZIAL>1/1</ms:NIER_UDZIAL>
+        <ms:NIER_POW_GRUNTU></ms:NIER_POW_GRUNTU>
+        <ms:NIER_OPIS></ms:NIER_OPIS>
+        <ms:NIER_CENA_BRUTTO>10900000</ms:NIER_CENA_BRUTTO>
+        <ms:NIER_VAT></ms:NIER_VAT>
+        <ms:DZI_ID_DZIALKI>146507_8.0112.84</ms:DZI_ID_DZIALKI>
+        <ms:DZI_NR_DZIALKI>84</ms:DZI_NR_DZIALKI>
+        <ms:DZI_PRZEZN_WMPZP>budownictwoMieszkanioweJednorodzinne;budownictwoMieszkanioweWielorodzinne</ms:DZI_PRZEZN_WMPZP>
+        <ms:DZI_POW_EWID>870</ms:DZI_POW_EWID>
+        <ms:DZI_SPOSOB_UZYT>gruntyZabudowaneIZurbanizowane</ms:DZI_SPOSOB_UZYT>
+        <ms:DZI_CENA_BRUTTO></ms:DZI_CENA_BRUTTO>
+        <ms:DZI_VAT></ms:DZI_VAT>
+        <ms:DZI_INFO></ms:DZI_INFO>
+        <ms:DZI_ADRES>MSC:Testowo;UL:ulica Przykładowa;NR_PORZ:14</ms:DZI_ADRES>
+      </ms:dzialki>
+    </wfs:member>
+</wfs:FeatureCollection>
+
