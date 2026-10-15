@@ -74,6 +74,16 @@ public sealed class McpServerEndToEndTests
         Assert.Equal(true, offline.ProtocolTool.Annotations?.ReadOnlyHint);
     }
 
+    [Fact]
+    public void Function_factory_has_the_fix_for_injected_parameters_leaking_into_tool_schemas()
+    {
+        // dotnet/extensions#7675: before 10.9.0, concurrent tool creation could put `progress` into the offline tool's schema.
+        var informational = typeof(Microsoft.Extensions.AI.AIFunctionFactory).Assembly
+            .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+            .Cast<System.Reflection.AssemblyInformationalVersionAttribute>().Single().InformationalVersion;
+        Assert.True(Version.Parse(informational.Split('+', '-')[0]) >= new Version(10, 9, 0), informational);
+    }
+
     private static Task<McpTestSession> StartAsync(HttpMessageHandler handler) =>
         McpTestSession.StartAsync(
             http => http.ConfigurePrimaryHttpMessageHandler(() => handler),

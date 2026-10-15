@@ -19,6 +19,9 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
+    <!-- ModelContextProtocol 2.2.0 brings 10.8.3, which can leak an injected parameter (IProgress) into a tool schema
+         when tools are created concurrently (dotnet/extensions#7675, fixed in 10.9.0). Drop once the SDK depends on >= 10.9.0. -->
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
     <PackageReference Include="ModelContextProtocol" />
   </ItemGroup>
   <ItemGroup>
