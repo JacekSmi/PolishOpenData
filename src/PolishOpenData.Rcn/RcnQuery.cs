@@ -8,13 +8,13 @@ namespace PolishOpenData.Rcn;
 /// </summary>
 public sealed class RcnQuery
 {
-    /// <summary>The largest <see cref="Area"/>, in square kilometres.</summary>
+    /// <summary>The largest <see cref="Area"/>, in square kilometres (with a 1 m² tolerance for floating-point error).</summary>
     public const int MaxAreaSquareKilometres = 25;
 
     /// <summary>The largest <see cref="MaxRecords"/>.</summary>
     public const int MaxRecordsLimit = 5000;
 
-    /// <summary>Only transactions whose geometry intersects this rectangle: at most 25 km².</summary>
+    /// <summary>Only transactions whose geometry intersects this rectangle: about 25 km² at most (with a 1 m² tolerance for floating-point error).</summary>
     public Pl1992Bbox? Area { get; set; }
 
     /// <summary>Only transactions in this powiat: its four-digit TERYT code, for example <c>1465</c> for Warsaw.</summary>
@@ -39,7 +39,7 @@ public sealed class RcnQuery
     public int MaxRecords { get; set; } = 1000;
 
     /// <exception cref="ArgumentException">No area and no powiat, a malformed powiat code, <see cref="From"/> after <see cref="To"/>, or a premises function on another layer.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">The area is above 25 km² or <see cref="MaxRecords"/> is outside 1 to 5,000.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">The area is above about 25 km² (1 m² tolerance) or <see cref="MaxRecords"/> is outside 1 to 5,000.</exception>
     internal void Validate()
     {
         if (Area is null && PowiatCode is null)
@@ -62,8 +62,10 @@ public sealed class RcnQuery
             throw new ArgumentException("A premises function applies to the premises layer only.", nameof(PremisesFunction));
         }
 
+        // 1 m² of slack: a 5,000 m box around a centre near easting 262,144 or 524,288 has corners in different
+        // floating-point binades, so its width comes out as 5000.00000000006 m and the area as just over 25 km².
         if (Area is { } area
-            && (area.Max.Easting - area.Min.Easting) * (area.Max.Northing - area.Min.Northing) > MaxAreaSquareKilometres * 1_000_000d)
+            && (area.Max.Easting - area.Min.Easting) * (area.Max.Northing - area.Min.Northing) > (MaxAreaSquareKilometres * 1_000_000d) + 1)
         {
             throw new ArgumentOutOfRangeException(nameof(Area), $"The area is above {MaxAreaSquareKilometres} km².");
         }

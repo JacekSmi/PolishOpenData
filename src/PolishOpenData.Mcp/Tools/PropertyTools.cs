@@ -217,7 +217,17 @@ internal sealed class PropertyTools(IRcnClient rcn, IUugClient uug, TimeProvider
             }
         }
 
-        var found = await rcn.GetTransactionsAsync(query, cancellationToken).ConfigureAwait(false);
+        RcnTransactions found;
+        try
+        {
+            found = await rcn.GetTransactionsAsync(query, cancellationToken).ConfigureAwait(false);
+        }
+        catch (ArgumentException)
+        {
+            // The library refused the query before any request (an area above its limit): a tool-level error, not an unexpected one.
+            return ToolResults.Error("The search area is too large for the register; try a smaller radius.");
+        }
+
         var rcnSource = new SourceInfo(RcnName, RcnEndpoint, timeProvider.GetUtcNow(), null);
         if (found.Truncated)
         {

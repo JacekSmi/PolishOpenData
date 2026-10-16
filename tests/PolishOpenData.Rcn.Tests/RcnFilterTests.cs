@@ -139,6 +139,26 @@ public class RcnFilterTests
     public void Validate_accepts_an_area_of_exactly_25_square_kilometres() =>
         new RcnQuery { Area = Bbox(5_000, 5_000) }.Validate();
 
+    [Theory]
+    [InlineData(523989.43796825287, 486000.5)]   // found by search: width 5000.000000000058 m
+    [InlineData(261906.02118844105, 486000.5)]   // width 5000.000000000029 m
+    [InlineData(500000.5, 522893.90518668847)]
+    [InlineData(524288, 486000)]   // the exact boundary: always fine
+    public void Validate_accepts_a_5_km_square_around_a_centre_where_floating_point_error_widens_it(double easting, double northing)
+    {
+        // Corners in different binades (below and above 2^18 / 2^19) make the width 5000.00000000006 m.
+        var area = new Pl1992Bbox(new Pl1992Point(easting - 2500, northing - 2500), new Pl1992Point(easting + 2500, northing + 2500));
+
+        new RcnQuery { Area = area }.Validate();
+    }
+
+    [Fact]
+    public void Validate_still_rejects_5100_by_5000_metres_near_a_binade_boundary() =>
+        Assert.Throws<ArgumentOutOfRangeException>(() => new RcnQuery
+        {
+            Area = new Pl1992Bbox(new Pl1992Point(524288 - 2550, 486000 - 2500), new Pl1992Point(524288 + 2550, 486000 + 2500)),
+        }.Validate());
+
     [Fact]
     public void Validate_accepts_a_powiat_only_query_with_no_dates() =>
         new RcnQuery { PowiatCode = "1465" }.Validate();

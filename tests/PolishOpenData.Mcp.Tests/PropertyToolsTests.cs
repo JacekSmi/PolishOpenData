@@ -547,6 +547,38 @@ public sealed class PropertyToolsTests : IAsyncDisposable
         Assert.Empty(_stub.RequestUris);
     }
 
+    [Theory]
+    [InlineData(2500)]
+    [InlineData(50)]
+    public async Task Radius_limits_are_accepted_where_floating_point_widens_the_square(int radius)
+    {
+        // Around 19.36 E (west of Lodz) the easting is close to 524,288 (2^19): corners 2.5 km either side lie in different binades, so a
+        // 5,000 m square can come out as 5000.00000000006 m wide. Pick the first grid point where that really happens.
+        (double Latitude, double Longitude)? found = null;
+        for (var lat = 51.60; lat < 51.90 && found is null; lat += 0.0013)
+        {
+            for (var lon = 19.32; lon < 19.40 && found is null; lon += 0.0007)
+            {
+                var p = new Wgs84Point(lat, lon).ToPl1992();
+                var width = (p.Easting + 2500) - (p.Easting - 2500);
+                var height = (p.Northing + 2500) - (p.Northing - 2500);
+                if (p.Easting - 2500 < 524288 && p.Easting + 2500 > 524288 && width * height > 25_000_000d)
+                {
+                    found = (lat, lon);
+                }
+            }
+        }
+
+        Assert.NotNull(found);
+        var (latitude, longitude) = found.Value;
+        _rows = [new("W/1", new Wgs84Point(latitude, longitude).ToPl1992().Easting, new Wgs84Point(latitude, longitude).ToPl1992().Northing, "2026-05-01", 800000, 40)];
+
+        var data = Data(await PricesAsync(("latitude", latitude), ("longitude", longitude), ("radiusMeters", radius)));
+
+        Assert.Equal(1, data.GetProperty("transactionCount").GetInt32());
+        Assert.Single(RcnRequests);
+    }
+
     [Fact]
     public async Task Rcn_429_reports_gugik_rate_limit()
     {
