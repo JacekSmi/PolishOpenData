@@ -17,11 +17,8 @@ internal sealed class GeoTools(IUldkClient uldk, IUugClient uug, TimeProvider ti
 {
     private const string UldkName = "GUGiK ULDK (Usługa Lokalizacji Działek Katastralnych)";
     private const string UldkEndpoint = "https://uldk.gugik.gov.pl/";
-    private const string UugName = "GUGiK UUG (Usługa Geokodowania)";
-    private const string UugEndpoint = "https://services.gugik.gov.pl/uug/";
 
     private const string AddressPointNote = "An address point marks a building entrance; the property may span more than this parcel.";
-    private const string UnresolvedAddressNote = "The address did not resolve to a single address point; pick one of the candidates or give the full address with a house number.";
 
     [McpServerTool(Name = "geocode_address", Title = "Find coordinates of a Polish address", ReadOnly = true, OpenWorld = true, Idempotent = true, Destructive = false, UseStructuredContent = true, OutputSchemaType = typeof(GeocodeResult))]
     [Description("Finds the coordinates of a Polish address (for example \"Warszawa, Krucza 50\") with GUGiK's address geocoder (UUG). Each match says whether it is an address, a street or a city: a partial address gives a street or city match whose point is only a representative point. Coordinates are WGS-84 (latitude, longitude). Public data from the national address register via GUGiK, based on EGiB and the address registers. Never returns or accepts land-registry (KW) numbers or owner data.")]
@@ -38,7 +35,7 @@ internal sealed class GeoTools(IUldkClient uldk, IUugClient uug, TimeProvider ti
         return ToolResults.Ok(
             new GeocodeResult
             {
-                Matches = [.. matches.Select(ToMatch)],
+                Matches = [.. matches.Select(AddressResolution.ToMatch)],
                 Note = matches.Count == 0 ? "No address matched; check the spelling or add the town." : null,
                 Source = UugSource(),
             },
@@ -121,23 +118,17 @@ internal sealed class GeoTools(IUldkClient uldk, IUugClient uug, TimeProvider ti
 
     private async Task<CallToolResult> FindByAddressAsync(string address, ParcelGeometryKind kind, CancellationToken cancellationToken)
     {
-        var matches = await uug.GeocodeAsync(address, cancellationToken).ConfigureAwait(false);
+        var lookup = await AddressResolution.ResolveAsync(uug, address, cancellationToken).ConfigureAwait(false);
         var uugSource = UugSource();   // when UUG answered, not when ULDK does
-
-        // The same address may come back more than once (e.g. one point per entrance record); one distinct address is enough.
-        var points = matches
-            .Where(m => m.Kind == UugMatchKind.Address)
-            .DistinctBy(m => (m.City, m.CityPart, m.Street, m.Number, m.PostalCode, m.Teryt, m.Simc, m.Ulic))
-            .ToList();
-        if (points.Count != 1)
+        if (lookup.Point is not { } point)
         {
             return ToolResults.Ok(
-                new FindParcelResult { Parcels = [], Candidates = [.. matches.Select(ToMatch)], Note = UnresolvedAddressNote, Sources = [uugSource] },
+                new FindParcelResult { Parcels = [], Candidates = [.. lookup.Matches.Select(AddressResolution.ToMatch)], Note = AddressResolution.UnresolvedNote, Sources = [uugSource] },
                 McpJson.Relaxed.FindParcelResult);
         }
 
-        var parcel = await uldk.GetParcelAtAsync(points[0].Location, kind, cancellationToken).ConfigureAwait(false);
-        return Single(parcel, ToMatch(points[0]), AddressPointNote, uugSource, UldkSource());
+        var parcel = await uldk.GetParcelAtAsync(point.Location, kind, cancellationToken).ConfigureAwait(false);
+        return Single(parcel, AddressResolution.ToMatch(point), AddressPointNote, uugSource, UldkSource());
     }
 
     private static CallToolResult Single(UldkParcel? parcel, GeocodeMatch? matched, string? note, params SourceInfo[] sources) =>
@@ -167,26 +158,7 @@ internal sealed class GeoTools(IUldkClient uldk, IUugClient uug, TimeProvider ti
         };
     }
 
-    private static GeocodeMatch ToMatch(UugMatch match) => new()
-    {
-        Kind = match.Kind switch
-        {
-            UugMatchKind.Address => "address",
-            UugMatchKind.Street => "street",
-            UugMatchKind.City => "city",
-            _ => "other",
-        },
-        City = match.City,
-        Street = match.Street,
-        Number = match.Number,
-        PostalCode = match.PostalCode,
-        Teryt = match.Teryt,
-        Latitude = match.Location.Latitude,
-        Longitude = match.Location.Longitude,
-        Accuracy = match.Accuracy,
-    };
-
     private SourceInfo UldkSource() => new(UldkName, UldkEndpoint, timeProvider.GetUtcNow(), null);
 
-    private SourceInfo UugSource() => new(UugName, UugEndpoint, timeProvider.GetUtcNow(), null);
+    private SourceInfo UugSource() => AddressResolution.UugSource(timeProvider);
 }
