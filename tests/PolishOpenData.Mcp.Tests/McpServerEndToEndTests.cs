@@ -65,7 +65,7 @@ public sealed class McpServerEndToEndTests
         var tools = await session.Client.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(
-            ["check_vat_bank_account", "check_vat_bank_account_offline", "find_parcel", "geocode_address", "get_krs_extract", "lookup_company", "validate_identifier"],
+            ["check_vat_bank_account", "check_vat_bank_account_offline", "find_parcel", "geocode_address", "get_krs_extract", "lookup_company", "property_prices", "validate_identifier"],
             tools.Select(t => t.Name).Order(StringComparer.Ordinal).ToArray());
         var offline = tools.Single(t => t.Name == "check_vat_bank_account_offline");
         Assert.Contains("about 250 MB", offline.Description, StringComparison.Ordinal);
@@ -81,8 +81,10 @@ public sealed class McpServerEndToEndTests
         var tools = await session.Client.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.DoesNotContain(tools, t => t.Name == "lookup_regon");
-        Assert.Equal(7, tools.Count);
+        Assert.Equal(8, tools.Count);
         Assert.DoesNotContain("lookup_regon", session.Client.ServerInstructions ?? string.Empty, StringComparison.Ordinal);
+        Assert.Contains("property_prices", session.Client.ServerInstructions ?? string.Empty, StringComparison.Ordinal);
+        Assert.Contains("RCN", session.Client.ServerInstructions ?? string.Empty, StringComparison.Ordinal);
     }
 
     [Theory]
@@ -99,7 +101,7 @@ public sealed class McpServerEndToEndTests
         var tools = await session.Client.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(listed, tools.Any(t => t.Name == "lookup_regon"));
-        Assert.Equal(listed ? 8 : 7, tools.Count);
+        Assert.Equal(listed ? 9 : 8, tools.Count);
         Assert.Equal(listed, (session.Client.ServerInstructions ?? string.Empty).Contains("lookup_regon", StringComparison.Ordinal));
         if (listed)
         {
