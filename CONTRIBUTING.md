@@ -7,7 +7,7 @@ dotnet build -c Release
 dotnet test -c Release
 ```
 
-Requirements: .NET 10 SDK (see `global.json`). On Windows the Core, Shared, Krs, BialaLista, BialaLista.Offline, Regon, Geo.Core, Uldk and Uug tests also run on .NET Framework 4.7.2. Tests use xUnit v3 on Microsoft Testing Platform (`dotnet test --project tests/<Project>` runs one project).
+Requirements: .NET 10 SDK (see `global.json`). On Windows the Core, Shared, Krs, BialaLista, BialaLista.Offline, Regon, Geo.Core, Uldk, Uug and Rcn tests also run on .NET Framework 4.7.2. Tests use xUnit v3 on Microsoft Testing Platform (`dotnet test --project tests/<Project>` runs one project).
 
 ## Live tests
 
@@ -68,4 +68,4 @@ One-time setup by the repository owner. Do steps 2, 3 and 5 only after the repos
 4. GitHub repository secret `NUGET_USER` = the nuget.org profile name (not the e-mail address).
 5. GitHub → Settings → Advanced Security → enable **Private vulnerability reporting** (`SECURITY.md` relies on it).
 
-Package validation compares each library package with the release named by `PackageValidationBaselineVersion` in `src/Directory.Build.props` (currently 1.3.0), so an accidental breaking change fails `dotnet pack`. After a release is on nuget.org, raise it to that version. The MCP tool package is not compared: the .NET SDK turns package validation off for tool packages. `PolishOpenData.Geo.Core`, `PolishOpenData.Uldk` and `PolishOpenData.Uug` override `PackageValidationBaselineVersion` with an empty value in their own project files, because no release of them exists yet to compare with: after 1.4.0 is on nuget.org, raise the baseline in `src/Directory.Build.props` to 1.4.0 and delete those overrides.
+Package validation compares each library package with the release named by `PackageValidationBaselineVersion` in `src/Directory.Build.props` (currently 1.5.0), so an accidental breaking change fails `dotnet pack`. After a release is on nuget.org, raise it to that version. The MCP tool package is not compared: the .NET SDK turns package validation off for tool packages. `PolishOpenData.Rcn` overrides `PackageValidationBaselineVersion` with an empty value in its project file, because no release of it exists yet to compare with: after 1.6.0 is on nuget.org, raise the baseline in `src/Directory.Build.props` to 1.6.0 and delete that override.

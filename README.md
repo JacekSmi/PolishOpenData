@@ -1,6 +1,6 @@
 # PolishOpenData
 
-**.NET libraries and an MCP server for Polish public registers** — company lookup in KRS, the VAT whitelist (Biała Lista) with bank-account checks (online, or offline against the Ministry of Finance flat file), a client for the GUS REGON register (library only), cadastral parcel lookup (ULDK) and address geocoding (UUG) from GUGiK, and offline validation of NIP, REGON, KRS, NRB and land-registry (KW) numbers.
+**.NET libraries and an MCP server for Polish public registers** — company lookup in KRS, the VAT whitelist (Biała Lista) with bank-account checks (online, or offline against the Ministry of Finance flat file), a client for the GUS REGON register (library only), cadastral parcel lookup (ULDK), address geocoding (UUG) and real estate transaction prices (RCN) from GUGiK, and offline validation of NIP, REGON, KRS, NRB and land-registry (KW) numbers.
 
 [![CI](https://github.com/JacekSmi/PolishOpenData/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/JacekSmi/PolishOpenData/actions/workflows/ci.yml?query=branch%3Amain)
 [![NuGet](https://img.shields.io/nuget/v/PolishOpenData.Mcp?label=PolishOpenData.Mcp)](https://www.nuget.org/packages/PolishOpenData.Mcp)
@@ -22,7 +22,8 @@
 | [`PolishOpenData.Geo.Core`](https://www.nuget.org/packages/PolishOpenData.Geo.Core) | Typed Polish coordinates: `Pl1992Point` (EPSG:2180) and `Wgs84Point` with a built-in conversion, `Pl1992Bbox`, `ParcelId` (TERYT parcel identifier) | net10.0, netstandard2.0 |
 | [`PolishOpenData.Uldk`](https://www.nuget.org/packages/PolishOpenData.Uldk) | GUGiK ULDK: cadastral parcel by ID, by point or by region name and number, with its boundary as WKT | net10.0, netstandard2.0 |
 | [`PolishOpenData.Uug`](https://www.nuget.org/packages/PolishOpenData.Uug) | GUGiK UUG: geocode a Polish address to a WGS-84 point with a match accuracy, or find the nearest address to a point | net10.0, netstandard2.0 |
-| [`PolishOpenData.Mcp`](https://www.nuget.org/packages/PolishOpenData.Mcp) | MCP server for AI assistants: company lookup, VAT whitelist and bank-account check (online and offline), KRS extracts, parcels and address geocoding, identifier validation | .NET 10 tool |
+| [`PolishOpenData.Rcn`](https://www.nuget.org/packages/PolishOpenData.Rcn) | GUGiK RCN (Rejestr Cen Nieruchomości): real estate transactions (premises, parcels, buildings) in an area and period, with price per m² statistics | net10.0, netstandard2.0 |
+| [`PolishOpenData.Mcp`](https://www.nuget.org/packages/PolishOpenData.Mcp) | MCP server for AI assistants: company lookup, VAT whitelist and bank-account check (online and offline), KRS extracts, parcels, address geocoding and property prices, identifier validation | .NET 10 tool |
 
 ## Offline validation
 
@@ -199,9 +200,45 @@ var byName = await uldk.FindParcelsAsync("Krzewina 134");
 - **An address point is not a property.** It marks a building entrance, so the parcel found at it is the one under that entrance, not necessarily the whole property.
 - **Retries and parallelism.** The libraries never retry. Registered with `AddUldkClient` or `AddUugClient`, a client opens at most 4 connections per service. If you want retries, add `.AddStandardResilienceHandler()` (from the `Microsoft.Extensions.Http.Resilience` package) to the returned builder, and keep them few.
 
+## Property prices
+
+`PolishOpenData.Rcn` reads real estate transactions from GUGiK's RCN register (Rejestr Cen Nieruchomości) through its public WFS service: premises (flats, garages, shops), parcels and buildings, with price, date and place. It uses the coordinate types of `PolishOpenData.Geo.Core` and needs no key.
+
+```bash
+dotnet add package PolishOpenData.Rcn
+```
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using PolishOpenData.Geo;
+using PolishOpenData.Rcn;
+
+var services = new ServiceCollection();
+services.AddRcnClient();
+using var provider = services.BuildServiceProvider();
+var rcn = provider.GetRequiredService<IRcnClient>();
+
+// Flats sold in 2025 in a 300 m square in central Warsaw (PL-1992: easting, northing).
+var transactions = await rcn.GetTransactionsAsync(new RcnQuery
+{
+    Area = new Pl1992Bbox(new Pl1992Point(637800, 486300), new Pl1992Point(638100, 486600)),
+    From = new DateOnly(2025, 1, 1),
+    To = new DateOnly(2025, 12, 31),
+    PremisesFunction = RcnPremisesFunction.Residential,
+});
+var summary = transactions.Summarize();   // throws InvalidOperationException when transactions.Truncated
+Console.WriteLine($"{summary.Count} sales, median {summary.Median:N0} PLN/m², newest {summary.Newest}");
+```
+
+- **Bounded queries only.** An `RcnQuery` needs an area (`Area`, at most 25 km²) or a four-digit powiat code (`PowiatCode`; `1465` is Warsaw). The service has no gmina filter: use an area for anything smaller than a powiat. `MaxRecords` defaults to 1,000 (1 to 5,000). When more rows exist, `Truncated` is `true`, nothing is dropped silently and `Summarize()` throws: narrow the area, the period or the filters. The client sends one `count`-bounded request per page of 500 rows.
+- **Price per m² comes from the premises row.** `RcnTransaction.PricePerSquareMetre` is the price of the premises divided by its usable area. It is never derived from `TotalPrice`, the price of the whole deed, which repeats on every row of a deed that covers several premises, parcels or buildings. It is `null` when the price or the area is missing or not positive. Garages and shops share the premises layer with flats, so filter with `PremisesFunction` (the MCP tool defaults to residential).
+- **`Summarize()` takes a market-price sample.** It uses premises sales that have a price per m², no partial share (`1/1` or none), a free-market or unstated kind of sale and ownership of the premises with the associated right (or no right stated). It reports the median, the quartiles (linear interpolation) and how many rows each exclusion removed; fewer than 5 sales are flagged `SmallSample`.
+- **The data lag by months.** On 15 October 2026 the newest transaction in powiat 1465 was dated 28 May 2026. Check `Newest` before you quote a figure as current.
+- **Position and fields.** `Location` is a `Pl1992Point`, the centre of the feature's envelope (the library does not read polygon geometry). Typed properties cover what has a meaning for a layer (date, market, rooms, floor, usable area, parcel and building identifiers, address); `Fields` holds every published field as text, including the notary's name and the deed number. The client never retries and, registered with `AddRcnClient`, opens at most 4 connections. The service reports errors as HTTP 400 with an OGC exception report, which the client throws as `PolishOpenDataApiException`.
+
 ## MCP server for AI assistants
 
-Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download). No API keys needed; the optional REGON tool needs your own free GUS key (see below). The parcel and geocoding tools send every request to GUGiK, and retry a transient failure once.
+Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download). No API keys needed; the optional REGON tool needs your own free GUS key (see below). The parcel, geocoding and property price tools send every request to GUGiK, and retry a transient failure once.
 
 [![Install in VS Code](https://img.shields.io/badge/VS_Code-Install_MCP_server-0098FF?logo=visualstudiocode)](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522polish-open-data%2522%252C%2522type%2522%253A%2522stdio%2522%252C%2522command%2522%253A%2522dotnet%2522%252C%2522args%2522%253A%255B%2522dnx%2522%252C%2522PolishOpenData.Mcp%2522%252C%2522--yes%2522%255D%257D)
 [![Install in VS Code Insiders](https://img.shields.io/badge/VS_Code_Insiders-Install_MCP_server-24bfa5?logo=visualstudiocode)](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522polish-open-data%2522%252C%2522type%2522%253A%2522stdio%2522%252C%2522command%2522%253A%2522dotnet%2522%252C%2522args%2522%253A%255B%2522dnx%2522%252C%2522PolishOpenData.Mcp%2522%252C%2522--yes%2522%255D%257D)
@@ -256,6 +293,7 @@ Claude Code (`claude mcp add --env`) and VS Code (`env` in `.vscode/mcp.json`) t
 | `get_krs_extract` | Board and supervisory members (masked by the ministry), capital, shareholders, PKD activities |
 | `find_parcel` | "Which parcel is this?" — by parcel ID, WGS-84 coordinates (latitude first), address or region name and number ("Krzewina 134", all matches). Returns the parcel ID, number, region, commune, county, voivodeship and the center of its bounding box; `includeGeometry` adds the full boundary as WKT in EPSG:4326 (not for region searches). An address gives a parcel only when it resolves to exactly one address point (a building entrance, not necessarily the whole property); otherwise the geocoder's candidates. No parcel area (ULDK has none). Sources: ULDK, and UUG for an address (`sources`) |
 | `geocode_address` | "Where is this address?" — WGS-84 coordinates and match accuracy; every match says whether it is an address, a street or a city (a partial address gives a representative point of the street or city). Source: UUG (`source`) |
+| `property_prices` | "What did real estate sell for here?" — the median and quartile price per m² of flats (market sales of whole premises; the premises price over its usable area) and the newest single transactions for premises, parcels or buildings, from the RCN register via GUGiK. Search by exactly one of an address (it must resolve to one address point, otherwise the geocoder's candidates), WGS-84 coordinates (latitude first) or a four-digit powiat code; an address or coordinates take a radius of 50 to 2,500 m (default 500). Default period: the last 24 months; default premises function: residential (`premisesFunction` also takes garage, commercial, other and any). The data lag by months, so every answer says how old the newest transaction is. When more than 1,000 transactions match, the tool returns an error asking you to narrow the area, the period or the filters instead of a partial answer. A transaction shows date, price, address, floor, area, market, the deed number and the buyer and seller by kind only (natural person, company, …); the notary is never shown and there is no search by person. Informational, not a valuation. Sources: RCN, and UUG for an address (`sources`) |
 | `lookup_regon` | "What does GUS's REGON register say about this NIP?" (optional, needs your own GUS key) — for every matching entry: type, name, REGON, NIP, address and, for the first five, status (derived from GUS's dates), key dates, main PKD activity, and for legal persons legal form and register. Never contact data, owners' personal details or local-unit lists; names are untrusted text. Production data only; source: GUS BIR1.2 (`sources`) |
 | `validate_identifier` | Offline checksum validation of NIP, REGON, KRS, NRB and KW numbers, with typo suggestions |
 
@@ -274,11 +312,12 @@ Claude Code (`claude mcp add --env`) and VS Code (`env` in `.vscode/mcp.json`) t
 - The REGON library returns data as published. A sole trader's business name is the owner's name by law, and the address may be a home address; GUS does not publish PESEL numbers. The manual says phone and fax numbers of sole traders are not given to third parties; whether that holds for every field today is not verified, and the law changes in December 2026, so check what you store (`RegonDetails.Fields` holds every field GUS sent). Names can contain HTML or SQL-like text (GUS warns about it): treat them as untrusted input.
 - Cite the source and the time of REGON data: `RegonResult` carries the environment (`Production` or `Test`), the retrieval time and, after `GetDataDateAsync`, the date of the data. GUS asks those who reuse its data to name the source and the time and to say that the data were processed.
 - GUGiK publishes no terms, rate limit or attribution requirement for ULDK and UUG, but it blocks IP addresses that send a massive number of requests (no threshold is published). Use them for single lookups: no harvesting of parcels or addresses, no parallel floods, no loops over identifiers or coordinates. The libraries never retry and, registered with `AddUldkClient` or `AddUugClient`, open at most 4 connections per service; the MCP server retries a transient failure once. For bulk needs, contact GUGiK (`uslugi.iip@gugik.gov.pl`) first. Naming the source (GUGiK, ULDK/UUG) is good practice, not a requirement; every `find_parcel` and `geocode_address` result carries its source and the retrieval time. Parcel data are EGiB cadastre records, informational only.
-- No scraping, no bulk harvesting, and never land-registry (KW) numbers: the parcel tools neither accept nor return them or owner data, and nothing in this project links a parcel to a land-registry number. Do not try to build such a link from parcel data.
+- RCN transactions are public register entries, but they describe what people paid for their homes. The library returns every published field, including the notary's name and the deed number (`RcnTransaction.Fields`); the `property_prices` tool shows the deed number and the buyer and seller by kind only, never the notary. Do not use either to profile individuals or to find out who bought or sold a property. RCN has no land-registry (KW) number, and nothing here links a transaction or a parcel to one. GUGiK publishes no limit for RCN: send single, bounded queries (the client sends one `count`-bounded request per page of 500 rows), with no harvesting of the register and no loops over areas or periods. The data lag by months, and the price per m² is derived from the premises row: informational, not a valuation. Every `property_prices` result carries its sources and the retrieval time.
+- No scraping, no bulk harvesting, and never land-registry (KW) numbers: the parcel and property tools neither accept nor return them or owner data, and nothing in this project links a parcel to a land-registry number. Do not try to build such a link from parcel data.
 
 ## Possible next steps
 
-Ideas, not commitments: more property data (transaction prices). If one of them would help you, [open an issue](https://github.com/JacekSmi/PolishOpenData/issues) to show interest.
+Ideas, not commitments: more property data beyond transaction prices, which are done. If one of them would help you, [open an issue](https://github.com/JacekSmi/PolishOpenData/issues) to show interest.
 
 ## Contributing and license
 
