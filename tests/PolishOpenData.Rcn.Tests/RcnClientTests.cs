@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -202,6 +203,60 @@ public class RcnClientTests
         Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
         Assert.Null(exception.ErrorCode);
         Assert.Contains("HTTP 400", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Http_400_without_a_report_reads_an_unbuffered_body_once()
+    {
+        var (client, _) = Create(_ => new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = new StreamContent(new OneShotStream("<html>Bad request</html>")) });
+
+        var exception = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.GetTransactionsAsync(Powiat, TestContext.Current.CancellationToken));
+
+        Assert.Equal(HttpStatusCode.BadRequest, exception.StatusCode);
+        Assert.Equal("<html>Bad request</html>", exception.ResponseSnippet);
+    }
+
+    // A response body that can be read to the end once; reading it again or after disposal throws, as the network stream does on .NET Framework.
+    private sealed class OneShotStream : MemoryStream
+    {
+        private bool _disposed;
+        private bool _ended;
+
+        public OneShotStream(string text)
+            : base(Encoding.UTF8.GetBytes(text))
+        {
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+        {
+            if (_disposed || _ended)
+            {
+                throw new ObjectDisposedException(nameof(OneShotStream), "the body was read twice");
+            }
+
+            var read = base.Read(buffer, offset, count);
+            _ended = read == 0;
+            return read;
+        }
+
+        public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) =>
+            Task.FromResult(Read(buffer, offset, count));
+
+#if NET
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
+        {
+            var temp = new byte[buffer.Length];
+            var read = Read(temp, 0, temp.Length);
+            temp.AsMemory(0, read).CopyTo(buffer);
+            return new ValueTask<int>(read);
+        }
+#endif
+
+        protected override void Dispose(bool disposing)
+        {
+            _disposed = true;
+            base.Dispose(disposing);
+        }
     }
 
     [Fact]

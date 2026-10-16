@@ -75,6 +75,13 @@ public sealed class RcnClient : IRcnClient
                 {
                     throw exception;
                 }
+
+                // The body is read once (on .NET Framework the stream is gone after that), so build the error here, as ThrowForStatusAsync would.
+                throw new PolishOpenDataApiException(
+                    "RCN request failed with HTTP " + status.ToString(CultureInfo.InvariantCulture) + ".",
+                    response.StatusCode,
+                    null,
+                    HttpHelpers.Snippet(errorBody));
             }
 
             await response.ThrowForStatusAsync("RCN", cancellationToken).ConfigureAwait(false);
