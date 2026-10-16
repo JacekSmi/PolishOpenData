@@ -33,6 +33,11 @@ public sealed class PublishedMcpPackageTests
 
     private static readonly Version GeoToolsSince = new(1, 4, 0);
 
+    // Added in 1.6.0 (RCN transaction prices through GUGiK).
+    private const string PropertyTool = "property_prices";
+
+    private static readonly Version PropertyToolSince = new(1, 6, 0);
+
     private static readonly SearchValues<char> VersionRangeCharacters = SearchValues.Create("*[](),");
 
     [Fact(Timeout = PackageTestTimeout)]
@@ -86,7 +91,8 @@ public sealed class PublishedMcpPackageTests
             var hasVersion = Version.TryParse(client.ServerInfo.Version.Split('-', '+')[0], out var reported);
             var expected = ExpectedTools
                 .Concat(hasVersion && reported >= OfflineToolSince ? [OfflineTool] : [])
-                .Concat(hasVersion && reported >= GeoToolsSince ? GeoTools : []);
+                .Concat(hasVersion && reported >= GeoToolsSince ? GeoTools : [])
+                .Concat(hasVersion && reported >= PropertyToolSince ? [PropertyTool] : []);
             foreach (var name in expected)
             {
                 Assert.Contains(tools, t => string.Equals(t.Name, name, StringComparison.Ordinal));

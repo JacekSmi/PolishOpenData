@@ -9,6 +9,7 @@
     <ProjectReference Include="..\..\src\PolishOpenData.Regon\PolishOpenData.Regon.csproj" />
     <ProjectReference Include="..\..\src\PolishOpenData.Uldk\PolishOpenData.Uldk.csproj" />
     <ProjectReference Include="..\..\src\PolishOpenData.Uug\PolishOpenData.Uug.csproj" />
+    <ProjectReference Include="..\..\src\PolishOpenData.Rcn\PolishOpenData.Rcn.csproj" />
     <ProjectReference Include="..\..\src\PolishOpenData.Mcp\PolishOpenData.Mcp.csproj" />
   </ItemGroup>
   <ItemGroup>
