@@ -29,6 +29,7 @@ internal sealed class PropertyTools(IRcnClient rcn, IUugClient uug, TimeProvider
     private const string NoTransactionsNote = "There are no transactions in this period; the RCN register is published with a delay of several months, so recent sales may not be in it yet.";
     private const string SampleNote = "Price per m² is the premises price divided by its usable area. Statistics use market sales of whole premises only: shares, non-market sales (such as auctions), other rights and rows without a price or area are excluded and counted.";
     private const string SmallSampleNote = "Fewer than 5 transactions are in the sample, so the figures are weak evidence.";
+    private const string RepeatedPremisesTotalNote = "When several premises were sold in one deed, totalPrice is the price of the whole deed, repeated on each row; compare premises by price or pricePerSquareMetre instead.";
     private const string RepeatedTotalNote = "A transaction that covers several parcels or buildings repeats its total price on each row; do not add the rows up. No statistics are given for this kind.";
 
     [McpServerTool(Name = "property_prices", Title = "Property transaction prices", ReadOnly = true, OpenWorld = true, Idempotent = true, Destructive = false, UseStructuredContent = true, OutputSchemaType = typeof(PropertyPricesResult))]
@@ -41,8 +42,8 @@ internal sealed class PropertyTools(IRcnClient rcn, IUugClient uug, TimeProvider
         [Description("Search radius in metres around the address or coordinates, 50 to 2500 (default 500). Not for a powiat search.")] int? radiusMeters = null,
         [Description("First day of the period, YYYY-MM-DD. Default: 24 months before dateTo.")] string? dateFrom = null,
         [Description("Last day of the period, YYYY-MM-DD. Default: today (Warsaw time).")] string? dateTo = null,
-        [Description("premises (flats, garages, shops: default), parcels or buildings. Statistics are given for premises only.")] string kind = "premises",
-        [Description("any (default), primary (from a developer) or secondary (resale).")] string market = "any",
+        [Description("premises (flats, garages, shops: default), parcels or buildings. Statistics are given for premises only."), DefaultValue("premises")] string? kind = null,
+        [Description("any (default), primary (from a developer) or secondary (resale)."), DefaultValue("any")] string? market = null,
         [Description("For kind premises: residential, garage, commercial, other or any. Default: residential. Not valid for parcels or buildings.")] string? premisesFunction = null,
         [Description("How many single transactions to list, 0 to 50 (default 20); the statistics always cover all found.")] int maxTransactions = 20,
         CancellationToken cancellationToken = default)
@@ -98,7 +99,9 @@ internal sealed class PropertyTools(IRcnClient rcn, IUugClient uug, TimeProvider
             return ToolResults.Error("dateFrom is after dateTo.");
         }
 
-        var layer = kind.Trim().ToLowerInvariant() switch
+        kind = (kind ?? "premises").Trim().ToLowerInvariant();
+        market = (market ?? "any").Trim().ToLowerInvariant();
+        var layer = kind switch
         {
             "premises" => RcnLayer.Premises,
             "parcels" => RcnLayer.Parcels,
@@ -111,7 +114,7 @@ internal sealed class PropertyTools(IRcnClient rcn, IUugClient uug, TimeProvider
         }
 
         RcnMarket? rcnMarket;
-        switch (market.Trim().ToLowerInvariant())
+        switch (market)
         {
             case "any": rcnMarket = null; break;
             case "primary": rcnMarket = RcnMarket.Primary; break;
@@ -222,9 +225,9 @@ internal sealed class PropertyTools(IRcnClient rcn, IUugClient uug, TimeProvider
         {
             found = await rcn.GetTransactionsAsync(query, cancellationToken).ConfigureAwait(false);
         }
-        catch (ArgumentException)
+        catch (ArgumentOutOfRangeException e) when (e.ParamName == nameof(RcnQuery.Area))
         {
-            // The library refused the query before any request (an area above its limit): a tool-level error, not an unexpected one.
+            // The library refused the query before any request because of its area limit: a tool-level error, not an unexpected one.
             return ToolResults.Error("The search area is too large for the register; try a smaller radius.");
         }
 
@@ -267,17 +270,18 @@ internal sealed class PropertyTools(IRcnClient rcn, IUugClient uug, TimeProvider
         var notes = new List<string>
         {
             newest is { } date ? LagNote + date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + "." : NoTransactionsNote,
-            SampleNote,
         };
+        if (stats is not null)
+        {
+            notes.Add(SampleNote);
+        }
+
         if (stats is { SmallSample: true })
         {
             notes.Add(SmallSampleNote);
         }
 
-        if (layer != RcnLayer.Premises)
-        {
-            notes.Add(RepeatedTotalNote);
-        }
+        notes.Add(layer == RcnLayer.Premises ? RepeatedPremisesTotalNote : RepeatedTotalNote);
 
         var listed = rows.Take(maxTransactions).Select(ToView).ToList();
         return Result(

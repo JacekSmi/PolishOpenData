@@ -7,12 +7,14 @@ using System.Net.Http;
 using System.Security;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
 using ModelContextProtocol.Protocol;
 using PolishOpenData.Geo;
+using PolishOpenData.Rcn;
 using PolishOpenData.Tests.Shared;
 
 namespace PolishOpenData.Mcp.Tests;
@@ -46,7 +48,7 @@ public sealed class PropertyToolsTests : IAsyncDisposable
     }
 
     /// <summary>A premises row to generate: the position is PL-1992, <c>Date</c> is yyyy-MM-dd.</summary>
-    private sealed record Row(string DocumentNumber, double Easting, double Northing, string Date, decimal Price, decimal Area, string Share = "1/1", string Function = "mieszkalna");
+    private sealed record Row(string DocumentNumber, double Easting, double Northing, string Date, decimal Price, decimal Area, string Share = "1/1", string Function = "mieszkalna", string? Total = null);
 
     private static List<Row> DefaultRows(Pl1992Point c) =>
     [
@@ -98,6 +100,7 @@ public sealed class PropertyToolsTests : IAsyncDisposable
             var guid = "00000000-0000-4000-8000-" + i.ToString("D12", CultureInfo.InvariantCulture);
             var price = row.Price.ToString(CultureInfo.InvariantCulture);
             var area = row.Area.ToString(CultureInfo.InvariantCulture);
+            var total = row.Total ?? price;
             sb.Append(CultureInfo.InvariantCulture, $"""
                 <wfs:member><ms:lokale gml:id="{id}">
                   <gml:boundedBy><gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180"><gml:lowerCorner>{n} {e}</gml:lowerCorner><gml:upperCorner>{n} {e}</gml:upperCorner></gml:Envelope></gml:boundedBy>
@@ -109,7 +112,7 @@ public sealed class PropertyToolsTests : IAsyncDisposable
                   <ms:TRAN_RODZAJ_RYNKU>rynekWtorny</ms:TRAN_RODZAJ_RYNKU>
                   <ms:TRAN_SPRZEDAJACY>osobaFizyczna</ms:TRAN_SPRZEDAJACY>
                   <ms:TRAN_KUPUJACY>osobaFizyczna</ms:TRAN_KUPUJACY>
-                  <ms:TRAN_CENA_BRUTTO>{price}</ms:TRAN_CENA_BRUTTO>
+                  <ms:TRAN_CENA_BRUTTO>{total}</ms:TRAN_CENA_BRUTTO>
                   <ms:DOK_OZNACZENIE>{SecurityElement.Escape(row.DocumentNumber)}</ms:DOK_OZNACZENIE>
                   <ms:DOK_DATA gml:id="{id}.DOK_DATA"><gml:timePosition>{row.Date}</gml:timePosition></ms:DOK_DATA>
                   <ms:DOK_TWORCA>NOTARY-REDACTED</ms:DOK_TWORCA>
@@ -387,6 +390,36 @@ public sealed class PropertyToolsTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task A_missing_or_unreadable_deed_total_is_left_out_and_the_rows_still_count()
+    {
+        _rows =
+        [
+            new("N/1", Centre.Easting, Centre.Northing, "2026-05-01", 800000, 40, Total: ""),
+            new("N/2", Centre.Easting, Centre.Northing, "2026-04-01", 600000, 30, Total: "brak"),
+        ];
+
+        var data = Data(await AtCentreAsync());
+
+        var listed = data.GetProperty("transactions").EnumerateArray().ToList();
+        Assert.Equal(2, listed.Count);
+        Assert.All(listed, t => Assert.False(t.TryGetProperty("totalPrice", out _)));   // nulls are omitted
+        Assert.Equal(800000m, listed[0].GetProperty("price").GetDecimal());
+        Assert.Equal(20000m, listed[0].GetProperty("pricePerSquareMetre").GetDecimal());
+        Assert.Equal(2, data.GetProperty("statistics").GetProperty("count").GetInt32());
+    }
+
+    [Fact]
+    public async Task Premises_notes_warn_that_the_total_price_repeats_for_a_deed_with_several_premises()
+    {
+        var notes = Notes(Data(await AtCentreAsync()));
+
+        var note = Assert.Single(notes, n => n.Contains("one deed", StringComparison.Ordinal));
+        Assert.Contains("totalPrice", note, StringComparison.Ordinal);
+        Assert.Contains("repeated on each row", note, StringComparison.Ordinal);
+        Assert.Contains("pricePerSquareMetre", note, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Zero_max_transactions_lists_none_but_keeps_the_statistics()
     {
         var data = Data(await AtCentreAsync(("maxTransactions", 0)));
@@ -405,6 +438,9 @@ public sealed class PropertyToolsTests : IAsyncDisposable
         Assert.Equal("powiat", data.GetProperty("area").GetProperty("kind").GetString());
         Assert.Equal("1465", data.GetProperty("area").GetProperty("powiat").GetString());
         Assert.Equal(JsonValueKind.Null, data.GetProperty("premisesFunction").ValueKind);
+        // the statistics note and the premises price note would promise what this kind does not have
+        Assert.DoesNotContain(Notes(data), n => n.Contains("Statistics use", StringComparison.Ordinal) || n.Contains("Price per m²", StringComparison.Ordinal));
+        Assert.Contains(Notes(data), n => n.Contains("No statistics are given for this kind", StringComparison.Ordinal));
         var first = data.GetProperty("transactions").EnumerateArray().First();
         Assert.Equal("146516_8.0659.3/7", first.GetProperty("parcelId").GetString());
         Assert.Equal(1907m, first.GetProperty("landAreaSquareMetres").GetDecimal());
@@ -530,6 +566,62 @@ public sealed class PropertyToolsTests : IAsyncDisposable
         Assert.True(result.IsError == true);
         Assert.Contains("four-digit", Text(result), StringComparison.Ordinal);
         Assert.Empty(_stub.RequestUris);
+    }
+
+    [Fact]
+    public async Task Explicit_null_kind_and_market_behave_as_the_defaults()
+    {
+        var data = Data(await AtCentreAsync(("kind", null), ("market", null)));
+
+        Assert.Equal("premises", data.GetProperty("kind").GetString());
+        Assert.Equal("any", data.GetProperty("market").GetString());
+        Assert.Equal(5, data.GetProperty("transactionCount").GetInt32());
+        Assert.DoesNotContain("TRAN_RODZAJ_RYNKU", Filter(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Kind_and_market_still_advertise_premises_and_any_as_their_defaults()
+    {
+        var tools = await (await SessionAsync()).Client.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
+
+        var properties = tools.Single(t => t.Name == "property_prices").JsonSchema.GetProperty("properties");
+        Assert.Equal("premises", properties.GetProperty("kind").GetProperty("default").GetString());
+        Assert.Equal("any", properties.GetProperty("market").GetProperty("default").GetString());
+    }
+
+    /// <summary>An <see cref="IRcnClient"/> that refuses every query with <paramref name="exception"/>, as the library's own check does.</summary>
+    private sealed class RefusingRcnClient(Exception exception) : IRcnClient
+    {
+        public Task<RcnTransactions> GetTransactionsAsync(RcnQuery query, CancellationToken cancellationToken = default) => throw exception;
+    }
+
+    private static Task<CallToolResult> CentreCallAsync(Exception refusal) =>
+        new PropertyTools(new RefusingRcnClient(refusal), null!, TimeProvider.System).PropertyPrices(latitude: 52.2229, longitude: 21.0231);
+
+    [Fact]
+    public async Task The_librarys_area_limit_is_a_tool_error_about_the_radius()
+    {
+        var result = await CentreCallAsync(new ArgumentOutOfRangeException("Area", "The area is above 25 km²."));
+
+        Assert.True(result.IsError == true);
+        Assert.Contains("smaller radius", Text(result), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Other_argument_exceptions_are_not_reported_as_an_area_that_is_too_large()
+    {
+        Exception[] refusals =
+        [
+            new ArgumentException("Give an Area or a PowiatCode.", "Area"),   // not the area limit: a programming error
+            new ArgumentException("The powiat code must be exactly four digits.", "PowiatCode"),
+            new ArgumentOutOfRangeException("MaxRecords", 0, "MaxRecords must be 1 to 5000."),
+        ];
+
+        foreach (var refusal in refusals)
+        {
+            var thrown = await Assert.ThrowsAsync(refusal.GetType(), () => CentreCallAsync(refusal));
+            Assert.Same(refusal, thrown);
+        }
     }
 
     [Theory]
