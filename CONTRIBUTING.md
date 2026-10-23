@@ -7,11 +7,11 @@ dotnet build -c Release
 dotnet test -c Release
 ```
 
-Requirements: .NET 10 SDK (see `global.json`). On Windows the Core, Shared, Krs, BialaLista, BialaLista.Offline, Regon, Geo.Core, Uldk and Uug tests also run on .NET Framework 4.7.2. Tests use xUnit v3 on Microsoft Testing Platform (`dotnet test --project tests/<Project>` runs one project).
+Requirements: .NET 10 SDK (see `global.json`). On Windows the Core, Shared, Krs, BialaLista, BialaLista.Offline, Regon, Geo.Core, Uldk, Uug and Rcn tests also run on .NET Framework 4.7.2. Tests use xUnit v3 on Microsoft Testing Platform (`dotnet test --project tests/<Project>` runs one project).
 
 ## Live tests
 
-`tests/PolishOpenData.SmokeTests` checks the libraries, the MCP server (in process, over the MCP protocol) and the published MCP package (`dotnet dnx PolishOpenData.Mcp --yes`, over stdio) against the real KRS, Biała Lista, GUS BIR (REGON), GUGiK ULDK and GUGiK UUG APIs, with ORLEN S.A. as the known subject for KRS and Biała Lista, GUS itself for REGON, and a parcel and an address in Warsaw (Krucza 50) for ULDK and UUG. Without `POLISHOPENDATA_SMOKE=1` every test is skipped.
+`tests/PolishOpenData.SmokeTests` checks the libraries, the MCP server (in process, over the MCP protocol) and the published MCP package (`dotnet dnx PolishOpenData.Mcp --yes`, over stdio) against the real KRS, Biała Lista, GUS BIR (REGON), GUGiK ULDK, GUGiK UUG and GUGiK RCN APIs, with ORLEN S.A. as the known subject for KRS and Biała Lista, GUS itself for REGON, a parcel and an address in Warsaw (Krucza 50) for ULDK and UUG, and an area in central Warsaw and powiat 1465 for RCN. Without `POLISHOPENDATA_SMOKE=1` every test is skipped.
 
 ```bash
 POLISHOPENDATA_SMOKE=1 dotnet test --project tests/PolishOpenData.SmokeTests -c Release
@@ -33,7 +33,8 @@ One run costs, per IP address:
 | GUS BIR test environment requests (published test key, no secret) | 5 | 0 | 0 | **5** |
 | GUS BIR production requests (needs `POLISHOPENDATA_REGON_KEY`, owner-run, skipped otherwise) | 4 | 4 | 0 | **8** |
 | GUGiK ULDK requests (no key) | 5 | 0 | 0 | **5** |
-| GUGiK UUG requests (no key) | 3 | 0 | 0 | **3** |
+| GUGiK UUG requests (no key) | 3 | 1 | 0 | **4** (the MCP one geocodes the address of the `property_prices` test) |
+| GUGiK RCN requests (no key) | 4 (1+1+2) | 1 | 0 | **5** (library: premises in a bbox, residential premises for the median, parcels, buildings; MCP: `property_prices` for "Warszawa, Krucza 50"; each a single bounded query of at most 1,000 rows) |
 
 These are the counts when every call succeeds. The change feed test asks for an earlier weekday, up to 5 in all, only while the feeds it got were empty (a public holiday, or a feed not yet published). Failed calls are not cached, so a cancelled or failed search is sent again by the next test that needs it: a run with failures spends at most 9 searches. The MCP server never retries Biała Lista; its KRS client retries transient failures (5xx, 408, 429, connection errors and 10-second attempt timeouts), which can add KRS requests.
 
@@ -41,7 +42,7 @@ The offline flat-file test (`BialaListaOfflineLiveTests`) downloads one file of 
 
 The GUS test-environment test needs no secret. GUS publishes limits for the service in general (3 requests per second, 120 per minute); it does not state whether the test service applies them, and 5 requests are far inside them either way. The production test runs only when `POLISHOPENDATA_REGON_KEY` holds your own key and is never run by CI: the production key does not go into GitHub secrets, and GUS forbids several accounts for one entity. GUS logs the IP address, time and content of every request and forbids enumerating identifiers, so run the production test sparingly, never in a loop.
 
-GUGiK publishes no limit for ULDK and UUG, but it blocks IP addresses that send massive numbers of requests: a few runs a day are fine, never run them in a loop. A `blocked` error (the firewall page) fails the test; wait before running again.
+GUGiK publishes no limit for ULDK, UUG and RCN (the RCN client sends one `count`-bounded request per page), but it blocks IP addresses that send massive numbers of requests: a few runs a day are fine, never run them in a loop. A `blocked` error (the firewall page) fails the test; wait before running again.
 
 Biała Lista allows 100 searches and 5,000 checks per IP address per day, and exceeding either blocks the IP until midnight Warsaw time, including your own searches on podatki.gov.pl. Running the live tests locally a few times a day is fine; don't run them in a loop. A test that reaches a limit is skipped, not failed. The same table is in the `Live` class.
 
@@ -68,4 +69,4 @@ One-time setup by the repository owner. Do steps 2, 3 and 5 only after the repos
 4. GitHub repository secret `NUGET_USER` = the nuget.org profile name (not the e-mail address).
 5. GitHub → Settings → Advanced Security → enable **Private vulnerability reporting** (`SECURITY.md` relies on it).
 
-Package validation compares each library package with the release named by `PackageValidationBaselineVersion` in `src/Directory.Build.props` (currently 1.3.0), so an accidental breaking change fails `dotnet pack`. After a release is on nuget.org, raise it to that version. The MCP tool package is not compared: the .NET SDK turns package validation off for tool packages. `PolishOpenData.Geo.Core`, `PolishOpenData.Uldk` and `PolishOpenData.Uug` override `PackageValidationBaselineVersion` with an empty value in their own project files, because no release of them exists yet to compare with: after 1.4.0 is on nuget.org, raise the baseline in `src/Directory.Build.props` to 1.4.0 and delete those overrides.
+Package validation compares each library package with the release named by `PackageValidationBaselineVersion` in `src/Directory.Build.props` (currently 1.5.0), so an accidental breaking change fails `dotnet pack`. After a release is on nuget.org, raise it to that version. The MCP tool package is not compared: the .NET SDK turns package validation off for tool packages. `PolishOpenData.Rcn` overrides `PackageValidationBaselineVersion` with an empty value in its project file, because no release of it exists yet to compare with: after 1.6.0 is on nuget.org, raise the baseline in `src/Directory.Build.props` to 1.6.0 and delete that override.

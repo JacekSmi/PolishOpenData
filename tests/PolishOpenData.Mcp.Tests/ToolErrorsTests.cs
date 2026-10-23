@@ -107,6 +107,7 @@ public class ToolErrorsTests
     [Theory]
     [InlineData("find_parcel")]
     [InlineData("geocode_address")]
+    [InlineData("property_prices")]
     public void Gugik_rate_limit_says_to_wait_and_does_not_point_to_the_vat_tools(string tool)
     {
         var text = ToolErrors.Describe(new QuotaExceededException("ULDK rate limit reached (HTTP 429).", HttpStatusCode.TooManyRequests, null, null, TimeSpan.FromSeconds(30)), tool);

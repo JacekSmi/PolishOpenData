@@ -1,0 +1,212 @@
+<?xml version='1.0' encoding="UTF-8" ?>
+<wfs:FeatureCollection
+   xmlns:ms="http://mapserver.gis.umn.edu/mapserver"
+   xmlns:gml="http://www.opengis.net/gml/3.2"
+   xmlns:wfs="http://www.opengis.net/wfs/2.0"
+   timeStamp="2026-10-15T12:00:00" numberMatched="unknown" numberReturned="6">
+    <wfs:member>
+      <ms:lokale gml:id="lokale.1">
+        <gml:boundedBy>
+          <gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:lowerCorner>486000.5 638000.25</gml:lowerCorner>
+            <gml:upperCorner>486000.5 638000.25</gml:upperCorner>
+          </gml:Envelope>
+        </gml:boundedBy>
+        <ms:GEOMETRIA>
+          <gml:Point gml:id="lokale.1.1" srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:pos>486000.5 638000.25</gml:pos>
+          </gml:Point>
+        </ms:GEOMETRIA>
+        <ms:gid>1</ms:gid>
+        <ms:TERYT>1465</ms:TERYT>
+        <ms:TRAN_LOKALNY_ID_IIP>00000000-0000-4000-8000-900000000001</ms:TRAN_LOKALNY_ID_IIP>
+        <ms:TRAN_RODZAJ_TRANS>wolnyRynek</ms:TRAN_RODZAJ_TRANS>
+        <ms:TRAN_RODZAJ_RYNKU>rynekWtorny</ms:TRAN_RODZAJ_RYNKU>
+        <ms:TRAN_SPRZEDAJACY>osobaFizyczna</ms:TRAN_SPRZEDAJACY>
+        <ms:TRAN_KUPUJACY>osobaFizyczna</ms:TRAN_KUPUJACY>
+        <ms:TRAN_CENA_BRUTTO>900000</ms:TRAN_CENA_BRUTTO>
+        <ms:DOK_OZNACZENIE>1/2025</ms:DOK_OZNACZENIE>
+        <ms:DOK_DATA gml:id="lokale.1.DOK_DATA"><gml:timePosition>2025-12-19</gml:timePosition></ms:DOK_DATA>
+        <ms:DOK_TWORCA>NOTARY-REDACTED</ms:DOK_TWORCA>
+        <ms:NIER_PRAWO>wlasnoscLokaluWrazZPrawemZwiazanym</ms:NIER_PRAWO>
+        <ms:NIER_UDZIAL></ms:NIER_UDZIAL>
+        <ms:LOK_FUNKCJA>mieszkalna</ms:LOK_FUNKCJA>
+        <ms:LOK_LICZBA_IZB>2</ms:LOK_LICZBA_IZB>
+        <ms:LOK_NR_KOND>1</ms:LOK_NR_KOND>
+        <ms:LOK_POW_UZYT>40</ms:LOK_POW_UZYT>
+        <ms:LOK_CENA_BRUTTO></ms:LOK_CENA_BRUTTO>
+        <ms:LOK_ADRES>MSC:Testowo;UL:ulica Przykładowa;NR_PORZ:1</ms:LOK_ADRES>
+      </ms:lokale>
+    </wfs:member>
+    <wfs:member>
+      <ms:lokale gml:id="lokale.2">
+        <gml:boundedBy>
+          <gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:lowerCorner>486000.5 638000.25</gml:lowerCorner>
+            <gml:upperCorner>486000.5 638000.25</gml:upperCorner>
+          </gml:Envelope>
+        </gml:boundedBy>
+        <ms:GEOMETRIA>
+          <gml:Point gml:id="lokale.2.1" srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:pos>486000.5 638000.25</gml:pos>
+          </gml:Point>
+        </ms:GEOMETRIA>
+        <ms:gid>2</ms:gid>
+        <ms:TERYT>1465</ms:TERYT>
+        <ms:TRAN_LOKALNY_ID_IIP>00000000-0000-4000-8000-900000000002</ms:TRAN_LOKALNY_ID_IIP>
+        <ms:TRAN_RODZAJ_TRANS>wolnyRynek</ms:TRAN_RODZAJ_TRANS>
+        <ms:TRAN_RODZAJ_RYNKU>rynekWtorny</ms:TRAN_RODZAJ_RYNKU>
+        <ms:TRAN_SPRZEDAJACY>osobaFizyczna</ms:TRAN_SPRZEDAJACY>
+        <ms:TRAN_KUPUJACY>osobaFizyczna</ms:TRAN_KUPUJACY>
+        <ms:TRAN_CENA_BRUTTO>900000</ms:TRAN_CENA_BRUTTO>
+        <ms:DOK_OZNACZENIE>1/2025</ms:DOK_OZNACZENIE>
+        <ms:DOK_DATA gml:id="lokale.2.DOK_DATA"><gml:timePosition>2025-12-19</gml:timePosition></ms:DOK_DATA>
+        <ms:DOK_TWORCA>NOTARY-REDACTED</ms:DOK_TWORCA>
+        <ms:NIER_PRAWO>wlasnoscLokaluWrazZPrawemZwiazanym</ms:NIER_PRAWO>
+        <ms:NIER_UDZIAL>1/1</ms:NIER_UDZIAL>
+        <ms:LOK_FUNKCJA>mieszkalna</ms:LOK_FUNKCJA>
+        <ms:LOK_LICZBA_IZB>2</ms:LOK_LICZBA_IZB>
+        <ms:LOK_NR_KOND>1</ms:LOK_NR_KOND>
+        <ms:LOK_POW_UZYT>0</ms:LOK_POW_UZYT>
+        <ms:LOK_CENA_BRUTTO>100000</ms:LOK_CENA_BRUTTO>
+        <ms:LOK_ADRES>MSC:Testowo;UL:ulica Przykładowa;NR_PORZ:1</ms:LOK_ADRES>
+      </ms:lokale>
+    </wfs:member>
+    <wfs:member>
+      <ms:lokale gml:id="lokale.3">
+        <gml:boundedBy>
+          <gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:lowerCorner>486000.5 638000.25</gml:lowerCorner>
+            <gml:upperCorner>486000.5 638000.25</gml:upperCorner>
+          </gml:Envelope>
+        </gml:boundedBy>
+        <ms:GEOMETRIA>
+          <gml:Point gml:id="lokale.3.1" srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:pos>486000.5 638000.25</gml:pos>
+          </gml:Point>
+        </ms:GEOMETRIA>
+        <ms:gid>3</ms:gid>
+        <ms:TERYT>1465</ms:TERYT>
+        <ms:TRAN_LOKALNY_ID_IIP>00000000-0000-4000-8000-900000000003</ms:TRAN_LOKALNY_ID_IIP>
+        <ms:TRAN_RODZAJ_TRANS>wolnyRynek</ms:TRAN_RODZAJ_TRANS>
+        <ms:TRAN_RODZAJ_RYNKU>rynekWtorny</ms:TRAN_RODZAJ_RYNKU>
+        <ms:TRAN_SPRZEDAJACY>osobaFizyczna</ms:TRAN_SPRZEDAJACY>
+        <ms:TRAN_KUPUJACY>osobaFizyczna</ms:TRAN_KUPUJACY>
+        <ms:TRAN_CENA_BRUTTO>900000</ms:TRAN_CENA_BRUTTO>
+        <ms:DOK_OZNACZENIE>1/2025</ms:DOK_OZNACZENIE>
+        <ms:DOK_DATA gml:id="lokale.3.DOK_DATA"><gml:timePosition>2025-12-19</gml:timePosition></ms:DOK_DATA>
+        <ms:DOK_TWORCA>NOTARY-REDACTED</ms:DOK_TWORCA>
+        <ms:NIER_PRAWO>wlasnoscLokaluWrazZPrawemZwiazanym</ms:NIER_PRAWO>
+        <ms:NIER_UDZIAL>1/2</ms:NIER_UDZIAL>
+        <ms:LOK_FUNKCJA>mieszkalna</ms:LOK_FUNKCJA>
+        <ms:LOK_LICZBA_IZB>2</ms:LOK_LICZBA_IZB>
+        <ms:LOK_NR_KOND>1</ms:LOK_NR_KOND>
+        <ms:LOK_POW_UZYT>50</ms:LOK_POW_UZYT>
+        <ms:LOK_CENA_BRUTTO>400000</ms:LOK_CENA_BRUTTO>
+        <ms:LOK_ADRES>MSC:Testowo;UL:ulica Przykładowa;NR_PORZ:1</ms:LOK_ADRES>
+      </ms:lokale>
+    </wfs:member>
+    <wfs:member>
+      <ms:lokale gml:id="lokale.4">
+        <gml:boundedBy>
+          <gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:lowerCorner>486000.5 638000.25</gml:lowerCorner>
+            <gml:upperCorner>486000.5 638000.25</gml:upperCorner>
+          </gml:Envelope>
+        </gml:boundedBy>
+        <ms:GEOMETRIA>
+          <gml:Point gml:id="lokale.4.1" srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:pos>486000.5 638000.25</gml:pos>
+          </gml:Point>
+        </ms:GEOMETRIA>
+        <ms:gid>4</ms:gid>
+        <ms:TERYT>1465</ms:TERYT>
+        <ms:TRAN_LOKALNY_ID_IIP>00000000-0000-4000-8000-900000000004</ms:TRAN_LOKALNY_ID_IIP>
+        <ms:TRAN_RODZAJ_TRANS>wolnyRynek</ms:TRAN_RODZAJ_TRANS>
+        <ms:TRAN_RODZAJ_RYNKU>rynekWtorny</ms:TRAN_RODZAJ_RYNKU>
+        <ms:TRAN_SPRZEDAJACY>osobaFizyczna</ms:TRAN_SPRZEDAJACY>
+        <ms:TRAN_KUPUJACY>osobaFizyczna</ms:TRAN_KUPUJACY>
+        <ms:TRAN_CENA_BRUTTO>900000</ms:TRAN_CENA_BRUTTO>
+        <ms:DOK_OZNACZENIE>1/2025</ms:DOK_OZNACZENIE>
+        <ms:DOK_DATA gml:id="lokale.4.DOK_DATA"><gml:timePosition>2025-12-19</gml:timePosition></ms:DOK_DATA>
+        <ms:DOK_TWORCA>NOTARY-REDACTED</ms:DOK_TWORCA>
+        <ms:NIER_PRAWO>wlasnoscLokaluWrazZPrawemZwiazanym</ms:NIER_PRAWO>
+        <ms:NIER_UDZIAL>1/1</ms:NIER_UDZIAL>
+        <ms:LOK_FUNKCJA>mieszkalna</ms:LOK_FUNKCJA>
+        <ms:LOK_LICZBA_IZB>2</ms:LOK_LICZBA_IZB>
+        <ms:LOK_NR_KOND>1</ms:LOK_NR_KOND>
+        <ms:LOK_POW_UZYT>50</ms:LOK_POW_UZYT>
+        <ms:LOK_CENA_BRUTTO>400000</ms:LOK_CENA_BRUTTO>
+        <ms:LOK_ADRES>MSC:Testowo;UL:ulica Przykładowa</ms:LOK_ADRES>
+      </ms:lokale>
+    </wfs:member>
+    <wfs:member>
+      <ms:lokale gml:id="lokale.5">
+        <gml:boundedBy>
+          <gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:lowerCorner>486000.5 638000.25</gml:lowerCorner>
+            <gml:upperCorner>486000.5 638000.25</gml:upperCorner>
+          </gml:Envelope>
+        </gml:boundedBy>
+        <ms:GEOMETRIA>
+          <gml:Point gml:id="lokale.5.1" srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:pos>486000.5 638000.25</gml:pos>
+          </gml:Point>
+        </ms:GEOMETRIA>
+        <ms:gid>5</ms:gid>
+        <ms:TERYT>1465</ms:TERYT>
+        <ms:TRAN_LOKALNY_ID_IIP>00000000-0000-4000-8000-900000000005</ms:TRAN_LOKALNY_ID_IIP>
+        <ms:TRAN_RODZAJ_TRANS>wolnyRynek</ms:TRAN_RODZAJ_TRANS>
+        <ms:TRAN_RODZAJ_RYNKU>rynekWtorny</ms:TRAN_RODZAJ_RYNKU>
+        <ms:TRAN_SPRZEDAJACY>osobaFizyczna</ms:TRAN_SPRZEDAJACY>
+        <ms:TRAN_KUPUJACY>osobaFizyczna</ms:TRAN_KUPUJACY>
+        <ms:TRAN_CENA_BRUTTO>900000</ms:TRAN_CENA_BRUTTO>
+        <ms:DOK_OZNACZENIE>1/2025</ms:DOK_OZNACZENIE>
+        <ms:DOK_DATA gml:id="lokale.5.DOK_DATA"><gml:timePosition>2025-12-19</gml:timePosition></ms:DOK_DATA>
+        <ms:DOK_TWORCA>NOTARY-REDACTED</ms:DOK_TWORCA>
+        <ms:NIER_PRAWO>wlasnoscLokaluWrazZPrawemZwiazanym</ms:NIER_PRAWO>
+        <ms:NIER_UDZIAL>1/1</ms:NIER_UDZIAL>
+        <ms:LOK_FUNKCJA>mieszkalna</ms:LOK_FUNKCJA>
+        <ms:LOK_LICZBA_IZB>2</ms:LOK_LICZBA_IZB>
+        <ms:LOK_NR_KOND>1</ms:LOK_NR_KOND>
+        <ms:LOK_POW_UZYT>50</ms:LOK_POW_UZYT>
+        <ms:LOK_CENA_BRUTTO>400000</ms:LOK_CENA_BRUTTO>
+        <ms:LOK_ADRES>foo</ms:LOK_ADRES>
+      </ms:lokale>
+    </wfs:member>
+    <wfs:member>
+      <ms:lokale gml:id="lokale.6">
+        <gml:boundedBy>
+          <gml:Envelope srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:lowerCorner>486000.5 638000.25</gml:lowerCorner>
+            <gml:upperCorner>486000.5 638000.25</gml:upperCorner>
+          </gml:Envelope>
+        </gml:boundedBy>
+        <ms:GEOMETRIA>
+          <gml:Point gml:id="lokale.6.1" srsName="urn:ogc:def:crs:EPSG::2180">
+            <gml:pos>486000.5 638000.25</gml:pos>
+          </gml:Point>
+        </ms:GEOMETRIA>
+        <ms:gid>6</ms:gid>
+        <ms:TERYT>1465</ms:TERYT>
+        <ms:TRAN_LOKALNY_ID_IIP>00000000-0000-4000-8000-900000000006</ms:TRAN_LOKALNY_ID_IIP>
+        <ms:TRAN_RODZAJ_TRANS>wolnyRynek</ms:TRAN_RODZAJ_TRANS>
+        <ms:TRAN_RODZAJ_RYNKU>rynekWtorny</ms:TRAN_RODZAJ_RYNKU>
+        <ms:TRAN_SPRZEDAJACY>osobaFizyczna</ms:TRAN_SPRZEDAJACY>
+        <ms:TRAN_KUPUJACY>osobaFizyczna</ms:TRAN_KUPUJACY>
+        <ms:TRAN_CENA_BRUTTO>900000</ms:TRAN_CENA_BRUTTO>
+        <ms:DOK_OZNACZENIE>1/2025</ms:DOK_OZNACZENIE>
+        <ms:DOK_DATA gml:id="lokale.6.DOK_DATA"><gml:timePosition>2025-12-19</gml:timePosition></ms:DOK_DATA>
+        <ms:DOK_TWORCA>NOTARY-REDACTED</ms:DOK_TWORCA>
+        <ms:NIER_PRAWO>wlasnoscLokaluWrazZPrawemZwiazanym</ms:NIER_PRAWO>
+        <ms:NIER_UDZIAL>1/1</ms:NIER_UDZIAL>
+        <ms:LOK_FUNKCJA>mieszkalna</ms:LOK_FUNKCJA>
+        <ms:LOK_LICZBA_IZB>2</ms:LOK_LICZBA_IZB>
+        <ms:LOK_NR_KOND>1</ms:LOK_NR_KOND>
+        <ms:LOK_POW_UZYT>50</ms:LOK_POW_UZYT>
+        <ms:LOK_CENA_BRUTTO>400000</ms:LOK_CENA_BRUTTO>
+        <ms:LOK_ADRES>MSC:Testowo;UL:ulica Przykładowa;NR_PORZ:1</ms:LOK_ADRES>
+        <ms:ZZZ_NEW>nowa wartość</ms:ZZZ_NEW>
+      </ms:lokale>
+    </wfs:member>
+</wfs:FeatureCollection>

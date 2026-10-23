@@ -17,6 +17,7 @@ internal static class ToolErrors
     private const string CompanyTool = "lookup_company";
     private const string GeocodeTool = "geocode_address";
     private const string ParcelTool = "find_parcel";
+    private const string PropertyTool = "property_prices";
 
     /// <param name="exception">The failure.</param>
     /// <param name="toolName">The tool that failed, when known: some errors only have a specific meaning for one tool.</param>
@@ -30,8 +31,8 @@ internal static class ToolErrors
         // The offline library reports an unusable data directory as an IOException whose message names the folder.
         IOException io when toolName == OfflineTool =>
             io.Message + " Set " + McpServerSetup.OfflineDirectoryVariable + " to a folder this server can write to.",
-        // GUGiK (ULDK, UUG) rate limit: nothing to do with Biała Lista, so no pointer to the VAT tools; just slow down.
-        QuotaExceededException quota when toolName is GeocodeTool or ParcelTool =>
+        // GUGiK (ULDK, UUG, RCN) rate limit: nothing to do with Biała Lista, so no pointer to the VAT tools; just slow down.
+        QuotaExceededException quota when toolName is GeocodeTool or ParcelTool or PropertyTool =>
             "GUGiK is rate-limiting requests: " + quota.Message.TrimEnd('.') +
             (quota.RetryAfter is { } wait ? " (retry after " + ((int)Math.Ceiling(wait.TotalSeconds)).ToString(CultureInfo.InvariantCulture) + " s)" : string.Empty) +
             ". Wait a minute before trying again and avoid repeated or parallel lookups.",

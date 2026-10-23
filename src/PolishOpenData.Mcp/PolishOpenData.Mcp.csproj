@@ -9,7 +9,7 @@
     <!-- CI AOT gate: -p:AotGate=true. Passing -p:PublishAot=true instead would leak into the netstandard2.0
          builds of the referenced libraries (NETSDK1207). The NuGet package stays framework-dependent. -->
     <PublishAot Condition="'$(AotGate)' == 'true'">true</PublishAot>
-    <Description>Unofficial MCP server for Polish public registers: company lookup (KRS + VAT whitelist), the optional GUS REGON register (needs your own GUS key), bank-account whitelist checks, cadastral parcel lookup and address geocoding (GUGiK ULDK and UUG), and offline validation of NIP, REGON, KRS, NRB and KW numbers. Not affiliated with the Polish government. Run: dotnet dnx PolishOpenData.Mcp --yes</Description>
+    <Description>Unofficial MCP server for Polish public registers: company lookup (KRS + VAT whitelist), the optional GUS REGON register (needs your own GUS key), bank-account whitelist checks, cadastral parcel lookup and address geocoding (GUGiK ULDK and UUG), real-estate transaction prices (RCN, GUGiK), and offline validation of NIP, REGON, KRS, NRB and KW numbers. Not affiliated with the Polish government. Run: dotnet dnx PolishOpenData.Mcp --yes</Description>
     <PackageTags>$(PackageTags);mcp-server;model-context-protocol;ai-tools</PackageTags>
     <!-- The SDK turns package validation off for PackAsTool packages (a tool ships no lib/ API to compare), so the
          baseline in src/Directory.Build.props applies to the library packages only. -->
@@ -28,6 +28,7 @@
     <ProjectReference Include="..\PolishOpenData.Krs\PolishOpenData.Krs.csproj" />
     <ProjectReference Include="..\PolishOpenData.BialaLista\PolishOpenData.BialaLista.csproj" />
     <ProjectReference Include="..\PolishOpenData.BialaLista.Offline\PolishOpenData.BialaLista.Offline.csproj" />
+    <ProjectReference Include="..\PolishOpenData.Rcn\PolishOpenData.Rcn.csproj" />
     <ProjectReference Include="..\PolishOpenData.Regon\PolishOpenData.Regon.csproj" />
     <ProjectReference Include="..\PolishOpenData.Uldk\PolishOpenData.Uldk.csproj" />
     <ProjectReference Include="..\PolishOpenData.Uug\PolishOpenData.Uug.csproj" />

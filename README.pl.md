@@ -1,6 +1,6 @@
 # PolishOpenData
 
-**Biblioteki .NET i serwer MCP dla polskich rejestrów publicznych** — dane firm z KRS, Biała Lista podatników VAT ze sprawdzaniem rachunków (online albo offline na podstawie pliku płaskiego MF), klient rejestru GUS REGON (tylko biblioteka), wyszukiwanie działek ewidencyjnych (ULDK) i geokodowanie adresów (UUG) z GUGiK oraz walidacja offline NIP, REGON, numeru KRS, NRB i numeru księgi wieczystej (KW).
+**Biblioteki .NET i serwer MCP dla polskich rejestrów publicznych** — dane firm z KRS, Biała Lista podatników VAT ze sprawdzaniem rachunków (online albo offline na podstawie pliku płaskiego MF), klient rejestru GUS REGON (tylko biblioteka), wyszukiwanie działek ewidencyjnych (ULDK), geokodowanie adresów (UUG) i ceny transakcyjne nieruchomości (RCN) z GUGiK oraz walidacja offline NIP, REGON, numeru KRS, NRB i numeru księgi wieczystej (KW).
 
 🇬🇧 [English version](https://github.com/JacekSmi/PolishOpenData/blob/main/README.md)
 
@@ -18,7 +18,8 @@
 | `PolishOpenData.Geo.Core` | Typowane współrzędne polskie: `Pl1992Point` (EPSG:2180) i `Wgs84Point` z wbudowaną konwersją, `Pl1992Bbox`, `ParcelId` (identyfikator działki TERYT) |
 | `PolishOpenData.Uldk` | ULDK GUGiK: działka ewidencyjna po identyfikatorze, po punkcie albo po nazwie obrębu i numerze, z granicą w WKT |
 | `PolishOpenData.Uug` | UUG GUGiK: geokodowanie polskiego adresu do punktu WGS-84 z dokładnością dopasowania oraz najbliższy adres dla punktu |
-| `PolishOpenData.Mcp` | Serwer MCP dla asystentów AI: dane firmy, Biała Lista i sprawdzanie rachunku (online i offline), odpisy KRS, działki i geokodowanie adresów, walidacja numerów |
+| `PolishOpenData.Rcn` | RCN GUGiK (Rejestr Cen Nieruchomości): transakcje nieruchomościami (lokale, działki, budynki) na wskazanym obszarze i w wybranym okresie, ze statystyką ceny za m² |
+| `PolishOpenData.Mcp` | Serwer MCP dla asystentów AI: dane firmy, Biała Lista i sprawdzanie rachunku (online i offline), odpisy KRS, działki, geokodowanie adresów i ceny nieruchomości, walidacja numerów |
 
 Biblioteki działają na .NET 10 oraz .NET Framework / starszych .NET (netstandard2.0) — także w dodatkach do systemów ERP.
 
@@ -184,9 +185,45 @@ var byName = await uldk.FindParcelsAsync("Krzewina 134");
 - **Punkt adresowy to nie cała nieruchomość.** Oznacza wejście do budynku, więc znaleziona w nim działka to ta pod tym wejściem, niekoniecznie cała nieruchomość.
 - **Ponowienia i równoległość.** Biblioteki nigdy nie ponawiają zapytań. Klient zarejestrowany przez `AddUldkClient` lub `AddUugClient` otwiera najwyżej 4 połączenia na usługę. Jeśli chcesz ponowień, dodaj `.AddStandardResilienceHandler()` (z pakietu `Microsoft.Extensions.Http.Resilience`) do zwróconego buildera i ustaw ich niewiele.
 
+## Ceny nieruchomości
+
+`PolishOpenData.Rcn` czyta transakcje nieruchomościami z Rejestru Cen Nieruchomości (RCN) GUGiK przez jego publiczną usługę WFS: lokale (mieszkania, garaże, lokale usługowe), działki i budynki, z ceną, datą i miejscem. Korzysta z typów współrzędnych z `PolishOpenData.Geo.Core` i nie wymaga klucza.
+
+```bash
+dotnet add package PolishOpenData.Rcn
+```
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using PolishOpenData.Geo;
+using PolishOpenData.Rcn;
+
+var services = new ServiceCollection();
+services.AddRcnClient();
+using var provider = services.BuildServiceProvider();
+var rcn = provider.GetRequiredService<IRcnClient>();
+
+// Mieszkania sprzedane w 2025 r. w kwadracie o boku 300 m w centrum Warszawy (PL-1992: Easting, Northing).
+var transactions = await rcn.GetTransactionsAsync(new RcnQuery
+{
+    Area = new Pl1992Bbox(new Pl1992Point(637800, 486300), new Pl1992Point(638100, 486600)),
+    From = new DateOnly(2025, 1, 1),
+    To = new DateOnly(2025, 12, 31),
+    PremisesFunction = RcnPremisesFunction.Residential,
+});
+var summary = transactions.Summarize();   // rzuca InvalidOperationException, gdy transactions.Truncated
+Console.WriteLine($"{summary.Count} sprzedaży, mediana {summary.Median:N0} zł/m², najnowsza {summary.Newest}");
+```
+
+- **Tylko zapytania z ograniczeniem.** `RcnQuery` wymaga obszaru (`Area`, najwyżej 25 km²) albo czterocyfrowego kodu powiatu (`PowiatCode`; `1465` to Warszawa). Usługa nie ma filtra gminy: dla obszaru mniejszego niż powiat użyj `Area`. `MaxRecords` domyślnie wynosi 1000 (od 1 do 5000). Gdy wierszy jest więcej, `Truncated` ma wartość `true`, nic nie jest po cichu pomijane, a `Summarize()` rzuca wyjątek: zawęź obszar, okres lub filtry. Klient wysyła jedno zapytanie z limitem `count` na stronę liczącą 500 wierszy.
+- **Cena za m² pochodzi z wiersza lokalu.** `RcnTransaction.PricePerSquareMetre` to cena lokalu podzielona przez jego powierzchnię użytkową. Nigdy nie jest liczona z `TotalPrice`, czyli ceny całej transakcji, która powtarza się w każdym wierszu aktu obejmującego kilka lokali, działek lub budynków. Ma wartość `null`, gdy brakuje ceny lub powierzchni, nie są liczbami albo nie są dodatnie. Garaże i lokale usługowe są w tej samej warstwie co mieszkania, więc filtruj przez `PremisesFunction` (narzędzie MCP domyślnie wybiera mieszkania).
+- **`Summarize()` liczy próbę cen rynkowych.** Bierze sprzedaże lokali, które mają cenę za m², bez udziału ułamkowego (`1/1` albo brak), z wolnego rynku lub bez podanego rodzaju sprzedaży, oraz własność lokalu wraz z prawem związanym (albo bez podanego prawa). Zwraca medianę, kwartyle (interpolacja liniowa) i liczbę wierszy odrzuconych z każdego powodu; mniej niż 5 sprzedaży oznacza `SmallSample`.
+- **Dane są opóźnione o miesiące.** 15 października 2026 r. najnowsza transakcja w powiecie 1465 miała datę 28 maja 2026 r. Sprawdź `Newest`, zanim podasz liczbę jako aktualną.
+- **Pozycja i pola.** `Location` to `Pl1992Point`, środek obwiedni obiektu (biblioteka nie czyta geometrii wielokątów). Właściwości typowane obejmują to, co ma znaczenie dla warstwy (data, rynek, liczba izb, piętro, powierzchnia użytkowa, identyfikatory działki i budynku, adres); `Fields` zawiera każde opublikowane pole jako tekst, także imię i nazwisko notariusza oraz numer aktu. Cena, powierzchnia, piętro lub liczba izb, która jest pusta albo nie jest liczbą, ma wartość `null` (dotyczy to także `TotalPrice`), a opublikowany tekst zostaje w `Fields`; wiersz bez daty, identyfikatora lub obwiedni jest błędem. Klient nigdy nie ponawia zapytań, a zarejestrowany przez `AddRcnClient` otwiera najwyżej 4 połączenia. Usługa zgłasza błędy jako HTTP 400 z raportem wyjątku OGC, który klient rzuca jako `PolishOpenDataApiException`.
+
 ## Serwer MCP
 
-Wymaga [.NET 10 SDK](https://dotnet.microsoft.com/download). Bez kluczy API; opcjonalne narzędzie REGON wymaga Twojego własnego, bezpłatnego klucza GUS (niżej). Narzędzia do działek i geokodowania wysyłają wszystkie zapytania do GUGiK i ponawiają jedno nieudane zapytanie (błąd przejściowy) raz.
+Wymaga [.NET 10 SDK](https://dotnet.microsoft.com/download). Bez kluczy API; opcjonalne narzędzie REGON wymaga Twojego własnego, bezpłatnego klucza GUS (niżej). Narzędzia do działek, geokodowania i cen nieruchomości wysyłają wszystkie zapytania do GUGiK i ponawiają jedno nieudane zapytanie (błąd przejściowy) raz.
 
 ```bash
 claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx PolishOpenData.Mcp --yes
@@ -196,7 +233,7 @@ Konfiguracje dla VS Code, Claude Desktop i Cursor: zob. [README.md](https://gith
 
 **Opcjonalnie: narzędzie REGON.** `lookup_regon` pojawia się tylko wtedy, gdy serwer znajdzie Twój własny, bezpłatny klucz GUS w zmiennej środowiskowej `POLISHOPENDATA_REGON_KEY`; bez niej serwer nie ma narzędzia REGON i niczego nie wysyła do GUS. Klucz uzyskasz od GUS (`regon_bir@stat.gov.pl`); zostaje na Twoim komputerze i trafia wyłącznie do GUS. Dodaj go w bloku `env` konfiguracji serwera (przykład w [README.md](https://github.com/JacekSmi/PolishOpenData/blob/main/README.md#mcp-server-for-ai-assistants)); w Claude Code służy do tego `claude mcp add --env`, w VS Code blok `env` w `.vscode/mcp.json`. Narzędzie zwraca dla każdego pasującego wpisu typ, nazwę, REGON, NIP i adres, a dla pierwszych pięciu także status (wyliczony z dat GUS), ważne daty, główne PKD oraz, dla osób prawnych, formę prawną i rejestr. Nigdy nie zwraca danych kontaktowych, danych osobowych właścicieli ani list jednostek lokalnych; nazwy to tekst niezaufany. Tylko dane produkcyjne; źródło: GUS BIR1.2 (`sources`).
 
-Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_account` (Biała Lista przed zapłatą faktury), `check_vat_bank_account_offline` (to samo z pliku płaskiego MF: bez limitu zapytań, do 50 par naraz, bez identyfikatora zapytania, a sprawdzane pary nie opuszczają komputera; pierwsze wywołanie dla danej daty pobiera ok. 250 MB, co trwa kilka minut, a przy wolnym serwerze MF znacznie dłużej; `not_found` oznacza „nie znaleziono w pliku”; zmienna `POLISHOPENDATA_OFFLINE_DIR` wskazuje lokalny folder danych, nie udział sieciowy), `get_krs_extract` (zarząd, kapitał, PKD), `find_parcel` (działka po identyfikatorze, współrzędnych WGS-84 — najpierw szerokość — adresie albo nazwie obrębu i numerze, np. „Krzewina 134” zwraca wszystkie pasujące działki; wynik to identyfikator, numer, obręb, gmina, powiat, województwo i środek prostokąta otaczającego; `includeGeometry` dodaje pełną granicę w WKT w EPSG:4326, nie dla wyszukiwania po nazwie obrębu; adres daje działkę tylko wtedy, gdy wskazuje dokładnie jeden punkt adresowy — wejście do budynku, niekoniecznie całą nieruchomość — w przeciwnym razie zwracani są kandydaci geokodera; bez powierzchni działki, bo ULDK jej nie podaje; źródła: ULDK, a dla adresu także UUG, w polu `sources`), `geocode_address` (adres na współrzędne WGS-84 z dokładnością dopasowania; każde dopasowanie mówi, czy jest adresem, ulicą czy miejscowością — niepełny adres daje punkt reprezentatywny ulicy lub miejscowości; źródło: UUG, w polu `source`), `lookup_regon` (opcjonalnie, wymaga Twojego klucza GUS) i `validate_identifier` (walidacja numerów offline).
+Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_account` (Biała Lista przed zapłatą faktury), `check_vat_bank_account_offline` (to samo z pliku płaskiego MF: bez limitu zapytań, do 50 par naraz, bez identyfikatora zapytania, a sprawdzane pary nie opuszczają komputera; pierwsze wywołanie dla danej daty pobiera ok. 250 MB, co trwa kilka minut, a przy wolnym serwerze MF znacznie dłużej; `not_found` oznacza „nie znaleziono w pliku”; zmienna `POLISHOPENDATA_OFFLINE_DIR` wskazuje lokalny folder danych, nie udział sieciowy), `get_krs_extract` (zarząd, kapitał, PKD), `find_parcel` (działka po identyfikatorze, współrzędnych WGS-84 — najpierw szerokość — adresie albo nazwie obrębu i numerze, np. „Krzewina 134” zwraca wszystkie pasujące działki; wynik to identyfikator, numer, obręb, gmina, powiat, województwo i środek prostokąta otaczającego; `includeGeometry` dodaje pełną granicę w WKT w EPSG:4326, nie dla wyszukiwania po nazwie obrębu; adres daje działkę tylko wtedy, gdy wskazuje dokładnie jeden punkt adresowy — wejście do budynku, niekoniecznie całą nieruchomość — w przeciwnym razie zwracani są kandydaci geokodera; bez powierzchni działki, bo ULDK jej nie podaje; źródła: ULDK, a dla adresu także UUG, w polu `sources`), `geocode_address` (adres na współrzędne WGS-84 z dokładnością dopasowania; każde dopasowanie mówi, czy jest adresem, ulicą czy miejscowością — niepełny adres daje punkt reprezentatywny ulicy lub miejscowości; źródło: UUG, w polu `source`), `property_prices` (za ile sprzedano nieruchomości w okolicy: mediana i kwartyle ceny za m² mieszkań — sprzedaży rynkowych całych lokali, czyli ceny lokalu podzielonej przez jego powierzchnię użytkową — oraz najnowsze pojedyncze transakcje lokalami, działkami lub budynkami, z rejestru RCN przez GUGiK; szukasz dokładnie jednym z: adres — musi wskazywać jeden punkt adresowy, w przeciwnym razie zwracani są kandydaci geokodera — współrzędne WGS-84, najpierw szerokość, albo czterocyfrowy kod powiatu; dla adresu i współrzędnych podajesz promień od 50 do 2500 m, domyślnie 500; domyślny okres to ostatnie 24 miesiące, a domyślna funkcja lokalu to mieszkalna — `premisesFunction` przyjmuje też garage, commercial, other i any; dane są opóźnione o miesiące, więc każda odpowiedź mówi, jak stara jest najnowsza transakcja; gdy pasuje więcej niż 1000 transakcji, narzędzie zwraca błąd z prośbą o zawężenie obszaru, okresu lub filtrów zamiast niepełnej odpowiedzi; transakcja pokazuje datę, cenę, adres, piętro, powierzchnię, rynek, numer aktu oraz kupującego i sprzedającego tylko według rodzaju — osoba fizyczna, firma itd. — notariusz nigdy nie jest pokazywany i nie ma wyszukiwania po osobie; tylko informacyjnie, to nie wycena; źródła: RCN, a dla adresu także UUG, w polu `sources`), `lookup_regon` (opcjonalnie, wymaga Twojego klucza GUS) i `validate_identifier` (walidacja numerów offline).
 
 ## Księgi wieczyste
 
@@ -213,11 +250,12 @@ Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_acco
 - Biblioteka REGON zwraca dane tak, jak zostały opublikowane. Firma przedsiębiorcy jednoosobowego jest z mocy prawa jego imieniem i nazwiskiem, a adres może być adresem zamieszkania; GUS nie publikuje numerów PESEL. Instrukcja mówi, że numery telefonu i faksu przedsiębiorców jednoosobowych nie są przekazywane osobom trzecim; czy tak jest dziś dla każdego pola, nie sprawdzono, a w grudniu 2026 r. zmienia się prawo, więc sprawdź, co zapisujesz (`RegonDetails.Fields` zawiera każde pole, które przysłał GUS). Nazwy mogą zawierać HTML lub fragmenty podobne do SQL (GUS przed tym ostrzega): traktuj je jako dane niezaufane.
 - Podawaj źródło i czas danych z REGON: `RegonResult` zawiera środowisko (`Production` albo `Test`), czas pobrania oraz, po wywołaniu `GetDataDateAsync`, datę danych. GUS prosi tych, którzy wykorzystują jego dane ponownie, o wskazanie źródła i czasu oraz o informację, że dane zostały przetworzone.
 - GUGiK nie publikuje warunków korzystania, limitu zapytań ani wymogu wskazania źródła dla ULDK i UUG, ale blokuje adresy IP, z których idzie bardzo wiele zapytań (progu nie podano). Używaj ich do pojedynczych wyszukiwań: bez masowego pobierania działek i adresów, bez równoległego zalewania usługi, bez pętli po identyfikatorach czy współrzędnych. Biblioteki nigdy nie ponawiają zapytań, a zarejestrowane przez `AddUldkClient` lub `AddUugClient` otwierają najwyżej 4 połączenia na usługę; serwer MCP ponawia raz zapytanie, które zawiodło z przyczyn przejściowych. Przy większych potrzebach najpierw skontaktuj się z GUGiK (`uslugi.iip@gugik.gov.pl`). Wskazanie źródła (GUGiK, ULDK/UUG) to dobra praktyka, nie wymóg; każdy wynik `find_parcel` i `geocode_address` zawiera źródło i czas pobrania. Dane o działkach to rekordy ewidencji gruntów i budynków (EGiB), tylko informacyjnie.
-- Bez scrapingu, bez masowego pobierania i nigdy numerów ksiąg wieczystych (KW): narzędzia do działek nie przyjmują ani nie zwracają ich, tak samo jak danych właścicieli, a nic w tym projekcie nie łączy działki z numerem księgi wieczystej. Nie próbuj budować takiego połączenia z danych o działkach.
+- Transakcje w RCN to wpisy w jawnym rejestrze, ale opisują, ile ludzie zapłacili za swoje mieszkania. Biblioteka zwraca każde opublikowane pole, także imię i nazwisko notariusza oraz numer aktu (`RcnTransaction.Fields`); narzędzie `property_prices` pokazuje numer aktu oraz kupującego i sprzedającego tylko według rodzaju, nigdy notariusza. Nie używaj żadnego z nich do profilowania osób ani do ustalania, kto kupił lub sprzedał daną nieruchomość. RCN nie ma pola z numerem księgi wieczystej (KW); uwagi w wolnym tekście (`NIER_OPIS` i pola `*_INFO`) trafiają do `Fields` w takiej postaci, w jakiej je opublikowano, narzędzie MCP nie udostępnia `Fields`, a nic tu nie łączy transakcji ani działki z numerem księgi wieczystej. GUGiK nie publikuje limitu dla RCN: wysyłaj pojedyncze zapytania z ograniczeniem (klient wysyła jedno zapytanie z limitem `count` na stronę liczącą 500 wierszy), bez masowego pobierania rejestru i bez pętli po obszarach czy okresach. Dane są opóźnione o miesiące, a cena za m² jest wyliczana z wiersza lokalu: tylko informacyjnie, to nie wycena. Każdy wynik `property_prices` zawiera źródła i czas pobrania.
+- Bez scrapingu, bez masowego pobierania i nigdy numerów ksiąg wieczystych (KW): narzędzia do działek i cen nieruchomości nie przyjmują ani nie zwracają ich, tak samo jak danych właścicieli, a nic w tym projekcie nie łączy działki z numerem księgi wieczystej. Nie próbuj budować takiego połączenia z danych o działkach.
 
 ## Możliwe kolejne kroki
 
-Pomysły, nie zobowiązania: więcej danych o nieruchomościach (ceny transakcyjne). Jeśli któryś z nich by Ci się przydał, [otwórz issue](https://github.com/JacekSmi/PolishOpenData/issues), aby dać znać.
+Pomysły, nie zobowiązania: więcej danych o nieruchomościach poza cenami transakcyjnymi, które już są. Jeśli któryś z nich by Ci się przydał, [otwórz issue](https://github.com/JacekSmi/PolishOpenData/issues), aby dać znać.
 
 ## Współpraca i licencja
 
