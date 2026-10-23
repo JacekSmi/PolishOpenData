@@ -286,6 +286,29 @@ public class RcnClientTests
         Assert.True(exception.IsTransient);
     }
 
+    // The block page is recognised by its body too, when the content type says GML or says HTML in another case,
+    // and when a byte order mark or white space comes first.
+    [Theory]
+    [InlineData("application/gml+xml", "<html><body>Request Rejected</body></html>", false)]
+    [InlineData("application/gml+xml", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"><html></html>", true)]
+    [InlineData("application/gml+xml", "  \r\n<!doctype html><html></html>", false)]
+    [InlineData("Text/HTML", "not even markup", false)]
+    public async Task Html_block_page_is_recognised_from_the_body_and_a_case_insensitive_content_type(string contentType, string body, bool withByteOrderMark)
+    {
+        var bytes = (withByteOrderMark ? new byte[] { 0xEF, 0xBB, 0xBF } : Array.Empty<byte>()).Concat(Encoding.UTF8.GetBytes(body)).ToArray();
+        var (client, _) = Create(_ =>
+        {
+            var content = new ByteArrayContent(bytes);
+            content.Headers.TryAddWithoutValidation("Content-Type", contentType);
+            return new HttpResponseMessage(HttpStatusCode.OK) { Content = content };
+        });
+
+        var exception = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => client.GetTransactionsAsync(Powiat, TestContext.Current.CancellationToken));
+
+        Assert.Equal("blocked", exception.ErrorCode);
+        Assert.True(exception.IsTransient);
+    }
+
     [Fact]
     public async Task Cancellation_is_honoured()
     {

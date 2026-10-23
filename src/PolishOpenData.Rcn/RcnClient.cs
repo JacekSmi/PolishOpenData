@@ -90,7 +90,7 @@ public sealed class RcnClient : IRcnClient
         var body = await response.Content.ReadBytesAsync(cancellationToken).ConfigureAwait(false);
         // HttpHelpers.ReadBodyRejectingBlockPageAsync treats any body starting with a tag as a block page, which every GML answer is.
         var start = HttpHelpers.Snippet(body).TrimStart();
-        if (response.Content.Headers.ContentType?.MediaType == "text/html"
+        if (string.Equals(response.Content.Headers.ContentType?.MediaType, "text/html", StringComparison.OrdinalIgnoreCase)
             || start.StartsWith("<html", StringComparison.OrdinalIgnoreCase)
             || start.StartsWith("<!doctype html", StringComparison.OrdinalIgnoreCase))
         {

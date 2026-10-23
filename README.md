@@ -317,7 +317,7 @@ Claude Code (`claude mcp add --env`) and VS Code (`env` in `.vscode/mcp.json`) t
 
 ## Possible next steps
 
-Ideas, not commitments: more property data beyond transaction prices, which are done. If one of them would help you, [open an issue](https://github.com/JacekSmi/PolishOpenData/issues) to show interest.
+Ideas, not commitments: more property data (for example zoning plans). If it would help you, [open an issue](https://github.com/JacekSmi/PolishOpenData/issues) to show interest.
 
 ## Contributing and license
 
