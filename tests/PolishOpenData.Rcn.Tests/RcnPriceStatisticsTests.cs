@@ -152,4 +152,68 @@ public class RcnPriceStatisticsTests
     {
         Assert.Throws<InvalidOperationException>(() => Summarize(new[] { Row(), Row(layer: RcnLayer.Parcels) }));
     }
+
+    [Fact]
+    public void Classify_returns_each_reason()
+    {
+        Assert.Equal(RcnExclusionReason.MissingPriceOrArea, RcnPriceStatistics.Classify(Row(null)));
+        Assert.Equal(RcnExclusionReason.Share, RcnPriceStatistics.Classify(Row(share: "1/2")));
+        Assert.Equal(RcnExclusionReason.NonMarketKind, RcnPriceStatistics.Classify(Row(kind: "sprzedazPrzetargowa")));
+        Assert.Equal(RcnExclusionReason.OtherRight, RcnPriceStatistics.Classify(Row(right: "spoldzielczePrawoDoLokalu")));
+
+        Assert.Equal(RcnExclusionReason.None, RcnPriceStatistics.Classify(Row(kind: "wolnyRynek")));
+        // The GML reader drops empty elements, so an empty TRAN_RODZAJ_TRANS reaches the row as a null Kind.
+        Assert.Equal(RcnExclusionReason.None, RcnPriceStatistics.Classify(Row(kind: null)));
+        Assert.Equal(RcnExclusionReason.None, RcnPriceStatistics.Classify(Row(share: null)));
+        Assert.Equal(RcnExclusionReason.None, RcnPriceStatistics.Classify(Row(share: "1/1")));
+        Assert.Equal(RcnExclusionReason.None, RcnPriceStatistics.Classify(Row(right: null)));
+        Assert.Equal(RcnExclusionReason.None, RcnPriceStatistics.Classify(Row(right: "wlasnoscLokaluWrazZPrawemZwiazanym")));
+    }
+
+    [Fact]
+    public void Classify_precedence_matches_Summarize()
+    {
+        Assert.Equal(RcnExclusionReason.Share, RcnPriceStatistics.Classify(Row(share: "1/2", kind: "sprzedazPrzetargowa")));
+        Assert.Equal(RcnExclusionReason.MissingPriceOrArea,
+            RcnPriceStatistics.Classify(Row(null, share: "1/2", kind: "sprzedazPrzetargowa", right: "x")));
+        Assert.Equal(RcnExclusionReason.NonMarketKind,
+            RcnPriceStatistics.Classify(Row(kind: "sprzedazPrzetargowa", right: "x")));
+    }
+
+    [Fact]
+    public void Summarize_excluded_counts_equal_the_Classify_tally()
+    {
+        var rows = new[]
+        {
+            Row(), Row(null), Row(area: 0), Row(share: "1/64"), Row(share: "1/2", kind: "sprzedazPrzetargowa"),
+            Row(kind: "sprzedazPrzetargowa", right: "x"), Row(kind: "wolnyRynek"), Row(right: "x"), Row(right: null),
+        };
+
+        var tally = rows.GroupBy(RcnPriceStatistics.Classify).ToDictionary(g => g.Key, g => g.Count());
+        int Of(RcnExclusionReason reason) => tally.TryGetValue(reason, out var n) ? n : 0;
+        var summary = Summarize(rows);
+
+        Assert.Equal(
+            new RcnExclusions(
+                Of(RcnExclusionReason.MissingPriceOrArea),
+                Of(RcnExclusionReason.Share),
+                Of(RcnExclusionReason.NonMarketKind),
+                Of(RcnExclusionReason.OtherRight)),
+            summary.Excluded);
+        Assert.Equal(Of(RcnExclusionReason.None), summary.Count);
+    }
+
+    [Fact]
+    public void Classify_refuses_parcel_rows()
+    {
+        var ex = Assert.Throws<ArgumentException>(() => RcnPriceStatistics.Classify(Row(layer: RcnLayer.Parcels)));
+
+        Assert.Equal("transaction", ex.ParamName);
+    }
+
+    [Fact]
+    public void Classify_refuses_null()
+    {
+        Assert.Throws<ArgumentNullException>(() => RcnPriceStatistics.Classify(null!));
+    }
 }

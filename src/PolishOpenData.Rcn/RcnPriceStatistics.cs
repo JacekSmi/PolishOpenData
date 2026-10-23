@@ -35,15 +35,17 @@ public static class RcnPriceStatistics
                 throw new InvalidOperationException("Price statistics need premises rows; query the premises layer.");
             }
 
-            if (row.PricePerSquareMetre is not { } perMetre) missing++;
-            else if (row.Share is not null && row.Share != "1/1") share++;
-            else if (row.Kind is not null && row.Kind != "wolnyRynek") kind++;
-            else if (row.Right is not null && row.Right != "wlasnoscLokaluWrazZPrawemZwiazanym") right++;
-            else
+            switch (Classify(row))
             {
-                values.Add(perMetre);
-                if (oldest is null || row.Date < oldest) oldest = row.Date;
-                if (newest is null || row.Date > newest) newest = row.Date;
+                case RcnExclusionReason.MissingPriceOrArea: missing++; break;
+                case RcnExclusionReason.Share: share++; break;
+                case RcnExclusionReason.NonMarketKind: kind++; break;
+                case RcnExclusionReason.OtherRight: right++; break;
+                default:
+                    values.Add(row.PricePerSquareMetre!.Value);
+                    if (oldest is null || row.Date < oldest) oldest = row.Date;
+                    if (newest is null || row.Date > newest) newest = row.Date;
+                    break;
             }
         }
 
@@ -53,6 +55,30 @@ public static class RcnPriceStatistics
             ? new RcnPriceSummary(0, null, null, null, true, null, null, excluded)
             : new RcnPriceSummary(values.Count, Quantile(values, 0.5m), Quantile(values, 0.25m), Quantile(values, 0.75m),
                 values.Count < SmallSampleBelow, oldest, newest, excluded);
+    }
+
+    /// <summary>
+    /// Says whether a premises row counts in the market-price sample of <see cref="Summarize"/> and, if not, why:
+    /// the first reason that applies wins (no price per square metre, a share other than <c>1/1</c>, a kind other
+    /// than <c>wolnyRynek</c>, a right other than ownership of the premises with the attached right). A missing
+    /// share, kind or right is allowed.
+    /// </summary>
+    /// <param name="transaction">A premises row.</param>
+    /// <returns><see cref="RcnExclusionReason.None"/> when the row counts in the statistics.</returns>
+    /// <exception cref="ArgumentException">The row is not a premises row.</exception>
+    public static RcnExclusionReason Classify(RcnTransaction transaction)
+    {
+        ArgumentNullException.ThrowIfNull(transaction);
+        if (transaction.Layer != RcnLayer.Premises)
+        {
+            throw new ArgumentException("Price statistics need premises rows; classify a row from the premises layer.", nameof(transaction));
+        }
+
+        if (transaction.PricePerSquareMetre is null) return RcnExclusionReason.MissingPriceOrArea;
+        if (transaction.Share is not null && transaction.Share != "1/1") return RcnExclusionReason.Share;
+        if (transaction.Kind is not null && transaction.Kind != "wolnyRynek") return RcnExclusionReason.NonMarketKind;
+        if (transaction.Right is not null && transaction.Right != "wlasnoscLokaluWrazZPrawemZwiazanym") return RcnExclusionReason.OtherRight;
+        return RcnExclusionReason.None;
     }
 
     // Linear interpolation between closest ranks, position (n-1)*p, on sorted values.
