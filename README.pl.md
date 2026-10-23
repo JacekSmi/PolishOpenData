@@ -255,7 +255,7 @@ Narzędzia: `lookup_company` (dane firmy po NIP/REGON/KRS), `check_vat_bank_acco
 
 ## Możliwe kolejne kroki
 
-Pomysły, nie zobowiązania: więcej danych o nieruchomościach poza cenami transakcyjnymi, które już są. Jeśli któryś z nich by Ci się przydał, [otwórz issue](https://github.com/JacekSmi/PolishOpenData/issues), aby dać znać.
+Pomysły, nie zobowiązania: więcej danych o nieruchomościach (na przykład plany zagospodarowania). Jeśli by Ci się przydały, [otwórz issue](https://github.com/JacekSmi/PolishOpenData/issues), aby dać znać.
 
 ## Współpraca i licencja
 
