@@ -198,7 +198,7 @@ internal static class RcnGmlReader
             Kind = Get(fields, "TRAN_RODZAJ_TRANS"),
             SellerType = Get(fields, "TRAN_SPRZEDAJACY"),
             BuyerType = Get(fields, "TRAN_KUPUJACY"),
-            TotalPrice = Decimal("TRAN_CENA_BRUTTO", Required(fields, "TRAN_CENA_BRUTTO")),
+            TotalPrice = Decimal(fields, "TRAN_CENA_BRUTTO"),
             DocumentNumber = Get(fields, "DOK_OZNACZENIE"),
             Right = Get(fields, "NIER_PRAWO"),
             Share = Get(fields, "NIER_UDZIAL"),
@@ -276,18 +276,12 @@ internal static class RcnGmlReader
             ? date
             : throw new FormatException("DOK_DATA '" + text + "' is not yyyy-MM-dd");
 
-    private static decimal Decimal(string name, string text) =>
-        decimal.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var value)
-            ? value
-            : throw new FormatException(name + " '" + text + "' is not a number");
-
+    // An optional number: null when the field is empty or not a number (one odd value must not fail the page); the text stays in Fields.
     private static decimal? Decimal(Dictionary<string, string> fields, string name) =>
-        Get(fields, name) is { } text ? Decimal(name, text) : null;
+        Get(fields, name) is { } text && decimal.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ? value : null;
 
     private static int? Integer(Dictionary<string, string> fields, string name) =>
-        Get(fields, name) is { } text
-            ? int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) ? value : throw new FormatException(name + " '" + text + "' is not an integer")
-            : null;
+        Get(fields, name) is { } text && int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) ? value : null;
 
     // MSC:<town>;UL:<street>;NR_PORZ:<number>, each part optional. Text with none of them is not an address.
     private static RcnAddress? Address(string? text)

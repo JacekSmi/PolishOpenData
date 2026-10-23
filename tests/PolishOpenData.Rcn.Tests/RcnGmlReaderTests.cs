@@ -78,6 +78,63 @@ public class RcnGmlReaderTests
     }
 
     [Fact]
+    public void Odd_optional_numbers_become_null_and_keep_their_raw_text_in_Fields()
+    {
+        var rows = Read("synthetic-odd-values.xml");
+
+        Assert.Equal(4, rows.Count);
+        var odd = rows[0];
+        Assert.Null(odd.Rooms);
+        Assert.Null(odd.Floor);
+        Assert.Null(odd.UsableArea);
+        Assert.Null(odd.LandArea);
+        Assert.Null(odd.ParcelPrice);
+        Assert.Null(odd.BuildingUsableArea);
+        Assert.Null(odd.BuildingPrice);
+        Assert.Null(odd.PricePerSquareMetre);
+        Assert.Equal("1a", odd.Fields["LOK_LICZBA_IZB"]);
+        Assert.Equal("parter", odd.Fields["LOK_NR_KOND"]);
+        Assert.Equal("abc", odd.Fields["LOK_POW_UZYT"]);
+        Assert.Equal("n/a", odd.Fields["DZI_POW_EWID"]);
+        Assert.Equal("12 000", odd.Fields["DZI_CENA_BRUTTO"]);
+        Assert.Equal("x", odd.Fields["BUD_POW_UZYT"]);
+        Assert.Equal("y", odd.Fields["BUD_CENA_BRUTTO"]);
+        // the odd values do not touch the other fields of the row, nor the other rows
+        Assert.Equal(900000m, odd.TotalPrice);
+        Assert.Equal(400000m, odd.PremisesPrice);
+        Assert.Equal(new DateOnly(2025, 12, 19), odd.Date);
+        Assert.Equal("00000000-0000-4000-8000-910000000001", odd.Id);
+        Assert.Equal(2, rows[3].Rooms);
+        Assert.Equal(1, rows[3].Floor);
+        Assert.Equal(8000m, rows[3].PricePerSquareMetre);
+    }
+
+    [Fact]
+    public void Empty_or_unparsable_total_price_is_null_and_the_row_survives()
+    {
+        var rows = Read("synthetic-odd-values.xml");
+
+        Assert.Null(rows[1].TotalPrice);
+        Assert.DoesNotContain("TRAN_CENA_BRUTTO", rows[1].Fields.Keys); // empty
+        Assert.Equal(8000m, rows[1].PricePerSquareMetre); // the premises price decides, not the deed total
+        Assert.Null(rows[2].TotalPrice);
+        Assert.Equal("brak", rows[2].Fields["TRAN_CENA_BRUTTO"]);
+        Assert.Null(rows[2].PremisesPrice);
+        Assert.Equal("czterysta tysięcy", rows[2].Fields["LOK_CENA_BRUTTO"]);
+        Assert.Equal(900000m, rows[3].TotalPrice);
+    }
+
+    [Fact]
+    public void Rows_with_odd_numbers_count_as_missing_price_or_area_in_the_statistics()
+    {
+        var summary = new RcnTransactions(Read("synthetic-odd-values.xml"), false).Summarize();
+
+        Assert.Equal(2, summary.Count);
+        Assert.Equal(8000m, summary.Median);
+        Assert.Equal(2, summary.Excluded.MissingPriceOrArea); // unparsable area (row 1), unparsable premises price (row 3)
+    }
+
+    [Fact]
     public void Share_is_null_when_empty_and_kept_when_published()
     {
         var rows = Read("synthetic-edge-values.xml");
@@ -174,6 +231,20 @@ public class RcnGmlReaderTests
         Assert.Equal(HttpStatusCode.OK, ex.StatusCode);
         Assert.Contains("DOK_DATA", ex.Message, StringComparison.Ordinal);
         Assert.NotNull(ex.ResponseSnippet);
+    }
+
+    [Theory]
+    [InlineData("", "<ms:DOK_DATA>2025-12-19</ms:DOK_DATA>", "<ms:TRAN_LOKALNY_ID_IIP>x</ms:TRAN_LOKALNY_ID_IIP>", "gml:boundedBy")]
+    [InlineData("<gml:boundedBy><gml:Envelope><gml:lowerCorner>486000.5 638000.25</gml:lowerCorner><gml:upperCorner>486000.5 638000.25</gml:upperCorner></gml:Envelope></gml:boundedBy>", "", "<ms:TRAN_LOKALNY_ID_IIP>x</ms:TRAN_LOKALNY_ID_IIP>", "DOK_DATA")]
+    [InlineData("<gml:boundedBy><gml:Envelope><gml:lowerCorner>486000.5 638000.25</gml:lowerCorner><gml:upperCorner>486000.5 638000.25</gml:upperCorner></gml:Envelope></gml:boundedBy>", "<ms:DOK_DATA>2025-12-19</ms:DOK_DATA>", "", "TRAN_LOKALNY_ID_IIP")]
+    public void A_row_without_its_envelope_date_or_id_is_unusable_and_throws(string boundedBy, string date, string id, string missing)
+    {
+        var xml = "<wfs:FeatureCollection xmlns:ms=\"http://mapserver.gis.umn.edu/mapserver\" xmlns:gml=\"http://www.opengis.net/gml/3.2\" xmlns:wfs=\"http://www.opengis.net/wfs/2.0\">"
+            + "<wfs:member><ms:lokale>" + boundedBy + date + id + "</ms:lokale></wfs:member></wfs:FeatureCollection>";
+
+        var ex = Assert.Throws<PolishOpenDataApiException>(() => RcnGmlReader.Read(Encoding.UTF8.GetBytes(xml), RcnLayer.Premises, Response()));
+
+        Assert.Contains(missing, ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]

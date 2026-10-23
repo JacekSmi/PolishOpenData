@@ -62,8 +62,9 @@ internal sealed record TransactionView
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? BuyerType { get; init; }
 
-    /// <summary>The gross price of the whole transaction in zloty (repeated on every row of a transaction over several items).</summary>
-    public required decimal TotalPrice { get; init; }
+    /// <summary>The gross price of the whole transaction in zloty (repeated on every row of a transaction over several items); left out when the register has none.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public decimal? TotalPrice { get; init; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? DocumentNumber { get; init; }

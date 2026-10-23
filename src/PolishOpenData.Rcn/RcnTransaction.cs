@@ -7,6 +7,8 @@ namespace PolishOpenData.Rcn;
 /// <summary>
 /// One row of an RCN layer. A transaction that covers several premises appears once per premises, all rows sharing
 /// <see cref="Id"/> and <see cref="TotalPrice"/>: use <see cref="PremisesPrice"/> for the price of one premises.
+/// A number the service publishes empty or not as a number (a price, an area, a floor, the number of rooms) is
+/// <see langword="null"/>; the text as published stays in <see cref="Fields"/>.
 /// </summary>
 public sealed class RcnTransaction
 {
@@ -31,8 +33,8 @@ public sealed class RcnTransaction
     /// <summary>The buyer's kind, e.g. <c>osobaFizyczna</c> (<c>TRAN_KUPUJACY</c>).</summary>
     public string? BuyerType { get; init; }
 
-    /// <summary>The gross price of the whole transaction, in zloty (<c>TRAN_CENA_BRUTTO</c>); not the price of one premises.</summary>
-    public required decimal TotalPrice { get; init; }
+    /// <summary>The gross price of the whole transaction, in zloty (<c>TRAN_CENA_BRUTTO</c>); not the price of one premises. Null when empty or not a number.</summary>
+    public decimal? TotalPrice { get; init; }
 
     /// <summary>The deed number (<c>DOK_OZNACZENIE</c>), e.g. <c>11038/2025</c>.</summary>
     public string? DocumentNumber { get; init; }
