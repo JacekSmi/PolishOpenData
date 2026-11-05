@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
     <link rel="stylesheet" href="css/app.css" />
     <script type="importmap"></script>
+    <noscript><style>#search { display: none; }</style></noscript>
 </head>
 
 <body>
@@ -20,6 +21,7 @@
     <div class="bar">
         <input id="search" type="search" aria-label="Search an address" placeholder="Warming up…" autocomplete="off" spellcheck="false" enterkeyhint="search" disabled />
         <div id="controls"></div>
+        <noscript><div class="notice">This demo needs JavaScript.</div></noscript>
     </div>
 
     <div id="app"></div>

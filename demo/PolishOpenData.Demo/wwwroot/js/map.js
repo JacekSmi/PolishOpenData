@@ -1,4 +1,10 @@
 // index.html loads this module on its own, so the map is on screen before .NET starts; App.razor imports the same module afterwards.
+const search = document.getElementById('search');
+
+// If .NET never starts (a blocked or failed download) the box would say "Warming up…" for ever, so after 30 s it says so. It is set before
+// anything else can throw. A start that is only very slow still ends in enableSearch, which puts the normal state back.
+const startTimer = setTimeout(() => { search.placeholder = 'Could not start. Reload the page.'; }, 30000);
+
 const POLAND = [[49.0, 14.1], [54.9, 24.2]];
 const ORTHOPHOTO = 'https://mapy.geoportal.gov.pl/wss/service/PZGIK/ORTO/WMTS/StandardResolution?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ORTOFOTOMAPA&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX=EPSG:3857:{z}&TILEROW={y}&TILECOL={x}';
 
@@ -9,6 +15,9 @@ const ORTHOPHOTO = 'https://mapy.geoportal.gov.pl/wss/service/PZGIK/ORTO/WMTS/St
 const MIN_ZOOM = 5.75;
 const map = L.map('map', { zoomControl: false, zoomSnap: 0.25, minZoom: MIN_ZOOM, maxZoom: 20 });
 map.fitBounds(POLAND, { padding: [8, 8], maxZoom: 6.25 });
+// Quarter steps were only for that first framing. From here the zoom buttons and the wheel move in whole levels, where the tiles are
+// drawn at their native size (a quarter step would stretch a tile level by 1.19 and soften the photo). Leaflet reads this on every zoom.
+map.options.zoomSnap = 1;
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 
 L.tileLayer(ORTHOPHOTO, {
@@ -21,10 +30,9 @@ L.tileLayer(ORTHOPHOTO, {
     attribution: 'Ortofotomapa &copy; <a href="https://www.geoportal.gov.pl/">GUGiK</a>',
 }).addTo(map);
 
-const search = document.getElementById('search');
-
 // Called from App.razor once the .NET runtime is up.
 export function enableSearch() {
+    clearTimeout(startTimer);
     search.disabled = false;
     search.placeholder = 'Search an address';
 }
