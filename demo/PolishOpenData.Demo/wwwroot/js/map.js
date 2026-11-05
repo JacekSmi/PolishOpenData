@@ -56,8 +56,39 @@ const placeLayer = L.layerGroup().addTo(map);
 const dotRenderer = L.canvas({ tolerance: 3 });
 const dotLayer = L.featureGroup().addTo(map);
 dotLayer.on('click', e => forward('OnDotClick', e.layer.options.index));
-// The numbers of the dots that stand for several sales; a canvas cannot draw text, so these are plain markers above the canvas.
-const countLayer = L.layerGroup().addTo(map);
+
+// A dot that stands for several sales: it draws its number on the canvas right after its circle, in the same pass, so a number always sits
+// with its own dot however the dots overlap (a separate marker layer would float every number above every dot). The number is a count
+// turned into text by this script and drawn with fillText: nothing here is HTML. _updatePath, _order (the draw-order list) and _point are the
+// internals of Leaflet 1.9.4 (vendored, so they cannot change under this).
+const NumberedDot = L.CircleMarker.extend({
+    _updatePath() {
+        L.CircleMarker.prototype._updatePath.call(this);
+        const renderer = this._renderer;
+        if (!renderer._drawing || this._empty()) {
+            return;
+        }
+
+        const ctx = renderer._ctx;
+        const text = this.options.count > 99 ? '99+' : String(this.options.count);
+        ctx.font = `700 ${text.length > 2 ? 9 : 11}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+
+        // A dot that a later (so higher) dot covers across the width of its number shows no number: a sliver of a digit would read as another number.
+        const reach = ctx.measureText(text).width / 2 + 1;
+        for (let node = this._order.next; node; node = node.next) {
+            const above = node.layer;
+            if (above.options.fill && above._point.distanceTo(this._point) < above._radius + above.options.weight / 2 + reach) {
+                return;
+            }
+        }
+
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = this.options.textColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, this._point.x, this._point.y + 0.5);
+    },
+});
 
 let dotNet = null;
 
@@ -66,8 +97,17 @@ function forward(method, ...args) {
     dotNet?.invokeMethodAsync(method, ...args).catch(error => console.warn(method + ' failed', error));
 }
 
+let lastPick = null;
+
 function onMapClick(e) {
     // A dot's click does not get here: its markers have bubblingMouseEvents off.
+    // A double click (or double tap) zooms in, as on any map, but it is two clicks: the second, close in time and place to the one just taken, is the same gesture.
+    const now = performance.now();
+    if (lastPick && now - lastPick.time < 400 && lastPick.point.distanceTo(e.containerPoint) < 10) {
+        return;
+    }
+
+    lastPick = { time: now, point: e.containerPoint };
     const { lat, lng } = e.latlng.wrap();
     forward('OnMapClick', lat, lng);
 }
@@ -77,22 +117,19 @@ export function attach(dotNetRef) {
     map.off('click', onMapClick);
     dotNet = dotNetRef;
     map.on('click', onMapClick);
-    // A click picks a place, so the two clicks of a double click would pick it twice and then zoom away from it. Zoom is the buttons, the wheel and a pinch.
-    map.doubleClickZoom.disable();
 }
 
 // Stops forwarding and takes the place off the map. The map, its tiles and its view are left as they are.
 export function detach() {
     map.off('click', onMapClick);
-    map.doubleClickZoom.enable();
     dotNet = null;
+    lastPick = null;
     clear();
 }
 
 export function clear() {
     placeLayer.clearLayers();
     dotLayer.clearLayers();
-    countLayer.clearLayers();
 }
 
 // center: [lat, lon]; parcelGeoJson: a GeoJSON geometry as text, or null; dots: [{ lat, lon, color, counted, count, index }].
@@ -124,11 +161,9 @@ export function showDots(dots) {
 
 function drawDots(dots) {
     dotLayer.clearLayers();
-    countLayer.clearLayers();
-    // Bottom to top: single sales, then groups with a number; within each the excluded dots below the counted ones. A number is a marker, above every dot,
-    // so its own dot has to be above the single dots, or the number would float over a neighbour.
-    const rank = d => (d.count > 1 ? 2 : 0) + (d.counted ? 1 : 0);
-    for (const dot of [...dots].sort((a, b) => rank(a) - rank(b))) {
+    // Stacking, bottom to top, the same every time: the excluded dots under the counted ones, and within each group of them the dots with fewer sales
+    // under those with more (then by index, the order of the result). So the dot that carries the most sales and a price is never covered by a neighbour.
+    for (const dot of [...dots].sort((a, b) => (a.counted - b.counted) || (a.count - b.count) || (a.index - b.index))) {
         const position = [dot.lat, dot.lon];
         const color = HEX.test(dot.color) ? dot.color : '#6f7a89';
         const several = dot.count > 1;
@@ -141,18 +176,14 @@ function drawDots(dots) {
             // A white casing under the grey ring, so the hollow dot shows on dark trees as well as on pale roofs.
             L.circleMarker(position, { renderer: dotRenderer, radius: style.radius, color: WHITE, weight: 5, opacity: 0.85, fill: false, interactive: false }).addTo(dotLayer);
         }
-        L.circleMarker(position, { ...style, renderer: dotRenderer, bubblingMouseEvents: false, index: dot.index }).addTo(dotLayer);
 
+        const options = { ...style, renderer: dotRenderer, bubblingMouseEvents: false, index: dot.index };
         if (several) {
-            // textContent, not HTML: the number is data. Dark text on a light dot, white on a dark one.
-            const label = document.createElement('span');
-            label.textContent = String(dot.count);
-            label.style.color = dot.counted && luma(color) < 140 ? WHITE : INK;
-            L.marker(position, {
-                icon: L.divIcon({ className: 'sale-count', html: label, iconSize: [2 * style.radius, 2 * style.radius] }),
-                interactive: false,
-                keyboard: false,
-            }).addTo(countLayer);
+            // Dark text on a light dot, white on a dark one; on the white fill of a group that is not counted, dark.
+            const textColor = dot.counted && luma(color) < 140 ? WHITE : INK;
+            new NumberedDot(position, { ...options, count: dot.count, textColor }).addTo(dotLayer);
+        } else {
+            L.circleMarker(position, options).addTo(dotLayer);
         }
     }
 }

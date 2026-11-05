@@ -79,8 +79,8 @@ internal sealed class MapInterop(IJSRuntime js) : IAsyncDisposable
         }
         finally
         {
-            await module.DisposeAsync();
             self?.Dispose();
+            await module.DisposeAsync();
         }
     }
 
