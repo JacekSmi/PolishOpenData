@@ -13,8 +13,8 @@ internal sealed class PriceColorScale
 
     // The viridis ramp sampled at five points: dark purple (cheapest) to yellow (dearest). It gets steadily lighter, which reads as "more",
     // stays apart for the common kinds of colour-blindness, and has no red: the parcel outline is bright red.
-    // Chosen on the ramp's merits, not yet judged by eye on the softened orthophoto: the map task must check it there
-    // (the green middle class may sit close to vegetation) and give the dots an outline or swap the middle colours if it does not hold.
+    // Judged by eye on the softened orthophoto (dense streets, a park, forest, fields) with the thin white edge the map gives every counted dot:
+    // all five classes read there, the green and the dark purple included, so the ramp is kept as sampled.
     private static readonly string[] Colors = ["#440154", "#3b528b", "#21918c", "#5ec962", "#fde725"];
 
     private PriceColorScale(decimal[] breaks) => Breaks = Array.AsReadOnly(breaks);
