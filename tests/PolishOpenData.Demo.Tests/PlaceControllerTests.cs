@@ -232,6 +232,27 @@ public class PlaceControllerTests
     }
 
     [Fact]
+    public async Task A_typed_search_that_finishes_while_it_is_being_cancelled_does_not_write_the_view()
+    {
+        // The geocoder fake answers from inside the cancellation callback, so the superseded typed search resumes while the new search is still starting.
+        var rig = new Rig();
+        rig.Uug.OnCall = (_, token) =>
+        {
+            var answer = new TaskCompletionSource<IReadOnlyList<UugMatch>>();
+            token.Register(() => answer.TrySetResult([Address()]));
+            return answer.Task;
+        };
+        var typed = rig.Controller.SubmitAddressAsync("Warszawa, Krucza 50");
+
+        await rig.Controller.PickPointAsync(Gdansk);
+        await Ends(typed);
+
+        Assert.Equal(Gdansk, Assert.Single(rig.Uldk.Calls)); // the stale address was not followed up
+        Assert.DoesNotContain(rig.Views, v => v.Place?.Point == Krucza);
+        Assert.Equal("#lat=54.35200&lon=18.64660&r=500&m=24", rig.Controller.CurrentFragment());
+    }
+
+    [Fact]
     public async Task A_search_that_finishes_while_it_is_being_cancelled_does_not_write_the_view()
     {
         // The fake answers from inside the cancellation callback, so the superseded search resumes while the new one is still starting.
@@ -426,6 +447,157 @@ public class PlaceControllerTests
         Assert.Equal(2, rig.Rcn.Queries.Count);
     }
 
+    // ---- a place that is still loading is not asked for twice ----
+
+    [Fact]
+    public async Task Changing_the_radius_while_the_parcel_is_loading_does_not_ask_ULDK_again()
+    {
+        var rig = new Rig();
+        var uldk = new Gate<UldkParcel?>();
+        rig.Uldk.OnCall = (_, token) => uldk.Wait(token);
+        var pick = rig.Controller.PickPointAsync(Krucza);
+        await uldk.Entered;
+
+        var change = rig.Controller.ChangeRadiusAsync(1000);
+        uldk.Release(Parcel("1"));
+        await Ends(pick);
+        await Ends(change);
+
+        Assert.Single(rig.Uldk.Calls);
+        Assert.False(uldk.Token.IsCancellationRequested);
+        Assert.Equal(2, rig.Rcn.Queries.Count);
+        Assert.Equal(2000, SquareWidth(rig.Rcn.Queries[1]), 3);
+        Assert.Equal(DemoPhase.Result, rig.View.Phase);
+        Assert.Equal(1000, rig.View.Place!.RadiusMeters);
+        Assert.Equal("1", rig.View.Parcel!.Parcel!.Number);
+        Assert.Equal(SalesOutcome.Ok, rig.View.Sales!.Outcome);
+    }
+
+    [Fact]
+    public async Task Changing_the_period_while_the_parcel_is_loading_does_not_ask_ULDK_again()
+    {
+        var rig = new Rig();
+        var uldk = new Gate<UldkParcel?>();
+        rig.Uldk.OnCall = (_, token) => uldk.Wait(token);
+        var pick = rig.Controller.PickPointAsync(Krucza);
+        await uldk.Entered;
+
+        var change = rig.Controller.ChangePeriodAsync(12);
+        uldk.Release(Parcel("1"));
+        await Ends(pick);
+        await Ends(change);
+
+        Assert.Single(rig.Uldk.Calls);
+        Assert.False(uldk.Token.IsCancellationRequested);
+        Assert.Equal(2, rig.Rcn.Queries.Count);
+        Assert.Equal(Today.AddMonths(-12), rig.Rcn.Queries[1].From);
+        Assert.Equal(DemoPhase.Result, rig.View.Phase);
+        Assert.Equal(12, rig.View.Place!.PeriodMonths);
+        Assert.Equal("1", rig.View.Parcel!.Parcel!.Number);
+    }
+
+    [Fact]
+    public async Task Opening_a_link_of_the_same_point_with_another_radius_while_loading_does_not_ask_ULDK_again()
+    {
+        var rig = new Rig();
+        var uldk = new Gate<UldkParcel?>();
+        rig.Uldk.OnCall = (_, token) => uldk.Wait(token);
+        var pick = rig.Controller.PickPointAsync(Krucza);
+        await uldk.Entered;
+
+        var load = rig.Controller.LoadFromFragmentAsync("#lat=52.22850&lon=21.01720&r=1000&m=12");
+        uldk.Release(Parcel("1"));
+        await Ends(pick);
+        await Ends(load);
+
+        Assert.Single(rig.Uldk.Calls);
+        Assert.False(uldk.Token.IsCancellationRequested);
+        Assert.Equal(2, rig.Rcn.Queries.Count);
+        Assert.Equal(DemoPhase.Result, rig.View.Phase);
+        Assert.Equal("#lat=52.22850&lon=21.01720&r=1000&m=12", rig.Controller.CurrentFragment());
+    }
+
+    [Fact]
+    public async Task Picking_the_same_place_twice_while_loading_asks_each_service_once()
+    {
+        // A double click: the second search joins the requests of the first, which are still running, instead of cancelling and repeating them.
+        var rig = new Rig();
+        var uldk = new Gate<UldkParcel?>();
+        var rcn = new Gate<RcnTransactions>();
+        rig.Uldk.OnCall = (_, token) => uldk.Wait(token);
+        rig.Rcn.OnCall = (_, token) => rcn.Wait(token);
+        var first = rig.Controller.PickPointAsync(Krucza);
+        await uldk.Entered;
+        await rcn.Entered;
+
+        var second = rig.Controller.PickPointAsync(new Wgs84Point(52.22850004, 21.01720003)); // the same 5-decimal cell
+        uldk.Release(Parcel("1"));
+        rcn.Release(await ScriptedRcn.OneFlat(rig.Rcn.Queries[0], CancellationToken.None));
+        await Ends(first);
+        await Ends(second);
+
+        Assert.Single(rig.Uldk.Calls);
+        Assert.Single(rig.Rcn.Queries);
+        Assert.False(uldk.Token.IsCancellationRequested);
+        Assert.False(rcn.Token.IsCancellationRequested);
+        Assert.Equal(DemoPhase.Result, rig.View.Phase);
+        Assert.Equal(KruczaFragment, rig.Controller.CurrentFragment());
+    }
+
+    [Fact]
+    public async Task Picking_another_point_while_the_parcel_is_loading_cancels_that_request_and_starts_a_new_one()
+    {
+        var rig = new Rig();
+        var uldk = new Gate<UldkParcel?>();
+        rig.Uldk.OnCall = (point, token) => point == Krucza ? uldk.Wait(token) : Task.FromResult<UldkParcel?>(Parcel("gdansk"));
+        var first = rig.Controller.PickPointAsync(Krucza);
+        await uldk.Entered;
+
+        await rig.Controller.PickPointAsync(Gdansk);
+        await Ends(first);
+
+        Assert.True(uldk.Token.IsCancellationRequested);
+        Assert.Equal(new[] { Krucza, Gdansk }, rig.Uldk.Calls);
+        Assert.Equal("gdansk", rig.View.Parcel!.Parcel!.Number);
+        Assert.Equal(DemoPhase.Result, rig.View.Phase);
+    }
+
+    [Fact]
+    public async Task A_cancelled_parcel_request_is_not_remembered()
+    {
+        var rig = new Rig();
+        var uldk = new Gate<UldkParcel?>();
+        rig.Uldk.OnCall = (point, token) => rig.Uldk.Calls.Count == 1 ? uldk.Wait(token) : ScriptedUldk.SomeParcel(point, token);
+        var first = rig.Controller.PickPointAsync(Krucza);
+        await uldk.Entered;
+        await rig.Controller.PickPointAsync(Gdansk); // cancels the first request
+        await Ends(first);
+
+        await rig.Controller.PickPointAsync(Krucza);
+
+        Assert.Equal(new[] { Krucza, Gdansk, Krucza }, rig.Uldk.Calls);
+        Assert.Equal(DemoPhase.Result, rig.View.Phase);
+        Assert.Equal(KruczaFragment, rig.Controller.CurrentFragment());
+    }
+
+    [Fact]
+    public async Task A_failed_parcel_request_is_not_remembered_by_the_next_search_of_the_place()
+    {
+        var rig = new Rig();
+        var uldk = new Gate<UldkParcel?>();
+        rig.Uldk.OnCall = (point, token) => rig.Uldk.Calls.Count == 1 ? uldk.Wait(token) : ScriptedUldk.SomeParcel(point, token);
+        var first = rig.Controller.PickPointAsync(Krucza);
+        await uldk.Entered;
+        uldk.Fail(new HttpRequestException(Detail));
+        await Ends(first);
+        Assert.Equal(DemoPhase.Message, rig.View.Phase);
+
+        await rig.Controller.PickPointAsync(Krucza);
+
+        Assert.Equal(2, rig.Uldk.Calls.Count);
+        Assert.Equal(DemoPhase.Result, rig.View.Phase);
+    }
+
     [Fact]
     public async Task The_point_is_rounded_to_five_decimals_once_and_used_everywhere()
     {
@@ -579,6 +751,36 @@ public class PlaceControllerTests
         Assert.Equal("Home", rig.View.Label);
         Assert.Equal(2, rig.Rcn.Queries.Count); // the label is no new question
         Assert.Single(rig.Uldk.Calls);
+    }
+
+    [Fact]
+    public async Task The_link_of_a_failed_place_is_not_retried_by_itself_but_picking_the_place_again_retries()
+    {
+        // A page that rewrites its URL and reacts to the change calls LoadFromFragmentAsync with the very fragment that just failed (a 429, say):
+        // that must not send a request nobody asked for, or a quota error would loop.
+        var rig = new Rig();
+        rig.Rcn.OnCall = (_, _) => Task.FromException<RcnTransactions>(Make("quota"));
+        await rig.Controller.LoadFromFragmentAsync(KruczaFragment + "&q=Home");
+        Assert.Equal(DemoPhase.Message, rig.View.Phase);
+        Assert.Equal("GUGiK is limiting requests right now. Wait a minute and try again.", rig.View.Message);
+        var failed = rig.View;
+        var changes = rig.Views.Count;
+
+        await rig.Controller.LoadFromFragmentAsync(rig.Controller.CurrentFragment());
+        await rig.Controller.LoadFromFragmentAsync(KruczaFragment + "&q=Home");
+
+        Assert.Same(failed, rig.View);
+        Assert.Equal(changes, rig.Views.Count);
+        Assert.Single(rig.Uldk.Calls);
+        Assert.Single(rig.Rcn.Queries);
+
+        // The user asks again: that is a retry, and only the request that failed is repeated.
+        rig.Rcn.OnCall = ScriptedRcn.OneFlat;
+        await rig.Controller.PickPointAsync(rig.View.Place!.Point);
+
+        Assert.Equal(DemoPhase.Result, rig.View.Phase);
+        Assert.Single(rig.Uldk.Calls);
+        Assert.Equal(2, rig.Rcn.Queries.Count);
     }
 
     // ---- typed addresses ----
