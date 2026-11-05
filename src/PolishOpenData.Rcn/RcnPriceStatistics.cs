@@ -16,7 +16,10 @@ public static class RcnPriceStatistics
     /// </summary>
     /// <param name="transactions">A complete premises answer.</param>
     /// <exception cref="InvalidOperationException">The answer is truncated (narrow the query) or contains rows that are not premises.</exception>
-    public static RcnPriceSummary Summarize(this RcnTransactions transactions)
+    public static RcnPriceSummary Summarize(this RcnTransactions transactions) => SummarizeBy(transactions, Classify);
+
+    // The classifier is a parameter only so that a test can hand the tally a reason that the enum does not have yet.
+    internal static RcnPriceSummary SummarizeBy(RcnTransactions transactions, Func<RcnTransaction, RcnExclusionReason> classify)
     {
         ArgumentNullException.ThrowIfNull(transactions);
         if (transactions.Truncated)
@@ -35,17 +38,21 @@ public static class RcnPriceStatistics
                 throw new InvalidOperationException("Price statistics need premises rows; query the premises layer.");
             }
 
-            switch (Classify(row))
+            var reason = classify(row);
+            switch (reason)
             {
                 case RcnExclusionReason.MissingPriceOrArea: missing++; break;
                 case RcnExclusionReason.Share: share++; break;
                 case RcnExclusionReason.NonMarketKind: kind++; break;
                 case RcnExclusionReason.OtherRight: right++; break;
-                default:
+                case RcnExclusionReason.None:
                     values.Add(row.PricePerSquareMetre!.Value);
                     if (oldest is null || row.Date < oldest) oldest = row.Date;
                     if (newest is null || row.Date > newest) newest = row.Date;
                     break;
+                default:
+                    // A reason added to the enum without a branch here would otherwise be counted as a market sale.
+                    throw new InvalidOperationException($"The exclusion reason {reason} is not handled by the statistics.");
             }
         }
 

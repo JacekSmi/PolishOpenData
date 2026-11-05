@@ -204,6 +204,18 @@ public class RcnPriceStatisticsTests
     }
 
     [Fact]
+    public void A_reason_Summarize_does_not_know_fails_loudly_instead_of_being_counted()
+    {
+        // A future RcnExclusionReason must not be counted as a market sale (or reach PricePerSquareMetre of a row without one):
+        // the seam hands the tally a reason that the enum does not have.
+        var rows = new RcnTransactions([Row(1000)], false);
+
+        var ex = Assert.Throws<InvalidOperationException>(() => RcnPriceStatistics.SummarizeBy(rows, _ => (RcnExclusionReason)99));
+
+        Assert.Contains("99", ex.Message);
+    }
+
+    [Fact]
     public void Classify_refuses_parcel_rows()
     {
         var ex = Assert.Throws<ArgumentException>(() => RcnPriceStatistics.Classify(Row(layer: RcnLayer.Parcels)));
