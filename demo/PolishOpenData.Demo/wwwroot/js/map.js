@@ -106,6 +106,8 @@ document.addEventListener('keydown', e => {
 // Called by App.razor once the .NET runtime is up: turns the bar on with the page's choices and hands back the address's fragment, read once.
 export function enableSearch(pageRef, radiusMeters, periodMonths) {
     clearTimeout(startTimer);
+    // A start slower than 30 s still ends here: take back what the timer said.
+    document.getElementById('start-status').textContent = '';
     page = pageRef;
     radius.value = String(radiusMeters);
     period.value = String(periodMonths);

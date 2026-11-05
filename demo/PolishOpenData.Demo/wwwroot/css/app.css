@@ -595,3 +595,13 @@ button.link {
         max-width: none;
     }
 }
+
+/* Forced colours (Windows High Contrast) drop box-shadows and force border colours, so the search box and the two chips, which show focus by a
+   shadow only, would show none. Every other control keeps the outline of the :focus-visible rule above; these two get one back. */
+@media (forced-colors: active) {
+    #search:focus-visible,
+    .choice:focus-within {
+        outline: 2px solid CanvasText;
+        outline-offset: 2px;
+    }
+}
