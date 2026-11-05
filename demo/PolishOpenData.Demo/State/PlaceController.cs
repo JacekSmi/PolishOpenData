@@ -30,6 +30,11 @@ internal sealed class PlaceController(PlaceSearch places, AddressSearch addresse
     private readonly SharedRequests<Wgs84Point, ParcelResult> _parcels = new();
     private readonly SharedRequests<(Wgs84Point Point, int RadiusMeters, int PeriodMonths), SalesResult> _sales = new();
     private CancellationTokenSource? _current;
+
+    // The last typed search: its trimmed text, its generation (it is still the running search while that is the latest) and its task.
+    private string? _typedText;
+    private int _typedGeneration;
+    private Task _typedSearch = Task.CompletedTask;
     private int _generation;
 
     /// <summary>What the page shows now. Replaced as a whole; <see cref="Changed"/> follows every replacement.</summary>
@@ -50,43 +55,61 @@ internal sealed class PlaceController(PlaceSearch places, AddressSearch addresse
     /// <summary>
     /// Enter on the search box: one geocoder request, then the place requests when the text names one address point.
     /// Empty or white-space text does nothing at all: no request, no change of the view, no cancellation of a search in flight.
+    /// The same text (trimmed) while its own search is still the running one returns that search and asks nothing (a held or doubled Enter).
     /// A KW-shaped text and an unmatched address give a message, several matches give <see cref="DemoPhase.Candidates"/>.
     /// </summary>
-    public Task SubmitAddressAsync(string text) =>
-        string.IsNullOrWhiteSpace(text)
-            ? Task.CompletedTask
-            : StartAsync(async (generation, token) =>
+    public Task SubmitAddressAsync(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return Task.CompletedTask;
+        }
+
+        // A held or doubled Enter: the same text while its search is still the running one joins it, so the geocoder is asked once.
+        var trimmed = text.Trim();
+        if (trimmed == _typedText && _typedGeneration == _generation && !_typedSearch.IsCompleted)
+        {
+            return _typedSearch;
+        }
+
+        _typedText = trimmed;
+
+        var search = StartAsync(async (generation, token) =>
+        {
+            _typedGeneration = generation;
+            Show(DemoView.Idle with { Phase = DemoPhase.Searching });
+            AddressOutcome outcome;
+            try
             {
-                Show(DemoView.Idle with { Phase = DemoPhase.Searching });
-                AddressOutcome outcome;
-                try
-                {
-                    outcome = await addresses.ResolveAsync(text, token);
-                }
-                catch (Exception exception)
-                {
-                    ShowFailure(generation, exception, place: null);
-                    return;
-                }
+                outcome = await addresses.ResolveAsync(text, token);
+            }
+            catch (Exception exception)
+            {
+                ShowFailure(generation, exception, place: null);
+                return;
+            }
 
-                if (generation != _generation)
-                {
-                    return;
-                }
+            if (generation != _generation)
+            {
+                return;
+            }
 
-                if (outcome is { Kind: AddressOutcomeKind.Resolved, Match: { } match })
-                {
-                    await StartPlaceAsync(match.Location, Describe(match), generation);
-                }
-                else if (outcome.Kind == AddressOutcomeKind.Candidates)
-                {
-                    Show(DemoView.Idle with { Phase = DemoPhase.Candidates, Candidates = outcome.Candidates, Message = outcome.Message });
-                }
-                else
-                {
-                    Show(DemoView.Idle with { Phase = DemoPhase.Message, Message = outcome.Message ?? FriendlyMessage.Generic });
-                }
-            });
+            if (outcome is { Kind: AddressOutcomeKind.Resolved, Match: { } match })
+            {
+                await StartPlaceAsync(match.Location, Describe(match), generation);
+            }
+            else if (outcome.Kind == AddressOutcomeKind.Candidates)
+            {
+                Show(DemoView.Idle with { Phase = DemoPhase.Candidates, Candidates = outcome.Candidates, Message = outcome.Message });
+            }
+            else
+            {
+                Show(DemoView.Idle with { Phase = DemoPhase.Message, Message = outcome.Message ?? FriendlyMessage.Generic });
+            }
+        });
+        _typedSearch = search;
+        return search;
+    }
 
     /// <summary>A candidate the user picked: the place requests, no geocoder request. The label is the address as the geocoder writes it.</summary>
     public Task PickCandidateAsync(UugMatch match) =>

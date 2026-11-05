@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using System.Text.Unicode;
+using PolishOpenData.Demo.Search;
 using PolishOpenData.Geo;
 
 namespace PolishOpenData.Demo.State;
@@ -120,6 +121,7 @@ public sealed record PlaceUrlState(Wgs84Point Point, int RadiusMeters, int Perio
     }
 
     // Control characters and invisible formatting (bidi overrides, line and paragraph separators) are dropped: the label is attacker-controlled text from a link.
+    // A label with the shape of a KW number is dropped whole.
     private static string? CleanLabel(string? text)
     {
         if (text is null)
@@ -143,6 +145,7 @@ public sealed record PlaceUrlState(Wgs84Point Point, int RadiusMeters, int Perio
             label = label[..(char.IsHighSurrogate(label[MaxLabelLength - 1]) ? MaxLabelLength - 1 : MaxLabelLength)].TrimEnd();
         }
 
-        return label.Length == 0 ? null : label;
+        // A land-registry (KW) number is never shown or written back into a link, whoever put it there.
+        return label.Length == 0 || KwShape.Matches(label) ? null : label;
     }
 }

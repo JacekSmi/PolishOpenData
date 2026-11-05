@@ -277,6 +277,37 @@ public class PlaceUrlStateTests
         { "%ED%A0%80", null },
     };
 
+    // A land-registry (KW) number is never shown or echoed: a KW-shaped label is dropped (the rule of AddressSearch's refusal), the rest of the link stands.
+    [Theory]
+    [InlineData("WA1M/00012345/1")]
+    [InlineData("WA1M%2F00012345%2F1")]
+    [InlineData("wa1m%2F00012345%2F1")]
+    [InlineData("WA1M%2000012345%201")]
+    [InlineData("WA1M-00012345-1")]
+    [InlineData("WA1M000123451")]
+    [InlineData("%20WA1M%2F00012345%2F1%20")]
+    public void A_KW_shaped_label_is_dropped(string rawQ)
+    {
+        var state = Parse($"#{Position}&r=250&m=12&q={rawQ}");
+
+        Assert.Null(state.Label);
+        Assert.Equal(250, state.RadiusMeters);
+        Assert.Equal(12, state.PeriodMonths);
+        Assert.Equal("#" + Position + "&r=250&m=12", state.ToFragment());
+    }
+
+    [Fact]
+    public void A_KW_shaped_label_is_never_written_to_a_link() =>
+        Assert.Equal(Warsaw, Sample(label: "WA1M/00012345/1").ToFragment());
+
+    [Theory]
+    [InlineData("00-025", "00-025")]
+    [InlineData("Warszawa%2C%20Krucza%2050", "Warszawa, Krucza 50")]
+    [InlineData("12345678", "12345678")]
+    [InlineData("WA1M%2F00012345", "WA1M/00012345")]
+    public void Labels_that_only_resemble_a_KW_are_kept(string rawQ, string expected) =>
+        Assert.Equal(expected, Parse($"#{Position}&q={rawQ}").Label);
+
     [Theory]
     [MemberData(nameof(LabelCases))]
     public void Label_is_sanitised_and_capped(string rawQ, string? expected)

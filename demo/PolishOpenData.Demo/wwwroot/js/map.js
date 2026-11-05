@@ -45,11 +45,33 @@ function toPage(method, ...args) {
     page?.invokeMethodAsync(method, ...args).catch(error => console.warn(method + ' failed', error));
 }
 
+// One way in: the form's submit, which a desktop Enter and a phone's Search or Go key both cause (an Enter that only ends an IME composition does not).
+// A held Enter repeats its keydown and would submit each time, so a repeat is stopped; the same text again within a second (a double press) is
+// dropped too. The page also joins a search already running for the same text, so neither reaches the geocoder twice.
+const form = document.getElementById('search-form');
+let lastSubmit = { text: null, time: -Infinity };
+
 search.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.isComposing) {
+    if (e.key === 'Enter' && e.repeat) {
         e.preventDefault();
-        toPage('OnSearchSubmit', search.value);
     }
+});
+
+form.addEventListener('submit', e => {
+    e.preventDefault();
+    const text = search.value.trim();
+    const now = performance.now();
+    if (search.disabled || (text === lastSubmit.text && now - lastSubmit.time < 1000)) {
+        return;
+    }
+
+    lastSubmit = { text, time: now };
+    // On a touch screen the keyboard would cover the card; with a mouse and keys the focus stays for the next search.
+    if (matchMedia('(pointer: coarse)').matches) {
+        search.blur();
+    }
+
+    toPage('OnSearchSubmit', search.value);
 });
 radius.addEventListener('change', () => toPage('OnRadiusChange', Number(radius.value)));
 period.addEventListener('change', () => toPage('OnPeriodChange', Number(period.value)));
@@ -92,8 +114,11 @@ export function enableSearch(pageRef, radiusMeters, periodMonths) {
     return location.hash;
 }
 
+// After a candidate is chosen; not on a touch screen, where it would open the keyboard over the card.
 export function focusSearch() {
-    search.focus();
+    if (!matchMedia('(pointer: coarse)').matches) {
+        search.focus();
+    }
 }
 
 // Shows the radius and period the page uses (a link may have changed them).

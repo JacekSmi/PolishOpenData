@@ -14,8 +14,8 @@ public sealed record LegendEntry(string Color, string Text, bool Hollow);
 /// </summary>
 internal static class CardText
 {
-    /// <summary>The note under a median of fewer than five sales.</summary>
-    public const string SmallSample = "Fewer than 5 sales: treat these figures as rough.";
+    /// <summary>The note under a median of fewer than five counted sales (the sales here may be many more).</summary>
+    public const string SmallSample = "Fewer than 5 sales in the statistics: treat these figures as rough.";
 
     /// <summary>The disclaimer every result carries.</summary>
     public const string NotAValuation = "Informational, not a valuation.";

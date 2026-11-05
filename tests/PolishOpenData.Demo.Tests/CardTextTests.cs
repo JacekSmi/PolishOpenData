@@ -47,6 +47,14 @@ public class CardTextTests
     public void Sales_line(int total, int counted, string expected) => Assert.Equal(expected, CardText.Sales(total, counted));
 
     [Fact]
+    public void The_small_sample_note_is_about_the_statistics_not_the_sales_here()
+    {
+        // 12 sales here and 3 counted: the note must not read as if there were fewer than 5 sales here.
+        Assert.Equal("12 sales here, 3 in the statistics", CardText.Sales(12, 3));
+        Assert.Equal("Fewer than 5 sales in the statistics: treat these figures as rough.", CardText.SmallSample);
+    }
+
+    [Fact]
     public void No_exclusions_give_no_line() => Assert.Null(CardText.Exclusions(new RcnExclusions(0, 0, 0, 0)));
 
     [Fact]

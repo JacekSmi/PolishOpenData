@@ -27,7 +27,7 @@ internal enum AddressOutcomeKind
 internal sealed record AddressOutcome(AddressOutcomeKind Kind, UugMatch? Match, IReadOnlyList<UugMatch> Candidates, string? Message);
 
 /// <summary>Turns typed text into one address point with the GUGiK geocoder (UUG), at most one request.</summary>
-internal sealed partial class AddressSearch(IUugClient uug)
+internal sealed class AddressSearch(IUugClient uug)
 {
     private const string KwRefusal = "This demo never accepts land-registry (KW) numbers.";
     private const string NothingFound = "No address matched; check the spelling or add the town.";
@@ -38,7 +38,7 @@ internal sealed partial class AddressSearch(IUugClient uug)
     /// Otherwise one geocoder request: exactly one distinct address point is <see cref="AddressOutcomeKind.Resolved"/>, no match at all is <see cref="AddressOutcomeKind.None"/>,
     /// anything else is <see cref="AddressOutcomeKind.Candidates"/> with all matches.
     /// Mirrors <c>property_prices</c> and <c>find_parcel</c>: keep it in step with <c>src/PolishOpenData.Mcp/AddressResolution.cs</c> (the one-distinct-address-point rule)
-    /// and <c>src/PolishOpenData.Mcp/Tools/IdentifierTools.cs</c> (<c>LooksLikeKw</c>, reimplemented below); a change in one is checked in the other.
+    /// and <c>src/PolishOpenData.Mcp/Tools/IdentifierTools.cs</c> (<c>LooksLikeKw</c>, reimplemented in <see cref="KwShape"/>); a change in one is checked in the other.
     /// </summary>
     public async Task<AddressOutcome> ResolveAsync(string text, CancellationToken cancellationToken)
     {
@@ -48,7 +48,7 @@ internal sealed partial class AddressSearch(IUugClient uug)
         }
 
         // Checked before any request and never echoed back. Shape only: a KW with a wrong check digit is refused too.
-        if (LooksLikeKw(text))
+        if (KwShape.Matches(text))
         {
             return new AddressOutcome(AddressOutcomeKind.Refused, null, [], KwRefusal);
         }
@@ -69,10 +69,4 @@ internal sealed partial class AddressSearch(IUugClient uug)
             : new AddressOutcome(AddressOutcomeKind.Candidates, null, matches, Unresolved);
     }
 
-    // The rule of IdentifierTools.LooksLikeKw: trimmed, upper-cased, spaces removed, then court code, 8 digits, check digit ('/' or '-' optional between them).
-    private static bool LooksLikeKw(string text) =>
-        KwShape().IsMatch(text.Trim().ToUpperInvariant().Replace(" ", string.Empty, StringComparison.Ordinal));
-
-    [GeneratedRegex("^([A-Z0-9]{4})[/-]?([0-9]{8})[/-]?([0-9])$")]
-    private static partial Regex KwShape();
 }

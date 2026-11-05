@@ -122,6 +122,68 @@ public class PlaceControllerTests
     }
 
     [Fact]
+    public async Task The_same_text_submitted_again_while_it_is_searched_sends_no_second_request()
+    {
+        // A held or doubled Enter: the same address (up to surrounding white space) while its search runs joins that search.
+        var rig = new Rig();
+        var uug = new Gate<IReadOnlyList<UugMatch>>();
+        rig.Uug.OnCall = (_, token) => uug.Wait(token);
+        var first = rig.Controller.SubmitAddressAsync("Warszawa, Krucza 50");
+        await uug.Entered;
+
+        var again = rig.Controller.SubmitAddressAsync(" Warszawa, Krucza 50 ");
+        var third = rig.Controller.SubmitAddressAsync("Warszawa, Krucza 50");
+
+        Assert.False(uug.Token.IsCancellationRequested);
+        uug.Release([Address()]);
+        await Ends(Task.WhenAll(first, again, third));
+        Assert.Single(rig.Uug.Texts);
+        Assert.Single(rig.Uldk.Calls);
+        Assert.Single(rig.Rcn.Queries);
+        Assert.Equal(DemoPhase.Result, rig.View.Phase);
+    }
+
+    [Fact]
+    public async Task The_same_text_is_asked_again_once_its_search_is_over_or_superseded()
+    {
+        var rig = new Rig();
+        rig.Uug.OnCall = (_, _) => Task.FromResult<IReadOnlyList<UugMatch>>([]);
+        await rig.Controller.SubmitAddressAsync("Warszawa, Krucza 50");
+        await rig.Controller.SubmitAddressAsync("Warszawa, Krucza 50");
+        Assert.Equal(2, rig.Uug.Texts.Count);
+
+        // Superseded by a click while the geocoder works: the same text afterwards is a new search.
+        var uug = new Gate<IReadOnlyList<UugMatch>>();
+        rig.Uug.OnCall = (_, token) => uug.Wait(token, ignoreCancellation: true);
+        var typed = rig.Controller.SubmitAddressAsync("Warszawa, Krucza 50");
+        await uug.Entered;
+        var click = rig.Controller.PickPointAsync(Gdansk);
+        rig.Uug.OnCall = (_, _) => Task.FromResult<IReadOnlyList<UugMatch>>([]);
+        await Ends(rig.Controller.SubmitAddressAsync("Warszawa, Krucza 50")); // joining the superseded search would hang here
+        uug.Release([]);
+        await Ends(Task.WhenAll(typed, click));
+        Assert.Equal(4, rig.Uug.Texts.Count);
+
+        // Another text is always a new search.
+        await rig.Controller.SubmitAddressAsync("Warszawa, Krucza 51");
+        Assert.Equal(5, rig.Uug.Texts.Count);
+    }
+
+    [Fact]
+    public async Task A_KW_shaped_label_in_a_link_is_never_shown_or_written_back()
+    {
+        var rig = new Rig();
+
+        await rig.Controller.LoadFromFragmentAsync("#lat=52.22850&lon=21.01720&r=500&m=24&q=WA1M%2F00012345%2F1");
+
+        Assert.Equal(DemoPhase.Result, rig.View.Phase);
+        Assert.All(rig.Views, v => Assert.Null(v.Label));
+        Assert.All(rig.Views, v => Assert.Null(v.Place?.Label));
+        Assert.DoesNotContain("00012345", rig.Controller.CurrentFragment(), StringComparison.Ordinal);
+        Assert.Empty(rig.Uug.Texts);
+    }
+
+    [Fact]
     public async Task Empty_text_does_not_cancel_the_search_in_flight()
     {
         var rig = new Rig();

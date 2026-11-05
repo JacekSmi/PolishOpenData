@@ -18,8 +18,11 @@
 <body>
     <!-- The map and the search box live outside #app so they paint before .NET starts and survive its start (Blazor replaces the content of #app).
          The order is the keyboard's: the search bar, then what the page shows (#app: the matches, the card), then the map. -->
-    <div class="bar" role="search">
-        <input id="search" type="search" aria-label="Search an address" placeholder="Warming up…" autocomplete="off" spellcheck="false" enterkeyhint="search" disabled />
+    <div class="bar">
+        <!-- A form, so Enter and the Search key of an on-screen keyboard submit it the same way (map.js handles the submit; nothing is sent to "#"). -->
+        <form id="search-form" role="search" action="#">
+            <input id="search" type="search" aria-label="Search an address" placeholder="Warming up…" autocomplete="off" spellcheck="false" enterkeyhint="search" disabled />
+        </form>
         <!-- Static like the search box, so they paint at once; map.js enables them and forwards their changes to .NET. -->
         <div id="controls">
             <label class="choice"><span>Radius</span>
