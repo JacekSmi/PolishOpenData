@@ -44,12 +44,24 @@ public class PlaceUrlStateTests
     }
 
     [Fact]
-    public void Round_trips_a_label_that_is_too_long_as_its_capped_form()
+    public void ToFragment_writes_the_label_capped_to_100_chars_without_splitting_a_surrogate_pair()
     {
-        var state = Sample(new string('a', 150));
+        const string Prefix = "#lat=52.22850&lon=21.01720&r=500&m=24&q=";
 
-        Assert.Equal(Sample(new string('a', 100)), Parse(state.ToFragment()));
-        Assert.True(state.ToFragment().Length < 200, "the link must not carry more than the capped label");
+        // The exact text pins the cap in ToFragment itself (TryParse caps too, so a round trip alone would not notice).
+        Assert.Equal(Prefix + new string('a', 100), Sample(new string('a', 150)).ToFragment());
+        Assert.Equal(Prefix + new string('a', 99), Sample(new string('a', 99) + Emoji).ToFragment());
+        Assert.Equal(Prefix + new string('a', 98) + EmojiEscaped, Sample(new string('a', 98) + Emoji + "b").ToFragment());
+        Assert.Equal(Sample(new string('a', 100)), Parse(Sample(new string('a', 150)).ToFragment()));
+    }
+
+    [Fact]
+    public void ToFragment_removes_control_and_format_characters_inside_a_label()
+    {
+        // NUL, tab, a bidi override (U+202E) and a line separator (U+2028) inside a label that is not blank, plus spaces around it.
+        var label = "  Kru\u0000cza\t\u202E 5\u20280  ";
+
+        Assert.Equal("#lat=52.22850&lon=21.01720&r=500&m=24&q=Krucza%2050", Sample(label).ToFragment());
     }
 
     [Fact]
