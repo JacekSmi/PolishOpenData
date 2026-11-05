@@ -13,6 +13,10 @@
     <ProjectReference Include="..\..\src\PolishOpenData.Mcp\PolishOpenData.Mcp.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Drives the Chrome that CHROME_BIN names (no browser download) for DemoSiteLiveTests. -->
+    <PackageReference Include="PuppeteerSharp" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- The in-process MCP harness, shared with PolishOpenData.Mcp.Tests (not under tests/Shared: net472 projects compile that folder). -->
     <Compile Include="..\PolishOpenData.Mcp.Tests\McpTestSession.cs" Link="TestShared\McpTestSession.cs" />
   </ItemGroup>

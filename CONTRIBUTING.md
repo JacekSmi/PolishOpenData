@@ -11,7 +11,7 @@ Requirements: .NET 10 SDK (see `global.json`). On Windows the Core, Shared, Krs,
 
 ## Live tests
 
-`tests/PolishOpenData.SmokeTests` checks the libraries, the MCP server (in process, over the MCP protocol) and the published MCP package (`dotnet dnx PolishOpenData.Mcp --yes`, over stdio) against the real KRS, Biała Lista, GUS BIR (REGON), GUGiK ULDK, GUGiK UUG and GUGiK RCN APIs, with ORLEN S.A. as the known subject for KRS and Biała Lista, GUS itself for REGON, a parcel and an address in Warsaw (Krucza 50) for ULDK and UUG, and an area in central Warsaw and powiat 1465 for RCN. Without `POLISHOPENDATA_SMOKE=1` every test is skipped.
+`tests/PolishOpenData.SmokeTests` checks the libraries, the MCP server (in process, over the MCP protocol) and the published MCP package (`dotnet dnx PolishOpenData.Mcp --yes`, over stdio) against the real KRS, Biała Lista, GUS BIR (REGON), GUGiK ULDK, GUGiK UUG and GUGiK RCN APIs, with ORLEN S.A. as the known subject for KRS and Biała Lista, GUS itself for REGON, a parcel and an address in Warsaw (Krucza 50) for ULDK and UUG, and an area in central Warsaw and powiat 1465 for RCN, and the deployed demo page in a real Chrome (`DemoSiteLiveTests`). Without `POLISHOPENDATA_SMOKE=1` every test is skipped.
 
 ```bash
 POLISHOPENDATA_SMOKE=1 dotnet test --project tests/PolishOpenData.SmokeTests -c Release
@@ -23,6 +23,18 @@ $env:POLISHOPENDATA_SMOKE='1'; try { dotnet test --project tests/PolishOpenData.
 
 The package test uses the latest version on nuget.org; set `POLISHOPENDATA_SMOKE_MCP_VERSION` to test another one. An exact version (for example `1.0.0`) is also compared with the version the server reports; a floating version or range (for example `1.*`) is only passed to dnx. Its first run downloads the package.
 
+The demo test (`DemoSiteLiveTests`) opens the live page https://jaceksmi.github.io/PolishOpenData/ in the Chrome that the `CHROME_BIN` environment variable names (PuppeteerSharp drives it; nothing is downloaded), types "Warszawa, Krucza 50", presses Enter and checks that the card shows a median (or the "smaller radius" message) for a parcel in powiat 1465 and that the page made exactly 1 UUG, 1 ULDK and 1 RCN request. Without `CHROME_BIN` it fails (it does not skip); the weekly workflow uses `/usr/bin/google-chrome`. Set `POLISHOPENDATA_SMOKE_DEMO_URL` to test another URL, for example a local `dotnet run` (see the demo section below). To run only this test:
+
+```powershell
+$env:POLISHOPENDATA_SMOKE='1'; $env:CHROME_BIN='C:\Program Files\Google\Chrome\Application\chrome.exe'; try { dotnet test --project tests/PolishOpenData.SmokeTests -c Release --filter-class "*DemoSiteLiveTests" } finally { Remove-Item Env:POLISHOPENDATA_SMOKE, Env:CHROME_BIN }
+```
+
+```bash
+POLISHOPENDATA_SMOKE=1 CHROME_BIN='C:\Program Files\Google\Chrome\Application\chrome.exe' dotnet test --project tests/PolishOpenData.SmokeTests -c Release --filter-class "*DemoSiteLiveTests"
+```
+
+`MSYS_NO_PATHCONV` is not needed here: Git Bash passes `CHROME_BIN` through unchanged. The test output lists the console messages, the responses with a status of 400 or more, the time until the search box is enabled, the card text and the request counts.
+
 One run costs, per IP address:
 
 | | Libraries | MCP in process | Published package | Total |
@@ -32,9 +44,10 @@ One run costs, per IP address:
 | KRS requests | 5 (up to 9) | 1 | 1 | **7** (up to 11) |
 | GUS BIR test environment requests (published test key, no secret) | 5 | 0 | 0 | **5** |
 | GUS BIR production requests (needs `POLISHOPENDATA_REGON_KEY`, owner-run, skipped otherwise) | 4 | 4 | 0 | **8** |
-| GUGiK ULDK requests (no key) | 5 | 0 | 0 | **5** |
-| GUGiK UUG requests (no key) | 3 | 1 | 0 | **4** (the MCP one geocodes the address of the `property_prices` test) |
-| GUGiK RCN requests (no key) | 4 (1+1+2) | 1 | 0 | **5** (library: premises in a bbox, residential premises for the median, parcels, buildings; MCP: `property_prices` for "Warszawa, Krucza 50"; each a single bounded query of at most 1,000 rows) |
+| GUGiK ULDK requests (no key) | 5 | 0 | 0 | **5**, **6** with the demo test (1) |
+| GUGiK UUG requests (no key) | 3 | 1 | 0 | **4**, **5** with the demo test (1) (the MCP one geocodes the address of the `property_prices` test) |
+| GUGiK RCN requests (no key) | 4 (1+1+2) | 1 | 0 | **5**, **6** with the demo test (1) (library: premises in a bbox, residential premises for the median, parcels, buildings; MCP: `property_prices` for "Warszawa, Krucza 50"; each a single bounded query of at most 1,000 rows) |
+| GUGiK orthophoto tiles (`DemoSiteLiveTests`, no key) | 0 | 0 | 0 | about 30 (29 on 2026-11-05; the count is in the test output) |
 
 These are the counts when every call succeeds. The change feed test asks for an earlier weekday, up to 5 in all, only while the feeds it got were empty (a public holiday, or a feed not yet published). Failed calls are not cached, so a cancelled or failed search is sent again by the next test that needs it: a run with failures spends at most 9 searches. The MCP server never retries Biała Lista; its KRS client retries transient failures (5xx, 408, 429, connection errors and 10-second attempt timeouts), which can add KRS requests.
 
