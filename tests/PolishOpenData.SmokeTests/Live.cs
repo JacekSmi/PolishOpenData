@@ -23,13 +23,14 @@ namespace PolishOpenData.SmokeTests;
 /// <item><term>Biała Lista checks</term><description>1 / 1 / 0 = 2</description></item>
 /// <item><term>KRS requests</term><description>5 to 9 (current, full, not-found in P and S, change feed of 1 to 5 weekdays) / 1 / 1 = 7 to 11</description></item>
 /// <item><term>Offline flat file (<c>BialaListaOfflineLiveTests</c>: one download of about 250 MB from MF, no quota; skips after 15 min of downloading, up to 20 min in all)</term><description>0 / 0 / 0, but one 2-NIP Biała Lista search (the oracle, counted in the searches row) and one flat-file download</description></item>
-/// <item><term>GUGiK ULDK requests (<c>GeoLiveTests</c>, no key)</term><description>5 / 0 / 0 = 5 (by ID and by extent centre; by ID and by its WGS-84 centre; by the UUG point)</description></item>
-/// <item><term>GUGiK UUG requests (<c>GeoLiveTests</c>, <c>RcnLiveTests</c>, no key)</term><description>3 / 1 / 0 = 4 (geocode and reverse; geocode in the ULDK/UUG agreement test; geocode of the address in the <c>property_prices</c> test)</description></item>
-/// <item><term>GUGiK RCN requests (<c>RcnLiveTests</c>, no key)</term><description>4 / 1 / 0 = 5 (library: premises in a bbox, residential premises for the median, parcels, buildings; MCP: <c>property_prices</c> by address; each a single bounded query, at most 1,000 rows)</description></item>
+/// <item><term>GUGiK ULDK requests (<c>GeoLiveTests</c>, no key)</term><description>5 / 0 / 0 = 5 (by ID and by extent centre; by ID and by its WGS-84 centre; by the UUG point), plus 1 from the browser test of the deployed demo page (<c>DemoSiteLiveTests</c>) = 6</description></item>
+/// <item><term>GUGiK UUG requests (<c>GeoLiveTests</c>, <c>RcnLiveTests</c>, no key)</term><description>3 / 1 / 0 = 4 (geocode and reverse; geocode in the ULDK/UUG agreement test; geocode of the address in the <c>property_prices</c> test), plus 1 from <c>DemoSiteLiveTests</c> = 5</description></item>
+/// <item><term>GUGiK RCN requests (<c>RcnLiveTests</c>, no key)</term><description>4 / 1 / 0 = 5 (library: premises in a bbox, residential premises for the median, parcels, buildings; MCP: <c>property_prices</c> by address; each a single bounded query, at most 1,000 rows), plus 1 from <c>DemoSiteLiveTests</c> = 6</description></item>
+/// <item><term>GUGiK orthophoto tiles (<c>DemoSiteLiveTests</c>: Chrome loads the deployed page, searches "Warszawa, Krucza 50" once and zooms to the parcel; needs <c>CHROME_BIN</c>)</term><description>0 / 0 / 0, about 30 tile requests (29 on 2026-11-05; the count is logged in the test output)</description></item>
 /// <item><term>GUS BIR test environment requests (published test key, no secret)</term><description>5 / 0 / 0 = 5</description></item>
 /// <item><term>GUS BIR production requests (needs <c>POLISHOPENDATA_REGON_KEY</c>, owner-run, skipped otherwise)</term><description>4 / 4 / 0 = 8 (the library test: login, search, report, logout; the lookup_regon test: login, search, core report, PKD report)</description></item>
 /// </list>
-/// Runtime: the 21 other network tests (8 of them GUGiK) take at most 2 min each and the published-package test 5 min; the offline test adds
+/// Runtime: the 22 other network tests (9 of them GUGiK) take at most 2 min each and the published-package test 5 min; the offline test adds
 /// a few minutes when MF is fast and 15 min (then it skips) when MF is slow (it served 35 to 40 KB/s on 2026-10-13, 8 MB/s at night).
 /// The change feed asks for an earlier weekday only while the feeds it got were empty (a public holiday, or a feed not
 /// yet published). The MCP tests share one server session, so its cache answers repeated lookups without new upstream
@@ -54,6 +55,8 @@ namespace PolishOpenData.SmokeTests;
 /// <para>
 /// bash: <c>POLISHOPENDATA_SMOKE=1 dotnet test --project tests/PolishOpenData.SmokeTests -c Release</c><br/>
 /// PowerShell: <c>$env:POLISHOPENDATA_SMOKE='1'; try { dotnet test --project tests/PolishOpenData.SmokeTests -c Release } finally { Remove-Item Env:POLISHOPENDATA_SMOKE }</c><br/>
+/// The demo test needs <c>CHROME_BIN</c> (a Chrome or Chromium executable; it fails, not skips, without it) and tests the live page at
+/// <c>https://jaceksmi.github.io/PolishOpenData/</c>; set <c>POLISHOPENDATA_SMOKE_DEMO_URL</c> to test another URL (for example a local <c>dotnet run</c>).<br/>
 /// The published-package test runs <c>dotnet dnx PolishOpenData.Mcp --yes</c> (latest on nuget.org); set
 /// <c>POLISHOPENDATA_SMOKE_MCP_VERSION</c> to test another version. An exact version (e.g. <c>1.0.0</c>) is also
 /// compared with the version the server reports; a floating version or range (e.g. <c>1.*</c>) is only passed to dnx.
