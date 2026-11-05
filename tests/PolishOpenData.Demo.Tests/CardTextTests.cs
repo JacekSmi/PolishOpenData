@@ -30,7 +30,7 @@ public class CardTextTests
 
     [Theory]
     [InlineData(SalesOutcome.NoSales, "No sales found here in this period.")]
-    [InlineData(SalesOutcome.TooManySales, "More than 1,000 sales match here. Choose a smaller radius or a shorter period.")]
+    [InlineData(SalesOutcome.TooManySales, "More than 1\u00A0000 sales match here. Choose a smaller radius or a shorter period.")] // Polish grouping like every other number: "1,000" reads as 1.0 to a Polish reader
     [InlineData(SalesOutcome.OutOfRange, "Only places in Poland are supported.")]
     [InlineData(SalesOutcome.Ok, null)]
     public void Outcomes_without_figures_have_their_sentence(SalesOutcome outcome, string? expected) => Assert.Equal(expected, CardText.ForOutcome(outcome));

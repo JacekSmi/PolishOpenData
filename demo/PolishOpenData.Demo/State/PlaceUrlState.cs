@@ -121,7 +121,7 @@ public sealed record PlaceUrlState(Wgs84Point Point, int RadiusMeters, int Perio
     }
 
     // Control characters and invisible formatting (bidi overrides, line and paragraph separators) are dropped: the label is attacker-controlled text from a link.
-    // A label with the shape of a KW number is dropped whole.
+    // A label that holds the shape of a KW number, anywhere in it, is dropped whole.
     private static string? CleanLabel(string? text)
     {
         if (text is null)
@@ -139,13 +139,20 @@ public sealed record PlaceUrlState(Wgs84Point Point, int RadiusMeters, int Perio
         }
 
         var label = builder.ToString().Trim();
+
+        // A land-registry (KW) number is never shown or written back into a link, whoever put it there and wherever in the text it sits. Checked on the whole text,
+        // before the cut, so that a number straddling the cap cannot survive as a piece. A long number in an address matches too and loses its label: harmless (KwShape.Contains).
+        if (label.Length == 0 || KwShape.Contains(label))
+        {
+            return null;
+        }
+
         if (label.Length > MaxLabelLength)
         {
             // A high surrogate at the last kept position means its pair would be split by the cut.
             label = label[..(char.IsHighSurrogate(label[MaxLabelLength - 1]) ? MaxLabelLength - 1 : MaxLabelLength)].TrimEnd();
         }
 
-        // A land-registry (KW) number is never shown or written back into a link, whoever put it there.
-        return label.Length == 0 || KwShape.Matches(label) ? null : label;
+        return label;
     }
 }

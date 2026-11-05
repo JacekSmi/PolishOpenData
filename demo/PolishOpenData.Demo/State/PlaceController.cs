@@ -115,6 +115,13 @@ internal sealed class PlaceController(PlaceSearch places, AddressSearch addresse
     public Task PickCandidateAsync(UugMatch match) =>
         StartAsync((generation, _) => StartPlaceAsync(match.Location, Describe(match), generation));
 
+    /// <summary>
+    /// The explicit retry of the place shown (a failed one, typically: a 429, say): the same point, radius, period and label, so the title and the shared link stay as they were.
+    /// What succeeded before is in the session cache, so only the request that failed is sent again, never the geocoder. With no place in the view it does nothing.
+    /// </summary>
+    public Task RetryAsync() =>
+        View.Place is { } place ? StartAsync((generation, _) => FetchPlaceAsync(place, generation)) : Task.CompletedTask;
+
     /// <summary>A point on the map. Outside Poland (also <c>default(Wgs84Point)</c>, which skips the constructor's check) it is a message and no request.</summary>
     public Task PickPointAsync(Wgs84Point point) =>
         StartAsync((generation, _) => StartPlaceAsync(point, null, generation));
@@ -165,7 +172,7 @@ internal sealed class PlaceController(PlaceSearch places, AddressSearch addresse
     /// An empty or invalid fragment changes nothing and asks nothing (the controller starts <see cref="DemoPhase.Idle"/>, so at start-up this leaves it idle;
     /// a hand-edited address later does not wipe what is shown). The link of the place already searching, shown or failed is a no-op, judged by comparing fragments:
     /// a page that reacts to its own link updates neither restarts nor cancels a search, and a failed place (a 429, say) is not retried without a user action.
-    /// Picking the place again, or changing the radius or period, is the retry.
+    /// The retry is <see cref="RetryAsync"/> (or picking the place again, or changing the radius or period).
     /// </summary>
     public Task LoadFromFragmentAsync(string? fragment)
     {

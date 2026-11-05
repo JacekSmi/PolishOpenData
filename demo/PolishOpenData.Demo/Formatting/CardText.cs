@@ -27,7 +27,7 @@ internal static class CardText
     public static string? ForOutcome(SalesOutcome outcome) => outcome switch
     {
         SalesOutcome.NoSales => "No sales found here in this period.",
-        SalesOutcome.TooManySales => "More than 1,000 sales match here. Choose a smaller radius or a shorter period.",
+        SalesOutcome.TooManySales => $"More than {PolishFormat.Count(1000)} sales match here. Choose a smaller radius or a shorter period.",
         SalesOutcome.OutOfRange => "Only places in Poland are supported.",
         _ => null,
     };

@@ -21,7 +21,7 @@ internal enum AddressOutcomeKind
 /// <summary>What typing an address came to.</summary>
 /// <param name="Kind">How the search ended.</param>
 /// <param name="Match">The one address point, for <see cref="AddressOutcomeKind.Resolved"/>.</param>
-/// <param name="Candidates">All matches the geocoder returned, for <see cref="AddressOutcomeKind.Candidates"/>; empty otherwise.</param>
+/// <param name="Candidates">The matches the geocoder returned, each distinct one once, in its order, for <see cref="AddressOutcomeKind.Candidates"/>; empty otherwise.</param>
 /// <param name="Message">What to tell the user for every kind but <see cref="AddressOutcomeKind.Resolved"/>; it never repeats the typed text. <c>null</c> for an empty text.</param>
 internal sealed record AddressOutcome(AddressOutcomeKind Kind, UugMatch? Match, IReadOnlyList<UugMatch> Candidates, string? Message);
 
@@ -35,7 +35,7 @@ internal sealed class AddressSearch(IUugClient uug)
     /// <summary>
     /// Empty or white-space text makes no request and gives <see cref="AddressOutcomeKind.None"/>; a KW-shaped text makes none and gives <see cref="AddressOutcomeKind.Refused"/>.
     /// Otherwise one geocoder request: exactly one distinct address point is <see cref="AddressOutcomeKind.Resolved"/>, no match at all is <see cref="AddressOutcomeKind.None"/>,
-    /// anything else is <see cref="AddressOutcomeKind.Candidates"/> with all matches.
+    /// anything else is <see cref="AddressOutcomeKind.Candidates"/> with the distinct matches.
     /// Mirrors <c>property_prices</c> and <c>find_parcel</c>: keep it in step with <c>src/PolishOpenData.Mcp/AddressResolution.cs</c> (the one-distinct-address-point rule)
     /// and <c>src/PolishOpenData.Mcp/Tools/IdentifierTools.cs</c> (<c>LooksLikeKw</c>, reimplemented in <see cref="KwShape"/>); a change in one is checked in the other.
     /// </summary>
@@ -58,14 +58,13 @@ internal sealed class AddressSearch(IUugClient uug)
             return new AddressOutcome(AddressOutcomeKind.None, null, [], NothingFound);
         }
 
-        // The same address may come back more than once (e.g. one point per entrance record); one distinct address is enough.
-        var points = matches
-            .Where(m => m.Kind == UugMatchKind.Address)
-            .DistinctBy(m => (m.City, m.CityPart, m.Street, m.Number, m.PostalCode, m.Teryt, m.Simc, m.Ulic))
-            .ToList();
+        // The same address may come back more than once (e.g. one point per entrance record); one distinct address is enough, and the list shows each row once
+        // (the first of each, in the geocoder's order). A street or a city is its own row by the same key.
+        var distinct = matches.DistinctBy(m => (m.Kind, m.City, m.CityPart, m.Street, m.Number, m.PostalCode, m.Teryt, m.Simc, m.Ulic)).ToList();
+        var points = distinct.Where(m => m.Kind == UugMatchKind.Address).ToList();
         return points.Count == 1
             ? new AddressOutcome(AddressOutcomeKind.Resolved, points[0], [], null)
-            : new AddressOutcome(AddressOutcomeKind.Candidates, null, matches, Unresolved);
+            : new AddressOutcome(AddressOutcomeKind.Candidates, null, distinct, Unresolved);
     }
 
 }

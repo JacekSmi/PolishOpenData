@@ -28,7 +28,7 @@ public class AddressSearchTests
         return (new AddressSearch(new UugClient(new HttpClient(stub))), stub);
     }
 
-    private static UugMatch Address(string street = "ulica Krucza", string number = "50", string? ulic = "10013", double accuracy = 0.76) =>
+    private static UugMatch Address(string street = "ulica Krucza", string number = "50", string? ulic = "10013", double accuracy = 0.76, Wgs84Point? at = null) =>
         new()
         {
             Kind = UugMatchKind.Address,
@@ -39,7 +39,7 @@ public class AddressSearchTests
             Teryt = "146501",
             Simc = "0918123",
             Ulic = ulic,
-            Location = Krucza,
+            Location = at ?? Krucza,
             Accuracy = accuracy,
         };
 
@@ -100,6 +100,52 @@ public class AddressSearchTests
         Assert.Null(outcome.Match);
         Assert.Equal(matches, outcome.Candidates);
         Assert.False(string.IsNullOrWhiteSpace(outcome.Message));
+    }
+
+    [Fact]
+    public async Task The_candidates_have_no_repeated_rows_and_keep_the_geocoders_order()
+    {
+        // One record per entrance: Krucza 50 comes twice (the accuracy and the point differ), the street twice, and Krucza 52 once.
+        var street = Street();
+        var first = Address(number: "50");
+        var second = Address(number: "50", accuracy: 0.9, at: new Wgs84Point(52.2290, 21.0180));
+        var fiftyTwo = Address(number: "52");
+        var search = new AddressSearch(new FakeUug([street, first, second, fiftyTwo, Street()]));
+
+        var outcome = await ResolveAsync(search, "Warszawa, Krucza");
+
+        Assert.Equal(AddressOutcomeKind.Candidates, outcome.Kind);
+        Assert.Null(outcome.Match);
+        Assert.Equal(3, outcome.Candidates.Count);
+        Assert.Same(street, outcome.Candidates[0]); // the first of each is kept, in the order the geocoder gave
+        Assert.Same(first, outcome.Candidates[1]);
+        Assert.Same(fiftyTwo, outcome.Candidates[2]);
+        Assert.False(string.IsNullOrWhiteSpace(outcome.Message));
+    }
+
+    [Fact]
+    public async Task Repeats_of_a_street_alone_are_one_candidate()
+    {
+        var search = new AddressSearch(new FakeUug([Street(), Street()]));
+
+        var outcome = await ResolveAsync(search, "Warszawa, Krucza");
+
+        Assert.Equal(AddressOutcomeKind.Candidates, outcome.Kind);
+        Assert.Single(outcome.Candidates);
+    }
+
+    [Fact]
+    public async Task A_street_and_a_bare_address_with_the_same_codes_are_two_candidates()
+    {
+        // The kind is part of the key: an address record that carries no number and no postal code is not the street's own row.
+        var street = Street();
+        var bare = new UugMatch { Kind = UugMatchKind.Address, City = "Warszawa", Street = "ulica Krucza", Teryt = "146501", Simc = "0918123", Ulic = "10013", Location = Krucza };
+        var search = new AddressSearch(new FakeUug([street, bare, Address(number: "52")]));
+
+        var outcome = await ResolveAsync(search, "Warszawa, Krucza");
+
+        Assert.Equal(AddressOutcomeKind.Candidates, outcome.Kind);
+        Assert.Equal(3, outcome.Candidates.Count);
     }
 
     [Fact]
@@ -187,6 +233,7 @@ public class AddressSearchTests
     [InlineData("WL1A\t00272852\t9")] // only spaces are removed, as in IdentifierTools
     [InlineData("WL1A/00272852/9 Warszawa")]
     [InlineData("ulica Krucza 50 m. 12, Warszawa")]
+    [InlineData("Krucza 50 WA1M/00012345/6")] // typed input keeps the anchored rule of the MCP tool; only a link's label is checked for an embedded number (KwShape.Contains)
     public async Task Text_that_only_looks_like_a_KW_is_looked_up(string text)
     {
         var uug = new FakeUug([]);

@@ -300,11 +300,52 @@ public class PlaceUrlStateTests
     public void A_KW_shaped_label_is_never_written_to_a_link() =>
         Assert.Equal(Warsaw, Sample(label: "WA1M/00012345/1").ToFragment());
 
+    // The same number inside a longer label is dropped too (the spec: no KW is shown, whatever the text around it): the whole label goes, it is not cut around the number.
+    [Theory]
+    [InlineData("Krucza%2050%20WA1M%2F00012345%2F6")] // before
+    [InlineData("WA1M%2F00012345%2F6%20Krucza%2050")] // after
+    [InlineData("Krucza%2050%2C%20WA1M-00012345-6%2C%20Warszawa")] // inside, '-' separators
+    [InlineData("Krucza%2050%20wa1m%2F00012345%2F6")] // lower case
+    [InlineData("Krucza%2050%20WA1M%20%2F%2000012345%20%2F%206%20Warszawa")] // spaces around the separators
+    [InlineData("Krucza%2050%20WA1M%2000012345%206")] // spaces instead of separators
+    [InlineData("Krucza%2050%20WA1M000123456")] // none
+    public void A_KW_number_inside_a_longer_label_drops_the_label(string rawQ)
+    {
+        var state = Parse($"#{Position}&r=250&m=12&q={rawQ}");
+
+        Assert.Null(state.Label);
+        Assert.Equal(250, state.RadiusMeters);
+        Assert.Equal(12, state.PeriodMonths);
+        Assert.Equal("#" + Position + "&r=250&m=12", state.ToFragment());
+    }
+
+    [Theory]
+    [InlineData("Krucza 50 WA1M/00012345/6")]
+    [InlineData("WA1M/00012345/6 Krucza 50")]
+    [InlineData("Krucza 50, wa1m 00012345 6, Warszawa")]
+    public void A_KW_number_inside_a_longer_label_is_never_written_to_a_link(string label) =>
+        Assert.Equal(Warsaw, Sample(label: label).ToFragment());
+
+    [Fact]
+    public void A_KW_number_past_the_length_cap_is_not_left_as_a_cut_off_piece()
+    {
+        // The number starts at char 91 and would be cut at char 100 into "WA1M/0001": the check is made on the whole text, before the cut.
+        var label = new string('a', 90) + " WA1M/00012345/6 and more";
+
+        Assert.Equal(Warsaw, Sample(label: label).ToFragment());
+        Assert.Null(Parse($"#{Position}&q={Uri.EscapeDataString(label)}").Label);
+    }
+
     [Theory]
     [InlineData("00-025", "00-025")]
     [InlineData("Warszawa%2C%20Krucza%2050", "Warszawa, Krucza 50")]
     [InlineData("12345678", "12345678")]
     [InlineData("WA1M%2F00012345", "WA1M/00012345")]
+    [InlineData("00-001%20Warszawa", "00-001 Warszawa")] // a postal code and a town
+    [InlineData("Krucza%2050%2C%2000-025%20Warszawa", "Krucza 50, 00-025 Warszawa")]
+    [InlineData("Krucza%2050%2012345", "Krucza 50 12345")] // a short number
+    [InlineData("WA1M%2F0001234%2F56", "WA1M/0001234/56")] // seven digits, then two
+    [InlineData("WA1M%2F00012345%2F", "WA1M/00012345/")] // no check digit
     public void Labels_that_only_resemble_a_KW_are_kept(string rawQ, string expected) =>
         Assert.Equal(expected, Parse($"#{Position}&q={rawQ}").Label);
 

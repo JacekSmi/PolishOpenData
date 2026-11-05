@@ -845,6 +845,101 @@ public class PlaceControllerTests
         Assert.Equal(2, rig.Rcn.Queries.Count);
     }
 
+    // ---- retry ----
+
+    private const string KruczaLabel = "ulica Krucza 50, Warszawa";
+    private const string KruczaLabelFragment = KruczaFragment + "&q=ulica%20Krucza%2050%2C%20Warszawa";
+
+    [Theory]
+    [InlineData("uldk")]
+    [InlineData("rcn")]
+    public async Task Retry_restarts_the_same_place_with_its_label_and_repeats_only_the_failed_request(string failing)
+    {
+        // A typed address: the label is the geocoder's. "Try again" must not turn it into "Point on the map" or drop q= from the shared link.
+        var rig = new Rig();
+        rig.Uug.OnCall = (_, _) => Matches(Address());
+        Break(rig, failing, Make("quota"));
+        await rig.Controller.SubmitAddressAsync("Warszawa, Krucza 50");
+        Assert.Equal(DemoPhase.Message, rig.View.Phase);
+        Assert.Equal(KruczaLabel, rig.View.Label);
+
+        rig.Uldk.OnCall = ScriptedUldk.SomeParcel;
+        rig.Rcn.OnCall = ScriptedRcn.OneFlat;
+        await rig.Controller.RetryAsync();
+
+        Assert.Equal(DemoPhase.Result, rig.View.Phase);
+        Assert.Equal(KruczaLabel, rig.View.Label);
+        Assert.Equal(KruczaLabel, rig.View.Place!.Label);
+        Assert.Equal(KruczaLabelFragment, rig.Controller.CurrentFragment());
+        Assert.Single(rig.Uug.Texts); // never the geocoder again
+        Assert.Equal(failing == "uldk" ? 2 : 1, rig.Uldk.Calls.Count); // a half that succeeded is not repeated
+        Assert.Equal(failing == "rcn" ? 2 : 1, rig.Rcn.Queries.Count);
+    }
+
+    [Fact]
+    public async Task A_retry_in_flight_already_shows_the_label_and_the_link()
+    {
+        var rig = new Rig();
+        rig.Uug.OnCall = (_, _) => Matches(Address());
+        Break(rig, "rcn", Make("quota"));
+        await rig.Controller.SubmitAddressAsync("Warszawa, Krucza 50");
+        var rcn = new Gate<RcnTransactions>();
+        rig.Rcn.OnCall = (_, token) => rcn.Wait(token);
+
+        var retry = rig.Controller.RetryAsync();
+        await rcn.Entered;
+
+        Assert.Equal(DemoPhase.Searching, rig.View.Phase);
+        Assert.Equal(KruczaLabel, rig.View.Label);
+        Assert.Equal(KruczaLabel, rig.View.Place!.Label);
+        Assert.Equal(KruczaLabelFragment, rig.Controller.CurrentFragment());
+        Assert.Single(rig.Uldk.Calls);
+        Assert.Equal(2, rig.Rcn.Queries.Count);
+
+        rcn.Release(await ScriptedRcn.OneFlat(rig.Rcn.Queries[1], CancellationToken.None));
+        await Ends(retry);
+        Assert.Equal(DemoPhase.Result, rig.View.Phase);
+        Assert.Equal(KruczaLabel, rig.View.Label);
+    }
+
+    [Fact]
+    public async Task Retry_keeps_the_radius_and_period_of_the_failed_place()
+    {
+        var rig = new Rig();
+        Break(rig, "rcn", Make("http"));
+        await rig.Controller.LoadFromFragmentAsync("#lat=52.22850&lon=21.01720&r=1000&m=60&q=Home");
+        rig.Rcn.OnCall = ScriptedRcn.OneFlat;
+
+        await rig.Controller.RetryAsync();
+
+        Assert.Equal(DemoPhase.Result, rig.View.Phase);
+        Assert.Equal("#lat=52.22850&lon=21.01720&r=1000&m=60&q=Home", rig.Controller.CurrentFragment());
+        Assert.Equal(2, rig.Rcn.Queries.Count);
+        Assert.Single(rig.Uldk.Calls);
+    }
+
+    [Fact]
+    public async Task Retry_without_a_place_does_nothing()
+    {
+        var rig = new Rig();
+
+        await rig.Controller.RetryAsync();
+
+        rig.ExpectNoRequests();
+        Assert.Empty(rig.Views);
+        Assert.Equal(DemoPhase.Idle, rig.View.Phase);
+
+        // A message that has no place (a KW-shaped text, a click outside Poland) has nothing to retry either.
+        await rig.Controller.PickPointAsync(0, 0);
+        var message = rig.View;
+        var changes = rig.Views.Count;
+        await rig.Controller.RetryAsync();
+
+        Assert.Same(message, rig.View);
+        Assert.Equal(changes, rig.Views.Count);
+        rig.ExpectNoRequests();
+    }
+
     // ---- typed addresses ----
 
     [Fact]

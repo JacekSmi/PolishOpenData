@@ -110,8 +110,8 @@ else
         await Controller.PickCandidateAsync(match);
     }
 
-    // The explicit retry of a failed place: pick its point again.
-    private Task RetryAsync() => _view.Place is { } place ? Controller.PickPointAsync(place.Point) : Task.CompletedTask;
+    // The explicit retry of a failed place: the same place again, with its label.
+    private Task RetryAsync() => Controller.RetryAsync();
 
     private void Select(int? group) => _selected = group;
 
