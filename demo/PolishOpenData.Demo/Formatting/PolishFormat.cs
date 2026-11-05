@@ -37,6 +37,6 @@ internal static class PolishFormat
     /// <summary>A count with thousands grouped: <c>1 234 567</c>.</summary>
     public static string Count(int count) => count.ToString("N0", Number);
 
-    // Rounded away from zero so that a half zloty goes up, whichever way the formatter would round a tie.
-    private static string Whole(decimal value) => Math.Round(value, 0, MidpointRounding.AwayFromZero).ToString("N0", Number);
+    /// <summary>A number in whole units with thousands grouped by U+00A0: <c>21 444</c>. Rounded away from zero so that a half goes up, whichever way the formatter would round a tie.</summary>
+    public static string Whole(decimal value) => Math.Round(value, 0, MidpointRounding.AwayFromZero).ToString("N0", Number);
 }
