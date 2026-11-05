@@ -68,6 +68,8 @@ Run it locally, then open http://localhost:5190/PolishOpenData/:
 dotnet run --project demo/PolishOpenData.Demo -- --pathbase=/PolishOpenData
 ```
 
+In Git Bash on Windows, start the command with `MSYS_NO_PATHCONV=1` (`MSYS_NO_PATHCONV=1 dotnet run ...`): without it Git Bash turns `/PolishOpenData` into a Windows path and the server stops at startup. PowerShell, cmd and other systems need nothing.
+
 `index.html` commits `<base href="/PolishOpenData/" />`, the path of the Pages site, so the pathbase argument is needed. Pass it on the command line: with only the copy in `Properties/launchSettings.json`, `dotnet run` serves the files outside `/PolishOpenData/` and the page loads without its styles and scripts. The browser calls the GUGiK services directly (UUG, ULDK, RCN and the orthophoto tiles), so a local run makes real requests: a search costs 1 UUG, 1 ULDK and 1 RCN request, a map click 1 ULDK and 1 RCN, a changed radius or period 1 RCN, plus the map tiles. Be as gentle as with the live tests: nothing that searches in a loop.
 
 `.github/workflows/pages.yml` deploys it to GitHub Pages. A push to `main` that touches `demo/`, `src/`, `Directory.Packages.props`, `Directory.Build.props`, `global.json` or the workflow itself, or "Run workflow" on `main`, publishes the demo and deploys it; a fork does not deploy. One-time setting by the repository owner, before the first run: GitHub → Settings → Pages → Build and deployment → Source: **GitHub Actions** (until then the build job fails in `configure-pages` with "Get Pages site failed"). The workflow needs no secret.
