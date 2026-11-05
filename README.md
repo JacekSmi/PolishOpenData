@@ -236,6 +236,10 @@ Console.WriteLine($"{summary.Count} sales, median {summary.Median:N0} PLN/m², n
 - **The data lag by months.** On 15 October 2026 the newest transaction in powiat 1465 was dated 28 May 2026. Check `Newest` before you quote a figure as current.
 - **Position and fields.** `Location` is a `Pl1992Point`, the centre of the feature's envelope (the library does not read polygon geometry). Typed properties cover what has a meaning for a layer (date, market, rooms, floor, usable area, parcel and building identifiers, address); `Fields` holds every published field as text, including the notary's name and the deed number. A price, area, floor or room count that is empty or not a number is `null` (`TotalPrice` included) and the published text stays in `Fields`; a row without a date, an identifier or an envelope is an error. The client never retries and, registered with `AddRcnClient`, opens at most 4 connections. The service reports errors as HTTP 400 with an OGC exception report, which the client throws as `PolishOpenDataApiException`.
 
+## Live demo
+
+The [live demo](https://jaceksmi.github.io/PolishOpenData/) puts the `PolishOpenData.Uldk`, `PolishOpenData.Uug` and `PolishOpenData.Rcn` packages on a map: type an address or click a place to see its cadastral parcel and what flats nearby sold for. It runs entirely in your browser, calls the GUGiK services directly and stores nothing itself (GUGiK's services may set their own cookies); it is unofficial, RCN data lag by months, and the figures are informational, not a valuation. The source is in [`demo/PolishOpenData.Demo`](https://github.com/JacekSmi/PolishOpenData/tree/main/demo/PolishOpenData.Demo).
+
 ## MCP server for AI assistants
 
 Requires the [.NET 10 SDK](https://dotnet.microsoft.com/download). No API keys needed; the optional REGON tool needs your own free GUS key (see below). The parcel, geocoding and property price tools send every request to GUGiK, and retry a transient failure once.

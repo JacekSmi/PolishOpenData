@@ -58,6 +58,30 @@ Biała Lista allows 100 searches and 5,000 checks per IP address per day, and ex
 
 When a new regulation replaces annex 1 to Dz.U. 2016 poz. 312, update `src/PolishOpenData.Core/Resources/kw-courts.tsv` (`code<TAB>last_valid_on<TAB>name`): add new codes with an empty `last_valid_on`, and for removed codes set `last_valid_on` to the day before the new act takes effect (never delete a code — old books keep it). Update the counts in `KwCourtsTests` and cite the act in the file header.
 
+## The demo
+
+`demo/PolishOpenData.Demo` is a Blazor WebAssembly page, a map of parcels and flat sale prices built with the Uldk, Uug and Rcn packages, live at https://jaceksmi.github.io/PolishOpenData/. Its unit tests are in `tests/PolishOpenData.Demo.Tests`: net10.0 only (so not in the .NET Framework list above), no network, no browser. `dotnet test --project tests/PolishOpenData.Demo.Tests` runs them.
+
+Run it locally, then open http://localhost:5190/PolishOpenData/:
+
+```bash
+dotnet run --project demo/PolishOpenData.Demo -- --pathbase=/PolishOpenData
+```
+
+`index.html` commits `<base href="/PolishOpenData/" />`, the path of the Pages site, so the pathbase argument is needed. Pass it on the command line: with only the copy in `Properties/launchSettings.json`, `dotnet run` serves the files outside `/PolishOpenData/` and the page loads without its styles and scripts. The browser calls the GUGiK services directly (UUG, ULDK, RCN and the orthophoto tiles), so a local run makes real requests: a search costs 1 UUG, 1 ULDK and 1 RCN request, a map click 1 ULDK and 1 RCN, a changed radius or period 1 RCN, plus the map tiles. Be as gentle as with the live tests: nothing that searches in a loop.
+
+`.github/workflows/pages.yml` deploys it to GitHub Pages. A push to `main` that touches `demo/`, `src/`, `Directory.Packages.props`, `Directory.Build.props`, `global.json` or the workflow itself, or "Run workflow" on `main`, publishes the demo and deploys it; a fork does not deploy. One-time setting by the repository owner, before the first run: GitHub → Settings → Pages → Build and deployment → Source: **GitHub Actions** (until then the build job fails in `configure-pages` with "Get Pages site failed"). The workflow needs no secret.
+
+To publish locally the way the workflow does (only the output folder differs: `artifacts/` is ignored by git):
+
+```bash
+dotnet publish demo/PolishOpenData.Demo/PolishOpenData.Demo.csproj -c Release -o artifacts/pages -p:CompressionEnabled=false
+```
+
+`artifacts/pages/wwwroot` is the site: about 7.5 MB, about 2.9 MB gzipped, which is what Pages sends. `CompressionEnabled=false` leaves out the `.br` and `.gz` copies Blazor writes, because Pages ignores them (it compresses on the fly, never with brotli). To look at it, serve that folder under `/PolishOpenData/` with any static file server. If its `index.html` still contains `#[.{fingerprint}]`, delete `demo/PolishOpenData.Demo/obj` and `bin` and publish again (this happened once, after the fingerprint settings and `index.html` changed between two publishes; CI always starts clean).
+
+Caching: Pages sends `Cache-Control: max-age=600` for every file. At publish time the runtime in `_framework` and every `.js` file get a content hash in their names (`StaticWebAssetFingerprintPattern` in the demo's csproj), so a new `index.html` always names scripts that match it, and Blazor's `import("./js/map.js")` reaches the same hashed file through the import map, so there is one module and one map. Every `.js` in `index.html` must therefore use the `#[.{fingerprint}]` placeholder: such a file is published only under its hashed name, and a plain `src` is a 404. Two gaps remain, because `index.html` and the `.css` files cannot be fingerprinted (the SDK turns a placeholder in a `<link href>` into the plain name). For up to 10 minutes after a deploy a browser can hold the previous `index.html`, and a reload can then pair the new page with the previous `app.css` or `leaflet.css`, which is cosmetic. A browser that holds the previous `index.html` but not every file it names (they are gone from the server after a deploy) can show a page that does not start; reloading after the 10 minutes fixes that. The runtime in `_framework` has always had the same exposure.
+
 ## Releasing
 
 Push a tag `vX.Y.Z` on a commit that is on `main`; `.github/workflows/release.yml` checks that and does the rest (NuGet via Trusted Publishing, GitHub release, MCP Registry). The publish job runs in the `release` environment.

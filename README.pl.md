@@ -221,6 +221,10 @@ Console.WriteLine($"{summary.Count} sprzedaży, mediana {summary.Median:N0} zł/
 - **Dane są opóźnione o miesiące.** 15 października 2026 r. najnowsza transakcja w powiecie 1465 miała datę 28 maja 2026 r. Sprawdź `Newest`, zanim podasz liczbę jako aktualną.
 - **Pozycja i pola.** `Location` to `Pl1992Point`, środek obwiedni obiektu (biblioteka nie czyta geometrii wielokątów). Właściwości typowane obejmują to, co ma znaczenie dla warstwy (data, rynek, liczba izb, piętro, powierzchnia użytkowa, identyfikatory działki i budynku, adres); `Fields` zawiera każde opublikowane pole jako tekst, także imię i nazwisko notariusza oraz numer aktu. Cena, powierzchnia, piętro lub liczba izb, która jest pusta albo nie jest liczbą, ma wartość `null` (dotyczy to także `TotalPrice`), a opublikowany tekst zostaje w `Fields`; wiersz bez daty, identyfikatora lub obwiedni jest błędem. Klient nigdy nie ponawia zapytań, a zarejestrowany przez `AddRcnClient` otwiera najwyżej 4 połączenia. Usługa zgłasza błędy jako HTTP 400 z raportem wyjątku OGC, który klient rzuca jako `PolishOpenDataApiException`.
 
+## Demo online
+
+[Demo online](https://jaceksmi.github.io/PolishOpenData/) pokazuje pakiety `PolishOpenData.Uldk`, `PolishOpenData.Uug` i `PolishOpenData.Rcn` na mapie: wpisz adres albo kliknij miejsce, aby zobaczyć działkę ewidencyjną i ceny, za jakie w pobliżu sprzedano mieszkania. Strona działa w całości w przeglądarce, łączy się bezpośrednio z usługami GUGiK i sama niczego nie zapisuje (usługi GUGiK mogą ustawiać własne pliki cookie); jest nieoficjalna, dane RCN są opóźnione o miesiące, a podane liczby mają charakter informacyjny i nie stanowią wyceny. Kod źródłowy: [`demo/PolishOpenData.Demo`](demo/PolishOpenData.Demo).
+
 ## Serwer MCP
 
 Wymaga [.NET 10 SDK](https://dotnet.microsoft.com/download). Bez kluczy API; opcjonalne narzędzie REGON wymaga Twojego własnego, bezpłatnego klucza GUS (niżej). Narzędzia do działek, geokodowania i cen nieruchomości wysyłają wszystkie zapytania do GUGiK i ponawiają jedno nieudane zapytanie (błąd przejściowy) raz.
