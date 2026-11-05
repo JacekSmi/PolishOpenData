@@ -11,6 +11,7 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
     <PackageReference Include="Microsoft.Bcl.TimeProvider" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Portable.System.DateTimeOnly" />
     <PackageReference Include="Polyfill" PrivateAssets="all" />
   </ItemGroup>
