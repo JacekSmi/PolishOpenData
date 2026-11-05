@@ -20,7 +20,7 @@ namespace PolishOpenData.Demo.Search;
 /// <param name="PricePerSquareMetre">The price per square metre in whole zloty; <c>null</c> without a price or an area above zero.</param>
 /// <param name="Counted">Whether the sale is in the price statistics (<paramref name="Exclusion"/> is <see cref="RcnExclusionReason.None"/>).</param>
 /// <param name="Exclusion">Why the sale is left out of the statistics, or <see cref="RcnExclusionReason.None"/>.</param>
-internal sealed record SaleView(
+public sealed record SaleView(
     Wgs84Point Location,
     DateOnly Date,
     string? Market,

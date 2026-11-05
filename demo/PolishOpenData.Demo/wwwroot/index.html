@@ -12,19 +12,38 @@
     <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
     <link rel="stylesheet" href="css/app.css" />
     <script type="importmap"></script>
-    <noscript><style>#search { display: none; }</style></noscript>
+    <noscript><style>#search, #controls { display: none; }</style></noscript>
 </head>
 
 <body>
-    <!-- The map and the search box live outside #app so they paint before .NET starts and survive its start (Blazor replaces the content of #app). -->
-    <div id="map"></div>
-    <div class="bar">
+    <!-- The map and the search box live outside #app so they paint before .NET starts and survive its start (Blazor replaces the content of #app).
+         The order is the keyboard's: the search bar, then what the page shows (#app: the matches, the card), then the map. -->
+    <div class="bar" role="search">
         <input id="search" type="search" aria-label="Search an address" placeholder="Warming up…" autocomplete="off" spellcheck="false" enterkeyhint="search" disabled />
-        <div id="controls"></div>
+        <!-- Static like the search box, so they paint at once; map.js enables them and forwards their changes to .NET. -->
+        <div id="controls">
+            <label class="choice"><span>Radius</span>
+                <select id="radius" disabled>
+                    <option value="250">250 m</option>
+                    <option value="500" selected>500 m</option>
+                    <option value="1000">1 km</option>
+                    <option value="2000">2 km</option>
+                </select>
+            </label>
+            <label class="choice"><span>Period</span>
+                <select id="period" disabled>
+                    <option value="12">12 months</option>
+                    <option value="24" selected>24 months</option>
+                    <option value="60">5 years</option>
+                </select>
+            </label>
+        </div>
         <noscript><div class="notice">This demo needs JavaScript.</div></noscript>
     </div>
+    <div id="start-status" class="sr-only" role="status" aria-live="polite"></div>
 
     <div id="app"></div>
+    <div id="map"></div>
 
     <div id="blazor-error-ui">
         An unexpected error occurred.

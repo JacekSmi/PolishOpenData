@@ -1,9 +1,14 @@
 // index.html loads this module on its own, so the map is on screen before .NET starts; App.razor imports the same module afterwards.
 const search = document.getElementById('search');
+const radius = document.getElementById('radius');
+const period = document.getElementById('period');
 
-// If .NET never starts (a blocked or failed download) the box would say "Warming up…" for ever, so after 30 s it says so. It is set before
-// anything else can throw. A start that is only very slow still ends in enableSearch, which puts the normal state back.
-const startTimer = setTimeout(() => { search.placeholder = 'Could not start. Reload the page.'; }, 30000);
+// If .NET never starts (a blocked or failed download) the box would say "Warming up…" for ever, so after 30 s it says so, also to a screen reader.
+// It is set before anything else can throw. A start that is only very slow still ends in enableSearch, which puts the normal state back.
+const startTimer = setTimeout(() => {
+    search.placeholder = 'Could not start. Reload the page.';
+    document.getElementById('start-status').textContent = 'The demo could not start. Reload the page.';
+}, 30000);
 
 const POLAND = [[49.0, 14.1], [54.9, 24.2]];
 const ORTHOPHOTO = 'https://mapy.geoportal.gov.pl/wss/service/PZGIK/ORTO/WMTS/StandardResolution?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0&LAYER=ORTOFOTOMAPA&STYLE=default&FORMAT=image/jpeg&TILEMATRIXSET=EPSG:3857&TILEMATRIX=EPSG:3857:{z}&TILEROW={y}&TILECOL={x}';
@@ -18,7 +23,8 @@ map.fitBounds(POLAND, { padding: [8, 8], maxZoom: 6.25 });
 // Quarter steps were only for that first framing. From here the zoom buttons and the wheel move in whole levels, where the tiles are
 // drawn at their native size (a quarter step would stretch a tile level by 1.19 and soften the photo). Leaflet reads this on every zoom.
 map.options.zoomSnap = 1;
-L.control.zoom({ position: 'bottomright' }).addTo(map);
+// Top right: the price card takes the bottom right corner. A phone hides the buttons (app.css) and zooms with two fingers.
+L.control.zoom({ position: 'topright' }).addTo(map);
 
 L.tileLayer(ORTHOPHOTO, {
     className: 'ortho',
@@ -30,11 +36,77 @@ L.tileLayer(ORTHOPHOTO, {
     attribution: 'Ortofotomapa &copy; <a href="https://www.geoportal.gov.pl/">GUGiK</a>',
 }).addTo(map);
 
-// Called from App.razor once the .NET runtime is up.
-export function enableSearch() {
+// ---- The static search bar, wired to the page (App.razor) once the .NET runtime is up ---------------------------------------------------
+// Nothing here asks a service: Enter, a changed select and a changed address are handed to .NET, which decides. Typing sends nothing.
+
+let page = null;
+
+function toPage(method, ...args) {
+    page?.invokeMethodAsync(method, ...args).catch(error => console.warn(method + ' failed', error));
+}
+
+search.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.isComposing) {
+        e.preventDefault();
+        toPage('OnSearchSubmit', search.value);
+    }
+});
+radius.addEventListener('change', () => toPage('OnRadiusChange', Number(radius.value)));
+period.addEventListener('change', () => toPage('OnPeriodChange', Number(period.value)));
+// Only a real change of the address (back, forward, a pasted link): history.replaceState below never fires it.
+window.addEventListener('hashchange', () => toPage('OnHashChange', location.hash));
+
+// The list of matching addresses (rendered by .NET as buttons in .candidates): arrows move between the box and the buttons, Escape closes it.
+document.addEventListener('keydown', e => {
+    const list = document.querySelector('.candidates');
+    if (!list || (e.target !== search && !list.contains(e.target))) {
+        return;
+    }
+
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        search.focus();
+        toPage('OnCandidatesClosed');
+        return;
+    }
+
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') {
+        return;
+    }
+
+    e.preventDefault();
+    const items = [...list.querySelectorAll('button')];
+    const at = items.indexOf(document.activeElement);
+    const next = e.key === 'ArrowDown' ? items[Math.min(at + 1, items.length - 1)] : at <= 0 ? search : items[at - 1];
+    next?.focus();
+});
+
+// Called by App.razor once the .NET runtime is up: turns the bar on with the page's choices and hands back the address's fragment, read once.
+export function enableSearch(pageRef, radiusMeters, periodMonths) {
     clearTimeout(startTimer);
-    search.disabled = false;
+    page = pageRef;
+    radius.value = String(radiusMeters);
+    period.value = String(periodMonths);
+    search.disabled = radius.disabled = period.disabled = false;
     search.placeholder = 'Search an address';
+    return location.hash;
+}
+
+export function focusSearch() {
+    search.focus();
+}
+
+// Shows the radius and period the page uses (a link may have changed them).
+export function setChoices(radiusMeters, periodMonths) {
+    radius.value = String(radiusMeters);
+    period.value = String(periodMonths);
+}
+
+// Mirrors the place into the address bar without navigating or adding a history entry; replaceState fires no hashchange.
+export function setFragment(fragment) {
+    if (location.hash !== fragment) {
+        history.replaceState(history.state, '', location.pathname + location.search + fragment);
+    }
 }
 
 // ---- The place on the map, driven from .NET (Map/MapInterop.cs) -------------------------------------------------------------------
@@ -128,6 +200,7 @@ export function detach() {
 }
 
 export function clear() {
+    focusLayer.clearLayers();
     placeLayer.clearLayers();
     dotLayer.clearLayers();
 }
@@ -151,7 +224,38 @@ export function showPlace(center, radiusMeters, parcelGeoJson, dots) {
 
     drawDots(dots);
     // The circle's box rather than circle.getBounds(), which needs a view. zoomSnap is 1, so the fit may be a level looser than the box, never tighter.
-    map.fitBounds(middle.toBounds(2 * radiusMeters), { padding: [24, 24] });
+    map.fitBounds(middle.toBounds(2 * radiusMeters), framePadding());
+}
+
+// The part of the map the floating search bar and the price card (app.css: bottom right on a desktop, the bottom 45 % on a phone) leave free.
+function framePadding() {
+    return innerWidth > 640
+        ? { paddingTopLeft: [24, 24], paddingBottomRight: [400, 24] }
+        : { paddingTopLeft: [12, 120], paddingBottomRight: [12, Math.round(innerHeight * 0.45) + 30] };
+}
+
+// A ring around the dot whose sales the card lists (index as in the dots; null for none); the map pans to it when it is out of the free part.
+const focusPane = map.createPane('focus');
+focusPane.style.zIndex = 450;
+const focusLayer = L.layerGroup().addTo(map);
+
+export function highlightDot(index) {
+    focusLayer.clearLayers();
+    let target = null;
+    dotLayer.eachLayer(layer => {
+        if (layer.options.index === index) {
+            target = layer;
+        }
+    });
+    if (index === null || !target) {
+        return;
+    }
+
+    const at = target.getLatLng();
+    const radius = target.options.radius + 5;
+    L.circleMarker(at, { pane: 'focus', radius, color: INK, weight: 5, opacity: 0.45, fill: false, interactive: false }).addTo(focusLayer);
+    L.circleMarker(at, { pane: 'focus', radius, color: WHITE, weight: 2.5, fill: false, interactive: false }).addTo(focusLayer);
+    map.panInside(at, framePadding());
 }
 
 // Replaces the dots (and their numbers) and leaves the circle, the outline and the view alone.
@@ -160,6 +264,7 @@ export function showDots(dots) {
 }
 
 function drawDots(dots) {
+    focusLayer.clearLayers();
     dotLayer.clearLayers();
     // Stacking, bottom to top, the same every time: the excluded dots under the counted ones, and within each group of them the dots with fewer sales
     // under those with more (then by index, the order of the result). So the dot that carries the most sales and a price is never covered by a neighbour.

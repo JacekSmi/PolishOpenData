@@ -1,0 +1,34 @@
+@* The geocoder's matches under the search box. Choosing one asks for that place; the list itself never asks anything.
+   The arrow keys and Escape are handled by map.js, next to the search box they share. *@
+
+<div class="candidates panel">
+    <p class="candidates-note" id="candidates-note">@(Note ?? "Several addresses match. Choose one.")</p>
+    <ul aria-labelledby="candidates-note">
+        @foreach (var match in Matches)
+        {
+            <li @key="match">
+                <button type="button" @onclick="() => OnPick.InvokeAsync(match)">
+                    <span class="candidate-main">@Primary(match)</span>
+                    <span class="candidate-sub">@Sub(match)</span>
+                </button>
+            </li>
+        }
+    </ul>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<UugMatch> Matches { get; set; } = [];
+
+    [Parameter]
+    public string? Note { get; set; }
+
+    [Parameter]
+    public EventCallback<UugMatch> OnPick { get; set; }
+
+    // "Krucza 50" (or the city when the match has no street), then "Warszawa 00-001".
+    private static string Primary(UugMatch match) => $"{match.Street} {match.Number}".Trim() is { Length: > 0 } street ? street : match.City ?? "";
+
+    private static string Sub(UugMatch match) =>
+        string.Join(" ", new[] { $"{match.Street} {match.Number}".Trim().Length > 0 ? match.City : null, match.PostalCode }.Where(p => !string.IsNullOrWhiteSpace(p)));
+}

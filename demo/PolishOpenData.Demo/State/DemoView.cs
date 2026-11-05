@@ -4,7 +4,7 @@ using PolishOpenData.Uug;
 namespace PolishOpenData.Demo.State;
 
 /// <summary>Where the page is in a search.</summary>
-internal enum DemoPhase
+public enum DemoPhase
 {
     /// <summary>Nothing asked yet.</summary>
     Idle,
@@ -32,7 +32,7 @@ internal enum DemoPhase
 /// <param name="Candidates">The matches to pick from, for <see cref="DemoPhase.Candidates"/>; empty otherwise.</param>
 /// <param name="Message">What to tell the user, for <see cref="DemoPhase.Message"/> (and a hint for <see cref="DemoPhase.Candidates"/>); never an exception message.</param>
 /// <param name="Label">The text that names the place, equal to <c>Place.Label</c>; plain text from a link or the geocoder, never to be interpreted.</param>
-internal sealed record DemoView(
+public sealed record DemoView(
     DemoPhase Phase,
     PlaceUrlState? Place,
     ParcelResult? Parcel,

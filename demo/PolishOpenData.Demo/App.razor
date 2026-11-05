@@ -1,15 +1,205 @@
+@implements IAsyncDisposable
+@inject PlaceController Controller
+@inject MapInterop Map
 @inject IJSRuntime JS
 
-@* The page itself (map, search box) is static HTML around this component, so there is nothing to render. *@
+@* The map and the search bar are static HTML around this component (index.html); this renders what floats over the map.
+   Every decision is the controller's: this only binds its view, draws it on the map and mirrors the place into the address. *@
+
+<div class="sr-only" role="status" aria-live="polite">@Announcement</div>
+
+@if (_view.Phase == DemoPhase.Idle)
+{
+    <p class="hint">Type an address or click the map</p>
+}
+
+@if (_view.Phase == DemoPhase.Candidates && !_candidatesClosed)
+{
+    <Candidates Matches="_view.Candidates" Note="@_view.Message" OnPick="PickCandidateAsync" />
+}
+
+@if (_view.Phase is DemoPhase.Searching or DemoPhase.Result or DemoPhase.Message)
+{
+    <ResultCard View="_view" Scale="_scale" Selected="_selected" OnSelect="Select" OnRetry="RetryAsync" />
+}
+else
+{
+    <Footer Floating="true" />
+}
 
 @code {
+    private DemoView _view = DemoView.Idle;
+    private PriceColorScale? _scale;
+    private int? _selected;
+    private int? _highlighted;
+    private bool _candidatesClosed;
+    private object? _drawn;
+    private IJSObjectReference? _module;
+    private DotNetObjectReference<App>? _self;
+
+    // What a screen reader hears when the view changes; the card says the same in full.
+    private string? Announcement => _view switch
+    {
+        { Phase: DemoPhase.Searching, Place: null } => "Looking up the address\u2026",
+        { Phase: DemoPhase.Searching } => "Reading sales\u2026",
+        { Phase: DemoPhase.Candidates, Candidates.Count: 1 } => "1 address matches. Press the down arrow to choose it.",
+        { Phase: DemoPhase.Candidates } => $"{_view.Candidates.Count} addresses match. Press the down arrow to choose one.",
+        { Phase: DemoPhase.Message } => _view.Message,
+        { Phase: DemoPhase.Result, Sales: { Outcome: SalesOutcome.Ok } sales } => CardText.Sales(sales.TotalCount, sales.Summary?.Count ?? 0) + ".",
+        { Phase: DemoPhase.Result, Sales: { } sales } => CardText.ForOutcome(sales.Outcome),
+        _ => null,
+    };
+
+    protected override void OnInitialized()
+    {
+        Controller.Changed += OnChanged;
+        Map.DotSelected += OnDotSelected;
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if (!firstRender)
         {
-            // The module index.html already loaded (the same URL), so there is exactly one map; this only flips the search box on.
-            await using var map = await JS.InvokeAsync<IJSObjectReference>("import", "./js/map.js");
-            await map.InvokeVoidAsync("enableSearch");
+            // The ring on the map follows the dot the card lists.
+            if (_module is not null && _selected != _highlighted)
+            {
+                _highlighted = _selected;
+                await _module.InvokeVoidAsync("highlightDot", _selected);
+            }
+
+            return;
+        }
+
+        await Map.AttachAsync(Controller);
+        // The module index.html already loaded (the same URL), so there is exactly one map.
+        _module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/map.js");
+        _self = DotNetObjectReference.Create(this);
+        var fragment = await _module.InvokeAsync<string>("enableSearch", _self, Controller.RadiusMeters, Controller.PeriodMonths);
+        // The address is read once, here; the page's own updates of it (setFragment) never come back in.
+        await Controller.LoadFromFragmentAsync(fragment);
+    }
+
+    [JSInvokable]
+    public Task OnSearchSubmit(string text) => Controller.SubmitAddressAsync(text);
+
+    [JSInvokable]
+    public Task OnRadiusChange(int meters) => PlaceUrlState.Radii.Contains(meters) ? Controller.ChangeRadiusAsync(meters) : Task.CompletedTask;
+
+    [JSInvokable]
+    public Task OnPeriodChange(int months) => PlaceUrlState.Months.Contains(months) ? Controller.ChangePeriodAsync(months) : Task.CompletedTask;
+
+    // A real change of the address: back, forward or a pasted link.
+    [JSInvokable]
+    public Task OnHashChange(string fragment) => Controller.LoadFromFragmentAsync(fragment);
+
+    [JSInvokable]
+    public void OnCandidatesClosed()
+    {
+        _candidatesClosed = true;
+        StateHasChanged();
+    }
+
+    private async Task PickCandidateAsync(UugMatch match)
+    {
+        // The chosen button goes away with the list, so the keyboard goes back to the search box.
+        if (_module is not null)
+        {
+            await _module.InvokeVoidAsync("focusSearch");
+        }
+
+        await Controller.PickCandidateAsync(match);
+    }
+
+    // The explicit retry of a failed place: pick its point again.
+    private Task RetryAsync() => _view.Place is { } place ? Controller.PickPointAsync(place.Point) : Task.CompletedTask;
+
+    private void Select(int? group) => _selected = group;
+
+    private void OnDotSelected(int group) => _ = InvokeAsync(() =>
+    {
+        if (_view.Sales is { } sales && group >= 0 && group < sales.Groups.Count)
+        {
+            _selected = group;
+            StateHasChanged();
+        }
+    });
+
+    private void OnChanged() => _ = InvokeAsync(async () =>
+    {
+        try
+        {
+            await SyncAsync(Controller.View);
+        }
+        catch (Exception exception)
+        {
+            await DispatchExceptionAsync(exception);
+        }
+    });
+
+    private async Task SyncAsync(DemoView view)
+    {
+        if (!ReferenceEquals(view.Sales, _view.Sales))
+        {
+            _selected = null;
+            // The colour classes come from the prices per m2 of the counted sales, as the statistics do.
+            _scale = view.Sales is { Outcome: SalesOutcome.Ok } sales
+                ? PriceColorScale.Create(sales.Groups.SelectMany(g => g.Sales).Where(s => s.Counted && s.PricePerSquareMetre is not null).Select(s => s.PricePerSquareMetre!.Value).ToList())
+                : null;
+        }
+
+        if (!ReferenceEquals(view.Candidates, _view.Candidates))
+        {
+            _candidatesClosed = false;
+        }
+
+        _view = view;
+        StateHasChanged();
+        await DrawAsync(view);
+        if (_module is not null)
+        {
+            await _module.InvokeVoidAsync("setChoices", Controller.RadiusMeters, Controller.PeriodMonths);
+            if (view.Phase == DemoPhase.Result)
+            {
+                await _module.InvokeVoidAsync("setFragment", Controller.CurrentFragment());
+            }
+        }
+    }
+
+    // The circle and the outline as soon as the place is known, the dots with the result; nothing when the view has no place.
+    private async Task DrawAsync(DemoView view)
+    {
+        if (view.Place is not { } place)
+        {
+            if (_drawn is not null)
+            {
+                _drawn = null;
+                await Map.ClearAsync();
+            }
+
+            return;
+        }
+
+        var sales = view.Phase == DemoPhase.Result ? view.Sales : null;
+        var outline = view.Parcel?.OutlineGeoJson;
+        var key = (place.Point, place.RadiusMeters, outline, (object?)sales);
+        if (key.Equals(_drawn))
+        {
+            return;
+        }
+
+        _drawn = key;
+        var dots = sales is { Outcome: SalesOutcome.Ok } && _scale is not null ? MapDots.From(sales.Groups, _scale) : [];
+        await Map.ShowPlaceAsync(place.Point, place.RadiusMeters, outline, dots);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        Controller.Changed -= OnChanged;
+        Map.DotSelected -= OnDotSelected;
+        _self?.Dispose();
+        if (_module is not null)
+        {
+            await _module.DisposeAsync();
         }
     }
 }

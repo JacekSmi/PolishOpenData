@@ -4,7 +4,7 @@ namespace PolishOpenData.Demo.Pricing;
 /// Five colour classes for the dots on the map, cut at the 20, 40, 60 and 80 % quantiles of the prices per square metre in view,
 /// so a single very high or very low sale cannot wash out the scale the way equal-width classes would.
 /// </summary>
-internal sealed class PriceColorScale
+public sealed class PriceColorScale
 {
     private const int ClassCount = 5;
 

@@ -23,4 +23,7 @@
     <ProjectReference Include="..\..\src\PolishOpenData.Rcn\PolishOpenData.Rcn.csproj" />
     <InternalsVisibleTo Include="PolishOpenData.Demo.Tests" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\src\Shared\WarsawTime.cs" LinkBase="Shared" />
+  </ItemGroup>
 </Project>

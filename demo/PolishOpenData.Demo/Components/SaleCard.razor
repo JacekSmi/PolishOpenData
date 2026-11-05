@@ -1,0 +1,79 @@
+@* Every sale at one dot, newest first, as RCN publishes it. Never the notary, the deed, the buyer or seller, or the deed's total price. *@
+
+<section class="sales" aria-labelledby="sales-title">
+    <div class="sales-head">
+        <h3 id="sales-title">@(Group.Sales.Count == 1 ? "1 sale" : $"{PolishFormat.Count(Group.Sales.Count)} sales") at this point</h3>
+        <div class="sales-nav">
+            <button type="button" class="icon" aria-label="Previous point" disabled="@(Index == 0)" @onclick="() => OnSelect.InvokeAsync(Index - 1)">&lsaquo;</button>
+            <span class="muted">@(Index + 1) of @PolishFormat.Count(Count)</span>
+            <button type="button" class="icon" aria-label="Next point" disabled="@(Index == Count - 1)" @onclick="() => OnSelect.InvokeAsync(Index + 1)">&rsaquo;</button>
+            <button type="button" class="icon" aria-label="Close the sales" @onclick="() => OnSelect.InvokeAsync(null)">&times;</button>
+        </div>
+    </div>
+    <ol>
+        @for (var i = 0; i < Group.Sales.Count; i++)
+        {
+            var sale = Group.Sales[i];
+            <li @key="i" class="sale @(sale.Counted ? null : "excluded")">
+                <div class="sale-top">
+                    <span>@PolishFormat.Date(sale.Date)</span>
+                    @if (CardText.Market(sale.Market) is { } market)
+                    {
+                        <span class="muted">@market</span>
+                    }
+                </div>
+                @if (sale.Address is not null)
+                {
+                    <div>@sale.Address</div>
+                }
+                <div class="sale-price">
+                    @if (sale.Price is { } price)
+                    {
+                        <strong>@PolishFormat.Money(price)</strong>
+                    }
+                    @if (sale.PricePerSquareMetre is { } perM2)
+                    {
+                        <span>@PolishFormat.PerSquareMetre(perM2)</span>
+                    }
+                </div>
+                <div class="muted">@string.Join(" \u00B7 ", Details(sale))</div>
+                @if (CardText.Excluded(sale.Exclusion) is { } why)
+                {
+                    <div class="note">@why</div>
+                }
+            </li>
+        }
+    </ol>
+</section>
+
+@code {
+    [Parameter, EditorRequired]
+    public SaleGroup Group { get; set; } = default!;
+
+    [Parameter]
+    public int Index { get; set; }
+
+    [Parameter]
+    public int Count { get; set; }
+
+    [Parameter]
+    public EventCallback<int?> OnSelect { get; set; }
+
+    private static IEnumerable<string> Details(SaleView sale)
+    {
+        if (sale.UsableArea is { } area)
+        {
+            yield return PolishFormat.Area(area);
+        }
+
+        if (sale.Rooms is { } rooms)
+        {
+            yield return CardText.Rooms(rooms);
+        }
+
+        if (sale.Floor is { } floor)
+        {
+            yield return CardText.Floor(floor);
+        }
+    }
+}

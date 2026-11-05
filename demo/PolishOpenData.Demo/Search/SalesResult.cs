@@ -4,7 +4,7 @@ using PolishOpenData.Rcn;
 namespace PolishOpenData.Demo.Search;
 
 /// <summary>How a sales search ended.</summary>
-internal enum SalesOutcome
+public enum SalesOutcome
 {
     /// <summary>At least one sale lies within the radius; <see cref="SalesResult.Summary"/> and <see cref="SalesResult.Groups"/> are set.</summary>
     Ok,
@@ -22,7 +22,7 @@ internal enum SalesOutcome
 /// <summary>The sales that share one map point (RCN premises rows often sit on exactly the same point), newest first.</summary>
 /// <param name="Location">The point the dot is drawn at.</param>
 /// <param name="Sales">At least one sale, newest first; sales of one day keep the order RCN gave.</param>
-internal sealed record SaleGroup(Wgs84Point Location, IReadOnlyList<SaleView> Sales);
+public sealed record SaleGroup(Wgs84Point Location, IReadOnlyList<SaleView> Sales);
 
 /// <summary>
 /// What a place search found. <paramref name="Groups"/> are ordered by their newest sale, newest first.
@@ -36,7 +36,7 @@ internal sealed record SaleGroup(Wgs84Point Location, IReadOnlyList<SaleView> Sa
 /// <param name="Newest">The date of the newest sale in the circle.</param>
 /// <param name="From">The first day of the period asked for.</param>
 /// <param name="To">The last day of the period asked for (today).</param>
-internal sealed record SalesResult(
+public sealed record SalesResult(
     SalesOutcome Outcome,
     IReadOnlyList<SaleGroup> Groups,
     int TotalCount,

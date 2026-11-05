@@ -1,0 +1,12 @@
+@* Who made the page and what it keeps. Floating at the bottom when no card is open; at the end of the card otherwise. *@
+
+<footer class="footer @(Floating ? "floating" : null)">
+    Unofficial demo of <a href="https://github.com/JacekSmi/PolishOpenData">PolishOpenData</a> using public
+    <a href="https://www.geoportal.gov.pl/">GUGiK</a> registers (ULDK, UUG, RCN). This page stores nothing; GUGiK services may set their own cookies.
+    <a href="https://www.nuget.org/profiles/JacekSmi">Packages on NuGet</a>
+</footer>
+
+@code {
+    [Parameter]
+    public bool Floating { get; set; }
+}

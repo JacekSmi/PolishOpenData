@@ -11,7 +11,7 @@ namespace PolishOpenData.Demo.State;
 /// The link is the fragment <c>#lat=52.22850&amp;lon=21.01720&amp;r=500&amp;m=24&amp;q=Warszawa%2C%20Krucza%2050</c>;
 /// everything in it is read back as untrusted text, so <see cref="TryParse"/> checks every part and never throws.
 /// </summary>
-internal sealed record PlaceUrlState(Wgs84Point Point, int RadiusMeters, int PeriodMonths, string? Label)
+public sealed record PlaceUrlState(Wgs84Point Point, int RadiusMeters, int PeriodMonths, string? Label)
 {
     /// <summary>The radius used when a link does not say (metres).</summary>
     public const int DefaultRadius = 500;

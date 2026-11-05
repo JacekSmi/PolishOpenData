@@ -1,0 +1,18 @@
+@* What the dot colours mean. Colour is never the only carrier of a price: the sale list gives every number. *@
+
+<figure class="legend">
+    <figcaption>@CardText.LegendUnit</figcaption>
+    <ul>
+        @foreach (var entry in Entries)
+        {
+            <li @key="entry.Color">
+                <span class="swatch @(entry.Hollow ? "hollow" : null)" style="--swatch: @entry.Color" aria-hidden="true"></span>@entry.Text
+            </li>
+        }
+    </ul>
+</figure>
+
+@code {
+    [Parameter, EditorRequired]
+    public IReadOnlyList<LegendEntry> Entries { get; set; } = [];
+}

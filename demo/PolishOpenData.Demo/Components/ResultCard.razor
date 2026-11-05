@@ -1,0 +1,121 @@
+@* Its parameter types (DemoView, SalesResult, PriceColorScale and what they carry) are public only because Razor components are public classes.
+   The one panel over the map: the price summary of a place, its sales at a chosen dot, and the searching, empty and error states.
+   The label comes from a link or the geocoder: it is rendered as plain text only, never as markup. *@
+
+<section class="card panel @(_collapsed ? "collapsed" : null) @(View.Phase == DemoPhase.Searching ? "busy" : null)" aria-label="Price summary">
+    <div class="progress" aria-hidden="true"></div>
+    <header class="card-head">
+        <div class="card-title">
+            <h2>@Title</h2>
+            @if (View.Place is { } place)
+            {
+                <p class="muted">@CardText.Scope(place.RadiusMeters, place.PeriodMonths)</p>
+            }
+        </div>
+        <button type="button" class="icon" aria-expanded="@(_collapsed ? "false" : "true")" aria-controls="card-body"
+                aria-label="@(_collapsed ? "Show the price summary" : "Hide the price summary")" @onclick="() => _collapsed = !_collapsed">
+            @if (_collapsed)
+            {
+                <span aria-hidden="true">&#x25B4;</span>
+            }
+            else
+            {
+                <span aria-hidden="true">&#x25BE;</span>
+            }
+        </button>
+    </header>
+
+    <div class="card-body" id="card-body" hidden="@_collapsed">
+        @switch (View)
+        {
+            case { Phase: DemoPhase.Searching }:
+                <p class="lead muted">@(View.Place is null ? "Looking up the address" : "Reading sales")&hellip;</p>
+                break;
+
+            case { Phase: DemoPhase.Message }:
+                <p class="lead">@View.Message</p>
+                @if (View.Place is not null)
+                {
+                    <button type="button" class="button" @onclick="OnRetry">Try again</button>
+                }
+                break;
+
+            case { Phase: DemoPhase.Result, Sales: { Outcome: SalesOutcome.Ok, Summary: { } summary } sales }:
+                @if (summary.Median is { } median && summary.Q1 is { } q1 && summary.Q3 is { } q3)
+                {
+                    <p class="figure"><strong>@PolishFormat.PerSquareMetre(median)</strong> <span class="muted">median</span></p>
+                    <p>@CardText.Quartiles(q1, q3)</p>
+                }
+                <p>@CardText.Sales(sales.TotalCount, summary.Count)</p>
+                @if (CardText.Exclusions(summary.Excluded) is { } left)
+                {
+                    <p class="muted">@left</p>
+                }
+                @if (summary.SmallSample && summary.Count > 0)
+                {
+                    <p class="note">@CardText.SmallSample</p>
+                }
+
+                @if (Selected is { } index && index < sales.Groups.Count)
+                {
+                    <SaleCard Group="sales.Groups[index]" Index="index" Count="sales.Groups.Count" OnSelect="OnSelect" />
+                }
+                else
+                {
+                    <p class="muted">Select a dot on the map to see its sales, or <button type="button" class="link" @onclick="() => OnSelect.InvokeAsync(0)">browse them from the newest</button>.</p>
+                }
+
+                <Legend Entries="CardText.Legend(Scale ?? PriceColorScale.Create([]), summary.Count < sales.TotalCount, summary.Count > 0)" />
+                @if (sales.Newest is { } newest)
+                {
+                    <p class="muted">@CardText.Newest(newest)</p>
+                }
+                <p class="muted">@CardText.NotAValuation</p>
+                break;
+
+            case { Phase: DemoPhase.Result, Sales: { } sales }:
+                <p class="lead">@CardText.ForOutcome(sales.Outcome)</p>
+                break;
+        }
+
+        @if (View.Phase != DemoPhase.Message && View.Parcel is { } parcel)
+        {
+            <p class="muted parcel">@CardText.Parcel(parcel.Parcel)</p>
+        }
+        <Footer />
+    </div>
+</section>
+
+@code {
+    private bool _collapsed;
+    private int? _shown;
+
+    [Parameter, EditorRequired]
+    public DemoView View { get; set; } = DemoView.Idle;
+
+    [Parameter]
+    public PriceColorScale? Scale { get; set; }
+
+    [Parameter]
+    public int? Selected { get; set; }
+
+    [Parameter]
+    public EventCallback<int?> OnSelect { get; set; }
+
+    [Parameter]
+    public EventCallback OnRetry { get; set; }
+
+    // The label as given (plain text), else what the card is about.
+    private string Title => View.Label ?? (View.Place is null ? "Address search" : "Point on the map");
+
+    protected override void OnParametersSet()
+    {
+        // A dot chosen on the map opens a collapsed card, so its sales show.
+        if (Selected is not null && Selected != _shown)
+        {
+            _collapsed = false;
+        }
+
+        _shown = Selected;
+    }
+}
