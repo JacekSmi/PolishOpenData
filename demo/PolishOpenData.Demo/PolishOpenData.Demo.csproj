@@ -12,6 +12,11 @@
     <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
   <ItemGroup>
+    <!-- Fingerprints every .js (the file name gets a hash, an import map entry keeps the plain name working for import("./js/map.js")), so a new
+         index.html never meets an old map.js that a browser cached for the 10 minutes GitHub Pages allows. Each .js in index.html must use the placeholder. -->
+    <StaticWebAssetFingerprintPattern Include="JSModule" Pattern="*.js" Expression="#[.{fingerprint}]!" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" PrivateAssets="all" />
   </ItemGroup>

@@ -54,9 +54,10 @@
         <button type="button" class="dismiss" aria-label="Dismiss">&times;</button>
     </div>
 
-    <script src="lib/leaflet/leaflet.js"></script>
-    <!-- map.js is fingerprinted by dotnet run and left as js/map.js by dotnet publish; either way Blazor's import("./js/map.js") resolves to the
-         same URL, so there is one module and one map. The placeholder keeps it that way; a plain src would load a second copy under dotnet run. -->
+    <!-- Every .js is fingerprinted (StaticWebAssetFingerprintPattern in the csproj), in dotnet run and in publish, so each reference here needs the
+         placeholder: a plain src would 404. Blazor's import("./js/map.js") resolves through the import map to the same file as the script tag below,
+         so there is one module and one map. The .css files stay unfingerprinted: the SDK turns a placeholder in a link's href into the plain name. -->
+    <script src="lib/leaflet/leaflet#[.{fingerprint}].js"></script>
     <script type="module" src="js/map#[.{fingerprint}].js"></script>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
 </body>

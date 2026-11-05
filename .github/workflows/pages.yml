@@ -1,0 +1,67 @@
+# Publishes the Blazor demo (demo/PolishOpenData.Demo) to GitHub Pages: https://jaceksmi.github.io/PolishOpenData/
+#
+# One-time setting by the repository owner, before the first run: Settings > Pages > Build and deployment > Source: GitHub Actions.
+# Until then the build job's configure-pages step fails with "Get Pages site failed". Deploys come from main: a push that touches
+# the paths below, or "Run workflow" on main.
+name: pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - demo/**
+      - src/**
+      - Directory.Packages.props
+      - Directory.Build.props
+      - global.json
+      - .github/workflows/pages.yml
+  workflow_dispatch:
+
+# Never cancel a deployment that is running; a newer run waits for it.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build:
+    # Forks do not deploy.
+    if: github.repository == 'JacekSmi/PolishOpenData'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: read   # configure-pages reads the Pages site (GET /repos/{owner}/{repo}/pages); an unlisted scope is none
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          global-json-file: global.json
+      - name: Publish the demo
+        # CompressionEnabled=false: GitHub Pages compresses on the fly and ignores the .br and .gz copies Blazor would write.
+        run: dotnet publish demo/PolishOpenData.Demo/PolishOpenData.Demo.csproj -c Release -o out -p:CompressionEnabled=false
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: out/wwwroot
+
+  deploy:
+    needs: build
+    if: github.repository == 'JacekSmi/PolishOpenData'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
