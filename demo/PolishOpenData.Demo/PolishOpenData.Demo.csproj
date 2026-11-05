@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>PolishOpenData.Demo</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <!-- index.html keeps the template placeholders (blazor.webassembly#[.{fingerprint}].js, the preload link and the import map). -->
+    <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+    <!-- A runtime switch, safe for plain build and test: drops the ICU data file (about 250 KB over the wire) and makes dotnet run behave like the published site.
+         Never format with a CultureInfo (new CultureInfo("pl-PL") throws); the page builds its Polish NumberFormatInfo by hand.
+         Not set here, on purpose: RunAOTCompilation and WasmBuildNative (they break a plain build without the wasm-tools workload). -->
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PolishOpenData.Core\PolishOpenData.Core.csproj" />
+    <ProjectReference Include="..\..\src\PolishOpenData.Geo.Core\PolishOpenData.Geo.Core.csproj" />
+    <ProjectReference Include="..\..\src\PolishOpenData.Uldk\PolishOpenData.Uldk.csproj" />
+    <ProjectReference Include="..\..\src\PolishOpenData.Uug\PolishOpenData.Uug.csproj" />
+    <ProjectReference Include="..\..\src\PolishOpenData.Rcn\PolishOpenData.Rcn.csproj" />
+    <InternalsVisibleTo Include="PolishOpenData.Demo.Tests" />
+  </ItemGroup>
+</Project>

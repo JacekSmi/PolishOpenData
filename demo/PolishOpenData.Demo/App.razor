@@ -1,0 +1,15 @@
+@inject IJSRuntime JS
+
+@* The page itself (map, search box) is static HTML around this component, so there is nothing to render. *@
+
+@code {
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // The module index.html already loaded (the same URL), so there is exactly one map; this only flips the search box on.
+            await using var map = await JS.InvokeAsync<IJSObjectReference>("import", "./js/map.js");
+            await map.InvokeVoidAsync("enableSearch");
+        }
+    }
+}

@@ -98,6 +98,43 @@ MIT License. Package copyright: © Microsoft Corporation. All rights reserved. T
 - From <https://github.com/dotnet/extensions> (Copyright (c) .NET Foundation. All rights reserved.), version 10.10.0 unless noted: Microsoft.Extensions.AI.Abstractions (10.8.3), AmbientMetadata.Application, Compliance.Abstractions, DependencyInjection.AutoActivation, Diagnostics.ExceptionSummarization, Http.Diagnostics, Http.Resilience, Resilience, Telemetry, Telemetry.Abstractions.
 - The dotnet/dotnet (10.0.12) and dotnet/runtime (System.Threading.RateLimiting) packages each ship a THIRD-PARTY-NOTICES.TXT for components that .NET itself incorporates; see that file inside each of those packages.
 
+## Served by the demo site (demo/PolishOpenData.Demo)
+
+The demo page is not a NuGet package. It serves this map library unmodified from `wwwroot/lib/leaflet/`.
+
+### Leaflet
+
+`leaflet.js`, `leaflet.css` (Leaflet 1.9.4): <https://github.com/Leaflet/Leaflet>. BSD 2-Clause License, Copyright (c) 2010-2023, Volodymyr Agafonkin; Copyright (c) 2010-2011, CloudMade.
+
+```text
+BSD 2-Clause License
+
+Copyright (c) 2010-2023, Volodymyr Agafonkin
+Copyright (c) 2010-2011, CloudMade
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
 ## Licence texts
 
 ### MIT License

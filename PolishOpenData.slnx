@@ -2,6 +2,9 @@
   <Folder Name="/benchmarks/">
     <Project Path="benchmarks/PolishOpenData.Benchmarks/PolishOpenData.Benchmarks.csproj" />
   </Folder>
+  <Folder Name="/demo/">
+    <Project Path="demo/PolishOpenData.Demo/PolishOpenData.Demo.csproj" />
+  </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/CheckCounterparty/CheckCounterparty.csproj" />
   </Folder>
@@ -21,6 +24,7 @@
     <Project Path="tests/PolishOpenData.BialaLista.Offline.Tests/PolishOpenData.BialaLista.Offline.Tests.csproj" />
     <Project Path="tests/PolishOpenData.BialaLista.Tests/PolishOpenData.BialaLista.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Core.Tests/PolishOpenData.Core.Tests.csproj" />
+    <Project Path="tests/PolishOpenData.Demo.Tests/PolishOpenData.Demo.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Geo.Core.Tests/PolishOpenData.Geo.Core.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Krs.Tests/PolishOpenData.Krs.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Mcp.Tests/PolishOpenData.Mcp.Tests.csproj" />

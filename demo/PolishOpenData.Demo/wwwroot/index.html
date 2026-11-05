@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PolishOpenData demo</title>
+    <meta name="description" content="Pick a place in Poland and see the cadastral parcel and what flats nearby sold for. An unofficial demo of the PolishOpenData .NET libraries, using public GUGiK registers." />
+    <base href="/PolishOpenData/" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="preload" id="webassembly" />
+    <link rel="stylesheet" href="lib/leaflet/leaflet.css" />
+    <link rel="stylesheet" href="css/app.css" />
+    <script type="importmap"></script>
+</head>
+
+<body>
+    <!-- The map and the search box live outside #app so they paint before .NET starts and survive its start (Blazor replaces the content of #app). -->
+    <div id="map"></div>
+    <div class="bar">
+        <input id="search" type="search" aria-label="Search an address" placeholder="Warming up…" autocomplete="off" spellcheck="false" enterkeyhint="search" disabled />
+        <div id="controls"></div>
+    </div>
+
+    <div id="app"></div>
+
+    <div id="blazor-error-ui">
+        An unexpected error occurred.
+        <a href="." class="reload">Reload</a>
+        <button type="button" class="dismiss" aria-label="Dismiss">&times;</button>
+    </div>
+
+    <script src="lib/leaflet/leaflet.js"></script>
+    <!-- map.js is fingerprinted by dotnet run and left as js/map.js by dotnet publish; either way Blazor's import("./js/map.js") resolves to the
+         same URL, so there is one module and one map. The placeholder keeps it that way; a plain src would load a second copy under dotnet run. -->
+    <script type="module" src="js/map#[.{fingerprint}].js"></script>
+    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+</body>
+
+</html>
