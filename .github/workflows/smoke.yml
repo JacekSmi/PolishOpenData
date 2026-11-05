@@ -14,14 +14,15 @@ jobs:
     # Forks do not run the live checks (or open issues about them).
     if: github.repository == 'JacekSmi/PolishOpenData'
     runs-on: ubuntu-latest
-    # Above the sum of the per-test timeouts (17 network tests x 2 min, the production REGON test skipping itself without a key, the published-package test's 5 min and the offline flat-file test's 20 min, which skips after 15 min of a slow download) plus
+    # Above the sum of the per-test timeouts (18 network tests x 2 min, the production REGON test skipping itself without a key, the published-package test's 5 min and the offline flat-file test's 20 min, which skips after 15 min of a slow download) plus
     # setup and build, so a stalled registry ends as a failed test with its details. If the job still hits this
     # limit, it ends as cancelled, and the report job reports that too.
-    timeout-minutes: 70
+    timeout-minutes: 72
     permissions:
       contents: read
     env:
       POLISHOPENDATA_SMOKE: '1'
+      CHROME_BIN: /usr/bin/google-chrome
       DOTNET_NOLOGO: true
       DOTNET_CLI_TELEMETRY_OPTOUT: true
     steps:
@@ -75,6 +76,8 @@ jobs:
             echo "An upstream registry may have changed its API. Compare the reported fields with tests/Fixtures, update the models, and capture a new redacted fixture."
             echo
             echo "If only PublishedMcpPackageTests failed, check nuget.org, 'dotnet dnx PolishOpenData.Mcp --yes' on the runner's SDK and the latest published package, not the fixtures. If McpLiveTests failed but the library tests passed, look for a regression in the MCP server."
+            echo
+            echo "If only DemoSiteLiveTests failed, check the Pages deployment (https://jaceksmi.github.io/PolishOpenData/, the pages workflow) and the console lines in smoke.md before the libraries."
             echo
             echo "If only RegonTestEnvironmentLiveTests failed, the GUS test environment (a non-updated copy of the register) may be down or changed; compare with tests/Fixtures/regon and capture a new redacted fixture."
             echo
