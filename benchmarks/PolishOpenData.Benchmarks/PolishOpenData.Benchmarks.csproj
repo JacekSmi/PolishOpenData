@@ -9,6 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <ProjectReference Include="..\..\src\PolishOpenData.BialaLista.Offline\PolishOpenData.BialaLista.Offline.csproj" />
   </ItemGroup>
 </Project>

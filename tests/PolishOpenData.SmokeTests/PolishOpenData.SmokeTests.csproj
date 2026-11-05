@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Drives the Chrome that CHROME_BIN names (no browser download) for DemoSiteLiveTests. -->
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
     <PackageReference Include="PuppeteerSharp" />
   </ItemGroup>
   <ItemGroup>

@@ -3,6 +3,7 @@
     <TargetFrameworks>net10.0</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
     <ProjectReference Include="..\..\demo\PolishOpenData.Demo\PolishOpenData.Demo.csproj" />
   </ItemGroup>
 </Project>
