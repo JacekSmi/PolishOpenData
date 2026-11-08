@@ -33,7 +33,7 @@ $env:POLISHOPENDATA_SMOKE='1'; $env:CHROME_BIN='C:\Program Files\Google\Chrome\A
 POLISHOPENDATA_SMOKE=1 CHROME_BIN='C:\Program Files\Google\Chrome\Application\chrome.exe' dotnet test --project tests/PolishOpenData.SmokeTests -c Release --filter-class "*DemoSiteLiveTests"
 ```
 
-`MSYS_NO_PATHCONV` is not needed here: Git Bash passes `CHROME_BIN` through unchanged. The test output lists the console messages, the responses with a status of 400 or more, the time until the search box is enabled, the card text and the request counts.
+The test output lists the console messages, the responses with a status of 400 or more, the time until the search box is enabled, the card text and the request counts.
 
 One run costs, per IP address:
 
