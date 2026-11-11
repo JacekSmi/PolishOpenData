@@ -79,16 +79,16 @@ public sealed class PublishedMcpPackageTests
                 if (IsExactVersion(version))
                 {
                     // NuGet compares prerelease labels ignoring case; the server reports its version without +metadata.
-                    Assert.Equal(version.Split('+', 2)[0], client.ServerInfo.Version, ignoreCase: true);
+                    Assert.Equal(version.Split('+', 2)[0], client.ServerInfo?.Version, ignoreCase: true);
                 }
                 else
                 {
-                    TestContext.Current.TestOutputHelper?.WriteLine(version + " is not an exact version, so it is not compared; the server reports " + client.ServerInfo.Version + ".");
+                    TestContext.Current.TestOutputHelper?.WriteLine(version + " is not an exact version, so it is not compared; the server reports " + client.ServerInfo?.Version + ".");
                 }
             }
 
             var tools = await client.ListToolsAsync(cancellationToken: TestContext.Current.CancellationToken);
-            var hasVersion = Version.TryParse(client.ServerInfo.Version.Split('-', '+')[0], out var reported);
+            var hasVersion = Version.TryParse((client.ServerInfo?.Version ?? string.Empty).Split('-', '+')[0], out var reported);
             var expected = ExpectedTools
                 .Concat(hasVersion && reported >= OfflineToolSince ? [OfflineTool] : [])
                 .Concat(hasVersion && reported >= GeoToolsSince ? GeoTools : [])
