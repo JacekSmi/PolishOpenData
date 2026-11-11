@@ -85,11 +85,11 @@ public sealed class DemoSiteLiveTests
         await WaitFor("#search to be enabled", "() => { const s = document.querySelector('#search'); return !!s && !s.disabled; }", 60);
         output?.WriteLine("Time to ready: " + clock.ElapsedMilliseconds.ToString(CultureInfo.InvariantCulture) + " ms");
 
-        // Fewer than the keystrokes' worth of requests proves nothing is sent while typing.
+        // Typed key by key: the exact request counts asserted below prove that nothing is sent per keystroke.
         await page.TypeAsync("#search", "Warszawa, Krucza 50", new TypeOptions { Delay = 30 });
         await page.Keyboard.PressAsync("Enter");
         await WaitFor("the answer (a median or the smaller-radius message) and the parcel line",
-            "() => { const c = document.querySelector('[aria-label=\"Price summary\"]'); return !!c && !!c.querySelector('.parcel') && (!!c.querySelector('.figure') || c.innerText.includes('smaller radius')); }", 60);
+            "() => { const c = document.querySelector('[aria-label=\"Price summary\"]'); return !!c && !!c.querySelector('.parcel') && (!!c.querySelector('.figure') || c.innerText.includes('smaller radius')); }", 45);
 
         var card = await page.EvaluateExpressionAsync<string>("document.querySelector('[aria-label=\"Price summary\"]').innerText");
         var parcel = await page.EvaluateExpressionAsync<string>("document.querySelector('[aria-label=\"Price summary\"] .parcel')?.innerText ?? ''");
