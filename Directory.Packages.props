@@ -19,6 +19,7 @@
     <PackageVersion Include="Microsoft.Extensions.Http.Resilience" Version="10.11.0" />
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.11.0" />
     <PackageVersion Include="ModelContextProtocol" Version="2.3.0" />
+    <PackageVersion Include="NetTopologySuite" Version="2.6.0" />
     <PackageVersion Include="Polyfill" Version="11.4.5" />
     <PackageVersion Include="Portable.System.DateTimeOnly" Version="9.0.2" />
     <PackageVersion Include="PuppeteerSharp" Version="25.14.0" />

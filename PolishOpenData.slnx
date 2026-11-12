@@ -13,6 +13,7 @@
     <Project Path="src/PolishOpenData.BialaLista/PolishOpenData.BialaLista.csproj" />
     <Project Path="src/PolishOpenData.Core/PolishOpenData.Core.csproj" />
     <Project Path="src/PolishOpenData.Geo.Core/PolishOpenData.Geo.Core.csproj" />
+    <Project Path="src/PolishOpenData.Geo.Nts/PolishOpenData.Geo.Nts.csproj" />
     <Project Path="src/PolishOpenData.Krs/PolishOpenData.Krs.csproj" />
     <Project Path="src/PolishOpenData.Mcp/PolishOpenData.Mcp.csproj" />
     <Project Path="src/PolishOpenData.Rcn/PolishOpenData.Rcn.csproj" />
@@ -26,6 +27,7 @@
     <Project Path="tests/PolishOpenData.Core.Tests/PolishOpenData.Core.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Demo.Tests/PolishOpenData.Demo.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Geo.Core.Tests/PolishOpenData.Geo.Core.Tests.csproj" />
+    <Project Path="tests/PolishOpenData.Geo.Nts.Tests/PolishOpenData.Geo.Nts.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Krs.Tests/PolishOpenData.Krs.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Mcp.Tests/PolishOpenData.Mcp.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Rcn.Tests/PolishOpenData.Rcn.Tests.csproj" />
