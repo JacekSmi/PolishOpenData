@@ -17,7 +17,7 @@
 | `PolishOpenData.Regon` | GUS REGON (BIR1.2): wyszukiwanie po NIP/REGON/KRS, zapytania zbiorcze po 20, pełne raporty, sesja i ogranicznik zapytań; wymaga własnego, bezpłatnego klucza GUS |
 | `PolishOpenData.Geo.Core` | Typowane współrzędne polskie: `Pl1992Point` (EPSG:2180) i `Wgs84Point` z wbudowaną konwersją, `Pl1992Bbox`, `ParcelId` (identyfikator działki TERYT) |
 | `PolishOpenData.Uldk` | ULDK GUGiK: działka ewidencyjna po identyfikatorze, po punkcie albo po nazwie obrębu i numerze, z granicą w WKT |
-| `PolishOpenData.Geo.Nts` | Opcjonalny adapter NetTopologySuite: `ParcelGeometry.ToNtsGeometry()` i `ToNtsPoint()` do liczenia pola, części wspólnej, bufora i odległości na działkach | net10.0, netstandard2.0 |
+| `PolishOpenData.Geo.Nts` | Opcjonalny adapter NetTopologySuite: `ParcelGeometry.ToNtsGeometry()` i `ToNtsPoint()` do liczenia pola, części wspólnej, bufora i odległości na działkach |
 | `PolishOpenData.Uug` | UUG GUGiK: geokodowanie polskiego adresu do punktu WGS-84 z dokładnością dopasowania oraz najbliższy adres dla punktu |
 | `PolishOpenData.Rcn` | RCN GUGiK (Rejestr Cen Nieruchomości): transakcje nieruchomościami (lokale, działki, budynki) na wskazanym obszarze i w wybranym okresie, ze statystyką ceny za m² |
 | `PolishOpenData.Mcp` | Serwer MCP dla asystentów AI: dane firmy, Biała Lista i sprawdzanie rachunku (online i offline), odpisy KRS, działki, geokodowanie adresów i ceny nieruchomości, walidacja numerów |

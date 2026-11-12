@@ -117,4 +117,21 @@ public class NtsExtensionsTests
         Assert.Equal(bbox[2], g.EnvelopeInternal.MaxX, 3);
         Assert.Equal(bbox[3], g.EnvelopeInternal.MaxY, 3);
     }
+
+    [Fact]
+    public void ToNtsGeometry_WktWithSridPrefix_Throws() =>
+        Assert.Throws<ArgumentException>(() => Parcel(2180, "SRID=4326;" + Square2180).ToNtsGeometry());
+
+    [Fact]
+    public void ToNtsGeometry_UnclosedRing_ThrowsParseException() =>
+        Assert.Throws<ParseException>(() => Parcel(2180, "POLYGON((0 0,10 0,10 10,0 10))").ToNtsGeometry());
+
+    [Fact]
+    public void ToNtsGeometry_EmptyPolygon_ReturnsEmptyGeometryWithSrid()
+    {
+        var g = Parcel(2180, "POLYGON EMPTY").ToNtsGeometry();
+
+        Assert.True(g.IsEmpty);
+        Assert.Equal(2180, g.SRID);
+    }
 }

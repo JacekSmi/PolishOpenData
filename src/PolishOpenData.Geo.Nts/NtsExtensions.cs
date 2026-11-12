@@ -28,16 +28,32 @@ public static class NtsExtensions
     /// Measures are in the units of the coordinate system: metres for 2180 (fetch it with
     /// <see cref="ParcelGeometryKind.Pl1992"/> for <c>Area</c> and <c>Distance</c>), degrees for 4326, where <c>Area</c> is
     /// in square degrees and not useful. A boundary that is not a valid polygon (<c>IsValid == false</c>) is returned as is.
+    /// Geometries of the SRIDs 2180 and 4326 share one factory each; any other SRID gets a new factory per call.
     /// </remarks>
     /// <param name="geometry">The boundary returned by the ULDK client.</param>
     /// <returns>The parsed geometry, usually a Polygon or MultiPolygon.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="geometry"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ParseException">The WKT cannot be parsed.</exception>
+    /// <exception cref="ArgumentException"><see cref="ParcelGeometry.Wkt"/> starts with an <c>SRID=</c> prefix.</exception>
+    /// <exception cref="ParseException">The WKT cannot be parsed, including a ring that is not closed.</exception>
     public static Geometry ToNtsGeometry(this ParcelGeometry geometry)
     {
         ArgumentNullException.ThrowIfNull(geometry);
 
-        return new WKTReader(ServicesOf(geometry.Srid)).Read(geometry.Wkt);
+        // An EWKT prefix would override Srid inside the reader and stamp a different SRID than the caller declared.
+        if (geometry.Wkt.AsSpan().TrimStart().StartsWith("SRID=".AsSpan(), StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("Wkt must not carry an SRID= prefix; set ParcelGeometry.Srid instead.", nameof(geometry));
+        }
+
+        try
+        {
+            return new WKTReader(ServicesOf(geometry.Srid)).Read(geometry.Wkt);
+        }
+        catch (ArgumentException ex)
+        {
+            // NTS reports some malformed input (an unclosed ring, a NaN ordinate) as ArgumentException.
+            throw new ParseException(ex.Message, ex);
+        }
     }
 
     /// <summary>A NetTopologySuite point with <c>X</c> = easting, <c>Y</c> = northing and <c>SRID</c> 2180.</summary>
