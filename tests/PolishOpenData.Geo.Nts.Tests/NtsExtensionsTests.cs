@@ -1,4 +1,7 @@
 using System;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 using NetTopologySuite.IO;
 using PolishOpenData.Geo.Nts;
 using PolishOpenData.Uldk;
@@ -94,5 +97,24 @@ public class NtsExtensionsTests
 
         Assert.True(parcel.Contains(new Pl1992Point(638010, 486010).ToNtsPoint()));
         Assert.False(parcel.Contains(new Pl1992Point(638150, 486010).ToNtsPoint()));
+    }
+
+    [Fact]
+    public void ToNtsGeometry_RealUldkParcel_MatchesTheBoundingBoxOfTheRecord()
+    {
+        // Fixture line: ...|minE,minN,maxE,maxN|source|SRID=2180;POLYGON(...)
+        var fields = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Fixtures", "uldk", "parcel-146510_8.0507.41_1.txt"))
+            .Split((char)10)[1].Split('|');
+        var bbox = fields[6].Split(',').Select(v => double.Parse(v, CultureInfo.InvariantCulture)).ToArray();
+        var wkt = fields[^1].Trim();
+
+        var g = Parcel(2180, wkt[(wkt.IndexOf(';', StringComparison.Ordinal) + 1)..]).ToNtsGeometry();
+
+        Assert.Equal("Polygon", g.GeometryType);
+        Assert.True(g.Area > 0);
+        Assert.Equal(bbox[0], g.EnvelopeInternal.MinX, 3);
+        Assert.Equal(bbox[1], g.EnvelopeInternal.MinY, 3);
+        Assert.Equal(bbox[2], g.EnvelopeInternal.MaxX, 3);
+        Assert.Equal(bbox[3], g.EnvelopeInternal.MaxY, 3);
     }
 }

@@ -17,6 +17,7 @@
 | `PolishOpenData.Regon` | GUS REGON (BIR1.2): wyszukiwanie po NIP/REGON/KRS, zapytania zbiorcze po 20, pełne raporty, sesja i ogranicznik zapytań; wymaga własnego, bezpłatnego klucza GUS |
 | `PolishOpenData.Geo.Core` | Typowane współrzędne polskie: `Pl1992Point` (EPSG:2180) i `Wgs84Point` z wbudowaną konwersją, `Pl1992Bbox`, `ParcelId` (identyfikator działki TERYT) |
 | `PolishOpenData.Uldk` | ULDK GUGiK: działka ewidencyjna po identyfikatorze, po punkcie albo po nazwie obrębu i numerze, z granicą w WKT |
+| `PolishOpenData.Geo.Nts` | Opcjonalny adapter NetTopologySuite: `ParcelGeometry.ToNtsGeometry()` i `ToNtsPoint()` do liczenia pola, części wspólnej, bufora i odległości na działkach | net10.0, netstandard2.0 |
 | `PolishOpenData.Uug` | UUG GUGiK: geokodowanie polskiego adresu do punktu WGS-84 z dokładnością dopasowania oraz najbliższy adres dla punktu |
 | `PolishOpenData.Rcn` | RCN GUGiK (Rejestr Cen Nieruchomości): transakcje nieruchomościami (lokale, działki, budynki) na wskazanym obszarze i w wybranym okresie, ze statystyką ceny za m² |
 | `PolishOpenData.Mcp` | Serwer MCP dla asystentów AI: dane firmy, Biała Lista i sprawdzanie rachunku (online i offline), odpisy KRS, działki, geokodowanie adresów i ceny nieruchomości, walidacja numerów |
@@ -183,6 +184,7 @@ var byName = await uldk.FindParcelsAsync("Krzewina 134");
 - **Brak wyniku to nie błąd.** Działka, która nie istnieje, to `null`, a wyszukiwanie bez trafień to pusta lista. Odpowiedź będąca stroną HTML (zapora GUGiK) rzuca `PolishOpenDataApiException` z `ErrorCode = "blocked"`.
 - **Co zawiera działka.** Identyfikator, numer, obręb, gminę, powiat, województwo, prostokąt otaczający w PL-1992 (`Extent`) oraz na życzenie granicę w WKT w PL-1992 lub WGS-84 (`ParcelGeometryKind`; WGS-84 kosztuje jedno dodatkowe zapytanie). ULDK nie podaje powierzchni.
 - **Punkt adresowy to nie cała nieruchomość.** Oznacza wejście do budynku, więc znaleziona w nim działka to ta pod tym wejściem, niekoniecznie cała nieruchomość.
+- **Obliczenia na geometrii.** `PolishOpenData.Geo.Nts` (opcjonalny, zależy od NetTopologySuite, działa w Native AOT) zamienia granicę na geometrię NetTopologySuite: `var pole = parcel.Geometry!.ToNtsGeometry().Area;` daje metry kwadratowe dla `ParcelGeometryKind.Pl1992` i stopnie kwadratowe (bezużyteczne) dla WGS-84. `Pl1992Point.ToNtsPoint()` i `Wgs84Point.ToNtsPoint()` dają punkty w tym samym układzie.
 - **Ponowienia i równoległość.** Biblioteki nigdy nie ponawiają zapytań. Klient zarejestrowany przez `AddUldkClient` lub `AddUugClient` otwiera najwyżej 4 połączenia na usługę. Jeśli chcesz ponowień, dodaj `.AddStandardResilienceHandler()` (z pakietu `Microsoft.Extensions.Http.Resilience`) do zwróconego buildera i ustaw ich niewiele.
 
 ## Ceny nieruchomości

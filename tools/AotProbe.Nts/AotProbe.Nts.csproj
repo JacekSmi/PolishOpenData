@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <!-- CI AOT gate: -p:AotGate=true (see PolishOpenData.Mcp.csproj for why not -p:PublishAot=true). -->
+    <PublishAot Condition="'$(AotGate)' == 'true'">true</PublishAot>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PolishOpenData.Geo.Nts\PolishOpenData.Geo.Nts.csproj" />
+  </ItemGroup>
+</Project>

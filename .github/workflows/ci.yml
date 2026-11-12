@@ -59,6 +59,10 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
       - name: Publish the MCP server with Native AOT (warnings are errors)
         run: dotnet publish src/PolishOpenData.Mcp/PolishOpenData.Mcp.csproj -c Release -r linux-x64 -p:AotGate=true -o artifacts/aot
+      - name: Publish and run the NetTopologySuite adapter probe with Native AOT (warnings are errors)
+        run: |
+          dotnet publish tools/AotProbe.Nts/AotProbe.Nts.csproj -c Release -r linux-x64 -p:AotGate=true -o artifacts/aot-nts
+          artifacts/aot-nts/AotProbe.Nts
       - name: Drive the AOT binary over stdio
         run: >
           python3 build/mcp-stdio-check.py
