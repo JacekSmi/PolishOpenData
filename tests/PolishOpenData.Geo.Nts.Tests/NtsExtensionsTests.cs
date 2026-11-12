@@ -66,4 +66,33 @@ public class NtsExtensionsTests
     [Fact]
     public void ToNtsGeometry_NullArgument_Throws() =>
         Assert.Throws<ArgumentNullException>(() => NtsExtensions.ToNtsGeometry(null!));
+
+    [Fact]
+    public void Pl1992Point_ToNtsPoint_MapsEastingToXAndNorthingToY()
+    {
+        var p = new Pl1992Point(638025.5, 486020.2).ToNtsPoint();
+
+        Assert.Equal(638025.5, p.X);
+        Assert.Equal(486020.2, p.Y);
+        Assert.Equal(2180, p.SRID);
+    }
+
+    [Fact]
+    public void Wgs84Point_ToNtsPoint_MapsLongitudeToXAndLatitudeToY()
+    {
+        var p = new Wgs84Point(52.1, 21.2).ToNtsPoint();
+
+        Assert.Equal(21.2, p.X);
+        Assert.Equal(52.1, p.Y);
+        Assert.Equal(4326, p.SRID);
+    }
+
+    [Fact]
+    public void ParcelGeometry_Contains_Pl1992Point()
+    {
+        var parcel = Parcel(2180, Square2180).ToNtsGeometry();
+
+        Assert.True(parcel.Contains(new Pl1992Point(638010, 486010).ToNtsPoint()));
+        Assert.False(parcel.Contains(new Pl1992Point(638150, 486010).ToNtsPoint()));
+    }
 }

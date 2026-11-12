@@ -15,6 +15,9 @@ public static class NtsExtensions
     private static readonly NtsGeometryServices Pl1992Services = ServicesFor(2180);
     private static readonly NtsGeometryServices Wgs84Services = ServicesFor(4326);
 
+    private static NtsGeometryServices ServicesOf(int srid) =>
+        srid switch { 2180 => Pl1992Services, 4326 => Wgs84Services, _ => ServicesFor(srid) };
+
     private static NtsGeometryServices ServicesFor(int srid) =>
         new(CoordinateArraySequenceFactory.Instance, new PrecisionModel(), srid);
 
@@ -34,6 +37,18 @@ public static class NtsExtensions
     {
         ArgumentNullException.ThrowIfNull(geometry);
 
-        return new WKTReader(geometry.Srid switch { 2180 => Pl1992Services, 4326 => Wgs84Services, var other => ServicesFor(other) }).Read(geometry.Wkt);
+        return new WKTReader(ServicesOf(geometry.Srid)).Read(geometry.Wkt);
     }
+
+    /// <summary>A NetTopologySuite point with <c>X</c> = easting, <c>Y</c> = northing and <c>SRID</c> 2180.</summary>
+    /// <param name="point">The PL-1992 point.</param>
+    /// <returns>The point, in the same frame as a 2180 <see cref="ToNtsGeometry"/> result.</returns>
+    public static Point ToNtsPoint(this Pl1992Point point) =>
+        Pl1992Services.CreateGeometryFactory(2180).CreatePoint(new Coordinate(point.Easting, point.Northing));
+
+    /// <summary>A NetTopologySuite point with <c>X</c> = longitude, <c>Y</c> = latitude and <c>SRID</c> 4326.</summary>
+    /// <param name="point">The WGS-84 point.</param>
+    /// <returns>The point, in the same frame as a 4326 <see cref="ToNtsGeometry"/> result. Note the swapped order: X is longitude.</returns>
+    public static Point ToNtsPoint(this Wgs84Point point) =>
+        Wgs84Services.CreateGeometryFactory(4326).CreatePoint(new Coordinate(point.Longitude, point.Latitude));
 }
