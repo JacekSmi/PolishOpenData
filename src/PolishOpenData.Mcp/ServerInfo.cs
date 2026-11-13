@@ -5,8 +5,12 @@ namespace PolishOpenData.Mcp;
 
 internal static class ServerInfo
 {
-    public static string InstructionsFor(bool regonEnabled) =>
-        regonEnabled ? Base.Replace("RCN: GUGiK)", "RCN: GUGiK; REGON: GUS)", StringComparison.Ordinal) + RegonSentence : Base;
+    public static string InstructionsFor(bool regonEnabled, bool ceidgEnabled = false) =>
+        (regonEnabled ? Base.Replace("RCN: GUGiK)", "RCN: GUGiK; REGON: GUS)", StringComparison.Ordinal) + RegonSentence : Base) +
+        (ceidgEnabled ? CeidgSentence : string.Empty);
+
+    private const string CeidgSentence =
+        " lookup_ceidg: a sole trader's business in the CEIDG register by NIP (status, start/suspension/end dates, address, PKD codes; the owner's name is personal data); needs the user's own CEIDG token and allows 1,000 requests per hour, so call it only when the other tools do not answer the question.";
 
     private const string RegonSentence =
         " lookup_regon: the GUS REGON register by NIP, REGON or KRS number (name, address, entity type, and for the first matches status and dates, main PKD activity, legal form); needs the user's own GUS key, so call it only when the other tools do not answer the question.";
