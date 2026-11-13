@@ -1,0 +1,11 @@
+{
+  "errors": [
+    {
+      "errorResult": "Zasób nie istnieje",
+      "errorReason": "Nie znaleziono zasobu o podanym identyfikatorze",
+      "errorSolution": "Proszę sprawdzić poprawność identyfikatora zasobu",
+      "errorCode": 3,
+      "errorHelp": "https://bdl.stat.gov.pl/api/v1/help/code/3"
+    }
+  ]
+}

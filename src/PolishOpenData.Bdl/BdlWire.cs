@@ -124,6 +124,7 @@ internal sealed class BdlErrorDto
 [JsonSourceGenerationOptions(JsonSerializerDefaults.Web)]
 [JsonSerializable(typeof(BdlPagedDto<BdlUnitDto>))]
 [JsonSerializable(typeof(BdlPagedDto<BdlVariableDto>))]
+[JsonSerializable(typeof(BdlUnitDto))]
 [JsonSerializable(typeof(BdlVariableDto))]
 [JsonSerializable(typeof(BdlSubjectDto))]
 [JsonSerializable(typeof(BdlUnitDataDto))]
@@ -139,6 +140,8 @@ internal static class BdlJson
     public static JsonTypeInfo<BdlPagedDto<BdlUnitDto>> Units => BdlJsonContext.Default.BdlPagedDtoBdlUnitDto;
 
     public static JsonTypeInfo<BdlPagedDto<BdlVariableDto>> Variables => BdlJsonContext.Default.BdlPagedDtoBdlVariableDto;
+
+    public static JsonTypeInfo<BdlUnitDto> Unit => BdlJsonContext.Default.BdlUnitDto;
 
     public static JsonTypeInfo<BdlVariableDto> Variable => BdlJsonContext.Default.BdlVariableDto;
 
@@ -160,6 +163,8 @@ internal static class BdlJson
     public static JsonTypeInfo<BdlPagedDto<BdlUnitDto>> Units { get; } = Info<BdlPagedDto<BdlUnitDto>>();
 
     public static JsonTypeInfo<BdlPagedDto<BdlVariableDto>> Variables { get; } = Info<BdlPagedDto<BdlVariableDto>>();
+
+    public static JsonTypeInfo<BdlUnitDto> Unit { get; } = Info<BdlUnitDto>();
 
     public static JsonTypeInfo<BdlVariableDto> Variable { get; } = Info<BdlVariableDto>();
 
