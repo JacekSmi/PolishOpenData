@@ -113,10 +113,11 @@ public class BdlMapperTests
     [Fact]
     public void VariableData_MapsUnitsAndTruncation()
     {
-        var d = BdlMapper.ToVariableData(Read("bdl/data-by-variable-72305.json", BdlJson.VariableData), truncated: true);
+        var d = BdlMapper.ToVariableData(Read("bdl/data-by-variable-72305.json", BdlJson.VariableData), nextPage: 2, rateLimited: false);
 
         Assert.Equal(72305, d.VariableId);
         Assert.True(d.Truncated);
+        Assert.Equal(2, d.NextPage);
         var unit = Assert.Single(d.Units);
         Assert.Equal("Kraków", unit.Name);
         Assert.Equal(816614, unit.Values.Single().Value);

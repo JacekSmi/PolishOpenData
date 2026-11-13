@@ -90,7 +90,17 @@ internal static class McpServerSetup
         // Always on: GUS BDL needs no key. The optional key only raises the limits. Never retried: anonymous use allows 100 requests
         // per 15 minutes and a retry is one more request against that limit.
         var bdlKey = (bdlClientId ?? Environment.GetEnvironmentVariable(BdlClientIdVariable))?.Trim();
-        var bdl = services.AddBdlClient(o => o.ClientId = string.IsNullOrEmpty(bdlKey) ? null : bdlKey);
+        IHttpClientBuilder bdl;
+        try
+        {
+            bdl = services.AddBdlClient(o => o.ClientId = string.IsNullOrEmpty(bdlKey) ? null : bdlKey);
+        }
+        catch (InvalidOperationException)
+        {
+            // name the variable (never its value) instead of failing on the first tool call
+            throw new InvalidOperationException(BdlClientIdVariable + " must be printable ASCII without spaces.");
+        }
+
         bdl.AddStandardResilienceHandler(o => o.Retry.ShouldHandle = static _ => ValueTask.FromResult(false));
         configureHttp?.Invoke(bdl);
 

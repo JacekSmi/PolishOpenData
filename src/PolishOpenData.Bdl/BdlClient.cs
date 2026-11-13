@@ -18,6 +18,7 @@ namespace PolishOpenData.Bdl;
 public sealed class BdlClient : IBdlClient
 {
     private const string Service = "BDL";
+    private const int PageSize = 100;
 
     private readonly HttpClient _httpClient;
     private readonly BdlClientOptions _options;
@@ -106,12 +107,15 @@ public sealed class BdlClient : IBdlClient
     }
 
     /// <inheritdoc/>
-    public async Task<BdlVariableData> GetDataByVariableAsync(int variableId, BdlLevel level, string? parentUnitId = null, IReadOnlyCollection<int>? years = null, int maxPages = 1, CancellationToken cancellationToken = default)
+    public async Task<BdlVariableData> GetDataByVariableAsync(int variableId, BdlLevel level, string? parentUnitId = null, IReadOnlyCollection<int>? years = null, int maxPages = 1, int startPage = 0, CancellationToken cancellationToken = default)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(maxPages, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(startPage, 0);
         RejectLocality(level);
         BdlVariableDataDto? merged = null;
-        for (var page = 0; page < maxPages; page++)
+        int? nextPage = null;
+        var rateLimited = false;
+        for (var page = startPage; page < startPage + maxPages; page++)
         {
             var query = new Query().Add("unit-level", Number((int)level));
             if (!string.IsNullOrWhiteSpace(parentUnitId))
@@ -121,7 +125,19 @@ public sealed class BdlClient : IBdlClient
 
             AddYears(query, years);
             query.Add("page-size", "100").Add("page", Number(page));
-            var dto = await SendAsync("data/by-variable/" + Number(variableId), query, BdlJson.VariableData, notFoundIsNull: false, static d => d, cancellationToken).ConfigureAwait(false);
+            BdlVariableDataDto? dto;
+            try
+            {
+                dto = await SendAsync("data/by-variable/" + Number(variableId), query, BdlJson.VariableData, notFoundIsNull: false, static d => d, cancellationToken).ConfigureAwait(false);
+            }
+            catch (QuotaExceededException) when (merged is not null)
+            {
+                // keep the pages already read (each cost a request) and say where to continue
+                rateLimited = true;
+                nextPage = page;
+                break;
+            }
+
             if (dto is null)
             {
                 break;
@@ -136,16 +152,24 @@ public sealed class BdlClient : IBdlClient
                 (merged.Results ??= []).AddRange(dto.Results ?? []);
             }
 
-            if (dto.Results is not { Count: > 0 } || merged.Results!.Count >= (merged.TotalRecords ?? 0))
+            // more pages exist when the total says so, or, with no total, while pages come back full
+            var count = dto.Results?.Count ?? 0;
+            var more = count > 0 && (dto.TotalRecords is { } total ? (page + 1) * PageSize < total : count >= PageSize);
+            if (!more)
             {
                 break;
+            }
+
+            if (page + 1 == startPage + maxPages)
+            {
+                nextPage = page + 1;
             }
         }
 
         merged ??= new BdlVariableDataDto { VariableId = variableId };
         try
         {
-            return BdlMapper.ToVariableData(merged, truncated: (merged.Results?.Count ?? 0) < (merged.TotalRecords ?? 0));
+            return BdlMapper.ToVariableData(merged, nextPage, rateLimited);
         }
         catch (FormatException ex)
         {
@@ -207,9 +231,15 @@ public sealed class BdlClient : IBdlClient
             throw await RejectedAsync(response, clientId, cancellationToken).ConfigureAwait(false);
         }
 
+        if ((int)response.StatusCode == 429)
+        {
+            // the body is never read; GUS reports when the window resets in X-Rate-Limit-Reset
+            throw new QuotaExceededException(Service + " rate limit reached (HTTP 429).", response.StatusCode, null, ResetTime(response), HttpHelpers.GetRetryAfter(response));
+        }
+
         if (!response.IsSuccessStatusCode)
         {
-            if ((int)response.StatusCode == 429 || (int)response.StatusCode >= 500)
+            if ((int)response.StatusCode >= 500)
             {
                 await response.ThrowForStatusAsync(Service, cancellationToken).ConfigureAwait(false);
             }
@@ -234,28 +264,52 @@ public sealed class BdlClient : IBdlClient
         }
     }
 
+    private static DateTimeOffset? ResetTime(HttpResponseMessage response) =>
+        response.Headers.TryGetValues("X-Rate-Limit-Reset", out var values)
+        && DateTimeOffset.TryParse(values.FirstOrDefault(), CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.RoundtripKind, out var reset)
+            ? reset
+            : null;
+
     private static async Task<PolishOpenDataApiException> RejectedAsync(HttpResponseMessage response, string? clientId, CancellationToken cancellationToken)
     {
         // HttpResponseMessage.Content is never null from a real HttpClient, but a custom handler on .NET Framework may leave it so.
         var body = response.Content is null ? string.Empty : await response.Content.ReadStringAsync(cancellationToken).ConfigureAwait(false);
         int? code = null;
+        string? reason = null;
         try
         {
-            code = JsonSerializer.Deserialize(body, BdlJson.Errors)?.Errors?.FirstOrDefault()?.ErrorCode;
+            var first = JsonSerializer.Deserialize(body, BdlJson.Errors)?.Errors?.FirstOrDefault();
+            code = first?.ErrorCode;
+            reason = first?.ErrorReason;
         }
         catch (JsonException)
         {
             // not the documented error body: keep the snippet, no code
         }
 
-        var scrubbed = clientId is null ? body : Regex.Replace(body, Regex.Escape(clientId), "***", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        var scrubbed = Scrub(body, clientId);
         var status = Number((int)response.StatusCode);
         var codeText = code is { } c ? Number(c) : null;
         return new PolishOpenDataApiException(
-            Service + " rejected the request (HTTP " + status + (codeText is null ? string.Empty : ", code " + codeText) + ").",
+            Service + " rejected the request (HTTP " + status + (codeText is null ? string.Empty : ", code " + codeText) + ")" + ReasonSuffix(reason, clientId) + ".",
             response.StatusCode,
             codeText,
             HttpHelpers.Truncate(scrubbed));
+    }
+
+    private static string Scrub(string text, string? clientId) =>
+        clientId is null ? text : Regex.Replace(text, Regex.Escape(clientId), "***", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+    // GUS explains a rejected request in errorReason (for example which parameter is missing): pass it on, scrubbed and bounded.
+    private static string ReasonSuffix(string? reason, string? clientId)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            return string.Empty;
+        }
+
+        var clean = new string(Scrub(reason!, clientId).Where(static c => !char.IsControl(c)).ToArray()).Trim().TrimEnd('.');
+        return clean.Length == 0 ? string.Empty : ": " + (clean.Length > 200 ? clean.Substring(0, 200) : clean);
     }
 
     /// <summary>Builds a query string with escaped values, in the order given.</summary>

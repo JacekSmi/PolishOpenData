@@ -18,6 +18,7 @@ public static class BdlServiceCollectionExtensions
         var options = new BdlClientOptions();
         configure?.Invoke(options);
         options.Validate();
+        _ = options.ResolveClientId();   // fail at registration, not on the first request, when the key has characters a header cannot carry
         return services.AddHttpClient<IBdlClient, BdlClient>((httpClient, _) => new BdlClient(httpClient, options));
     }
 }

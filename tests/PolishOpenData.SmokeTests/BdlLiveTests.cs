@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 using PolishOpenData.Bdl;
@@ -38,7 +39,8 @@ public sealed class BdlLiveTests
         }
     }
 
-    // The attribute table is baked in. If GUS adds an attribute id, a value could be mistaken for a number: fail loudly here.
+    // The attribute table is baked in the library. If GUS adds an attribute id, the library would keep its placeholder number as a
+    // value (flagged Unknown): fail loudly here so the table gets the new id.
     [Fact(Timeout = Live.TestTimeout)]
     public async Task Every_live_attribute_id_is_in_the_baked_in_table()
     {
@@ -46,19 +48,23 @@ public sealed class BdlLiveTests
         using var http = Live.CreateHttpClient();
         var ct = TestContext.Current.CancellationToken;
 
-        try
         {
             using var response = await http.GetAsync("https://bdl.stat.gov.pl/api/v1/attributes?format=json&lang=pl&page-size=100", ct);
+            if ((int)response.StatusCode == 429)
+            {
+                Assert.Skip("GUS BDL request limit reached for this IP address (HTTP 429).");
+            }
+
             response.EnsureSuccessStatusCode();
             using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
             var live = doc.RootElement.GetProperty("results").EnumerateArray().Select(a => a.GetProperty("id").GetInt32()).ToList();
 
-            var known = new[] { 0, 1, 3, 4, 7, 9, 11, 13, 14, 15, 17, 20, 21, 50, 91, 94, 97, 98 };
-            Assert.Empty(live.Except(known));
-        }
-        catch (QuotaExceededException ex)
-        {
-            Live.SkipOnQuota(ex);
+            // every id GUS lists must be one the library knows; a missing one would be treated as an ordinary number.
+            // The table is internal (and other packages share internal helper types, so no InternalsVisibleTo): ask it by reflection.
+            var table = typeof(BdlClient).Assembly.GetType("PolishOpenData.Bdl.BdlAttributes", throwOnError: true)!;
+            var get = table.GetMethod("Get", BindingFlags.Static | BindingFlags.NonPublic)!;
+            var unknown = live.Where(id => ((BdlValueFlag)get.Invoke(null, [id])!).Kind == BdlValueKind.Unknown).ToList();
+            Assert.True(unknown.Count == 0, "GUS lists attribute ids the library does not know: " + string.Join(", ", unknown));
         }
     }
 }

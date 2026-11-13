@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace PolishOpenData.Bdl;
 
@@ -47,7 +48,7 @@ public sealed record BdlUnit(string Id, string Name, string? ParentId, BdlLevel 
     {
         get
         {
-            if (Id.Length != 12)
+            if (Id.Length != 12 || !Id.All(static c => c is >= '0' and <= '9'))
             {
                 return null;
             }
@@ -89,7 +90,11 @@ public sealed record BdlSubject(string Id, string? ParentId, string Name, IReadO
 public sealed record BdlValue(int Year, double? Value, BdlValueFlag Flag);
 
 /// <summary>Values of one variable for one unit.</summary>
-public sealed record BdlSeries(int VariableId, int MeasureUnitId, DateTimeOffset? LastUpdate, IReadOnlyList<BdlValue> Values);
+/// <param name="VariableId">Variable id.</param>
+/// <param name="MeasureUnitId">Measure unit id.</param>
+/// <param name="LastUpdate">When GUS last changed the series, exactly as GUS sends it: without an offset (<see cref="DateTimeKind.Unspecified"/>), its time zone is not documented.</param>
+/// <param name="Values">One value per year.</param>
+public sealed record BdlSeries(int VariableId, int MeasureUnitId, DateTime? LastUpdate, IReadOnlyList<BdlValue> Values);
 
 /// <summary>Result of reading several variables for one unit. <see cref="Series"/> is empty for an unknown unit.</summary>
 public sealed record BdlUnitData(string UnitId, string UnitName, IReadOnlyList<BdlSeries> Series);
@@ -102,8 +107,10 @@ public sealed record BdlUnitValues(string UnitId, string Name, IReadOnlyList<Bdl
 /// <param name="MeasureUnitId">Measure unit id.</param>
 /// <param name="Units">Units read.</param>
 /// <param name="TotalRecords">Units the API reports in total.</param>
-/// <param name="Truncated">True when more units exist than were read because the page cap was reached.</param>
-public sealed record BdlVariableData(int VariableId, int MeasureUnitId, IReadOnlyList<BdlUnitValues> Units, int TotalRecords, bool Truncated);
+/// <param name="Truncated">True when more units exist than were read: the page cap was reached or GUS's rate limit stopped the read.</param>
+/// <param name="NextPage">When <paramref name="Truncated"/>, the page index to pass as <c>startPage</c> to continue without re-reading; otherwise null.</param>
+/// <param name="RateLimited">True when GUS's rate limit (HTTP 429) stopped the read after at least one page: the units read are returned, none are lost.</param>
+public sealed record BdlVariableData(int VariableId, int MeasureUnitId, IReadOnlyList<BdlUnitValues> Units, int TotalRecords, bool Truncated, int? NextPage, bool RateLimited);
 
 /// <summary>A list result with the total the API knows about.</summary>
 public sealed record BdlPage<T>(IReadOnlyList<T> Items, int TotalRecords);

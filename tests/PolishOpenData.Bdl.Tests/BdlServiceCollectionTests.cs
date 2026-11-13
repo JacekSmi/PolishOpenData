@@ -34,4 +34,14 @@ public class BdlServiceCollectionTests
 
         Assert.Null(handler.Requests.Single().ClientId);
     }
+
+    [Fact]
+    public void AddBdlClient_RejectsAnInvalidClientIdAtRegistration()
+    {
+        var services = new ServiceCollection();
+
+        var ex = Assert.Throws<System.InvalidOperationException>(() => services.AddBdlClient(o => o.ClientId = "has space"));
+
+        Assert.DoesNotContain("has space", ex.ToString(), System.StringComparison.Ordinal);
+    }
 }

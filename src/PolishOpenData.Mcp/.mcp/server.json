@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.JacekSmi/PolishOpenData",
   "title": "Polish Open Data (unofficial)",
-  "description": "Polish registers: KRS, VAT, bank checks, parcels, geocoding, property prices (RCN), optional REGON.",
+  "description": "Polish registers: KRS, VAT, bank checks, parcels, geocoding, property prices (RCN), local statistics (GUS BDL), optional REGON and CEIDG.",
   "version": "0.0.0-dev",
   "websiteUrl": "https://github.com/JacekSmi/PolishOpenData",
   "repository": { "url": "https://github.com/JacekSmi/PolishOpenData", "source": "github" },
@@ -36,7 +36,8 @@
         {
           "name": "POLISHOPENDATA_BDL_CLIENT_ID",
           "description": "Optional. Your own free GUS BDL API key (from the BDL registration); raises the rate limits of find_statistical_unit, search_statistics and get_statistics, which work without it.",
-          "isRequired": false
+          "isRequired": false,
+          "isSecret": true
         }
       ]
     }

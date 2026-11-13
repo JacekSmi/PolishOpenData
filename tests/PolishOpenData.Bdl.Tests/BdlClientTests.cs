@@ -251,4 +251,61 @@ public class BdlClientTests
     {
         Assert.Throws<ArgumentException>(() => new BdlClient(new HttpClient(), new BdlClientOptions { BaseAddress = new Uri("http://bdl.stat.gov.pl/api/v1/") }));
     }
+
+    [Fact]
+    public async Task ClientError_MessageCarriesGusReason_ButNeverTheKey()
+    {
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Json(HttpStatusCode.BadRequest,
+            "{\"errors\":[{\"errorCode\":9,\"errorReason\":\"Parametr varId jest wymagany " + ClientId + "\"}]}"));
+
+        var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(() =>
+            Client(handler, new BdlClientOptions { ClientId = ClientId }).SearchUnitsAsync("Krak\u00f3w", cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.Contains("Parametr varId jest wymagany", ex.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(ClientId, ex.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task Status429_CarriesTheResetTimeAndRetryAfter()
+    {
+        var handler = new StubHttpMessageHandler(_ =>
+        {
+            var response = StubHttpMessageHandler.Json((HttpStatusCode)429, "{}");
+            response.Headers.TryAddWithoutValidation("X-Rate-Limit-Reset", "2026-11-20T08:57:02.0557782Z");
+            response.Headers.TryAddWithoutValidation("Retry-After", "120");
+            return response;
+        });
+
+        var ex = await Assert.ThrowsAsync<QuotaExceededException>(() => Client(handler).SearchUnitsAsync("Krak\u00f3w", cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.Equal(new DateTimeOffset(2026, 11, 20, 8, 57, 2, TimeSpan.Zero).AddTicks(557782), ex.ResetsAt);
+        Assert.Equal(TimeSpan.FromSeconds(120), ex.RetryAfter);
+    }
+
+    [Fact]
+    public async Task Status429_WithAnUnreadableResetHeader_StillThrowsQuota()
+    {
+        var handler = new StubHttpMessageHandler(_ =>
+        {
+            var response = StubHttpMessageHandler.Json((HttpStatusCode)429, "{}");
+            response.Headers.TryAddWithoutValidation("X-Rate-Limit-Reset", "soon");
+            return response;
+        });
+
+        var ex = await Assert.ThrowsAsync<QuotaExceededException>(() => Client(handler).SearchUnitsAsync("Krak\u00f3w", cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.Null(ex.ResetsAt);
+    }
+
+    [Fact]
+    public async Task LastUpdate_IsKeptAsGusSendsItWithoutAnOffset()
+    {
+        var handler = Respond(HttpStatusCode.OK, "bdl/data-by-unit-krakow.json");
+
+        var data = await Client(handler).GetDataByUnitAsync("011212161011", [72305], cancellationToken: TestContext.Current.CancellationToken);
+
+        var updated = data.Series.Single(s => s.VariableId == 72305).LastUpdate;
+        Assert.Equal(new DateTime(2026, 5, 6, 8, 51, 41, 913), updated);
+        Assert.Equal(DateTimeKind.Unspecified, updated!.Value.Kind);
+    }
 }

@@ -351,7 +351,7 @@ Claude Code (`claude mcp add --env`) and VS Code (`env` in `.vscode/mcp.json`) t
 | `lookup_ceidg` | "Is this sole trader in CEIDG, and is the business running?" (optional, needs your own CEIDG token in `POLISHOPENDATA_CEIDG_TOKEN`; the tool exists only then) — every entry of the owner with that NIP: name, status, start/suspension/end dates, address, PKD codes. No contact data; the owner's name and the address (possibly a home address) are personal data |
 | `find_statistical_unit` | "Which unit is this?": a voivodeship, powiat or gmina of the GUS local data bank by name, with level, TERYT code and parent (the same name can match several levels). No key. |
 | `search_statistics` | "Which indicator measures this?": GUS indicators by text with a readable label (topic and dimensions), unit and id; costs up to 6 requests against GUS's anonymous limit of 100 per 15 minutes. No key. |
-| `get_statistics` | "What is the population / unemployment here, by year?": up to 20 indicators for one unit in one request; a `null` value means GUS has no value (confidential, not applicable, not yet published), never zero. No key; cites "GUS, Bank Danych Lokalnych (CC BY 4.0)". |
+| `get_statistics` | "What is the population / unemployment here, by year?": up to 20 indicators for one unit in one request; a `null` value means GUS has no value (confidential, not applicable, not yet published), never zero. No key; cites "Główny Urząd Statystyczny (GUS), Bank Danych Lokalnych, CC BY 4.0". |
 | `validate_identifier` | Offline checksum validation of NIP, REGON, KRS, NRB and KW numbers, with typo suggestions |
 
 ## Land-registry (KW) numbers

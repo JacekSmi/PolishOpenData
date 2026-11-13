@@ -96,6 +96,8 @@ public class BdlClientDataTests
         Assert.Equal(200, data.Units.Count);
         Assert.Equal(250, data.TotalRecords);
         Assert.True(data.Truncated);
+        Assert.Equal(2, data.NextPage);
+        Assert.False(data.RateLimited);
     }
 
     [Fact]
@@ -120,7 +122,8 @@ public class BdlClientDataTests
 
         Assert.Equal(2, handler.RequestUris.Count);
         Assert.Equal(100, data.Units.Count);
-        Assert.True(data.Truncated);
+        Assert.False(data.Truncated);
+        Assert.Null(data.NextPage);
     }
 
     [Fact]
@@ -187,5 +190,96 @@ public class BdlClientDataTests
 
         Assert.Equal(1, data.TotalRecords);
         Assert.False(data.Truncated);
+    }
+
+    private static HttpResponseMessage PageByIndex(HttpRequestMessage r, int total, int rateLimitedFrom = int.MaxValue)
+    {
+        var index = int.Parse(System.Text.RegularExpressions.Regex.Match(r.RequestUri!.Query, @"page=(\d+)").Groups[1].Value, CultureInfo.InvariantCulture);
+        return index >= rateLimitedFrom
+            ? StubHttpMessageHandler.Json((HttpStatusCode)429, "{}")
+            : StubHttpMessageHandler.Json(HttpStatusCode.OK, Page(total, Math.Min(100, Math.Max(0, total - (index * 100))), index * 100));
+    }
+
+    [Fact]
+    public async Task ByVariable_RateLimitedAfterAPage_ReturnsWhatWasReadAndWhereToContinue()
+    {
+        var handler = new StubHttpMessageHandler(r => PageByIndex(r, 450, rateLimitedFrom: 1));
+
+        var data = await Client(handler).GetDataByVariableAsync(72305, BdlLevel.Gmina, maxPages: 5, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal(2, handler.RequestUris.Count);
+        Assert.Equal(100, data.Units.Count);
+        Assert.True(data.Truncated);
+        Assert.True(data.RateLimited);
+        Assert.Equal(1, data.NextPage);
+        Assert.Equal(450, data.TotalRecords);
+    }
+
+    [Fact]
+    public async Task ByVariable_RateLimitedOnTheFirstPage_Throws()
+    {
+        var handler = new StubHttpMessageHandler(r => PageByIndex(r, 450, rateLimitedFrom: 0));
+
+        await Assert.ThrowsAsync<QuotaExceededException>(() => Client(handler).GetDataByVariableAsync(72305, BdlLevel.Gmina, maxPages: 5, cancellationToken: TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ByVariable_StartPage_ResumesWhereAnEarlierCallStopped()
+    {
+        var handler = new StubHttpMessageHandler(r => PageByIndex(r, 450));
+
+        var data = await Client(handler).GetDataByVariableAsync(72305, BdlLevel.Gmina, maxPages: 2, startPage: 2, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Contains("page=2", Query(handler, 0), StringComparison.Ordinal);
+        Assert.Contains("page=3", Query(handler, 1), StringComparison.Ordinal);
+        Assert.Equal(200, data.Units.Count);
+        Assert.True(data.Truncated);
+        Assert.Equal(4, data.NextPage);
+    }
+
+    [Fact]
+    public async Task ByVariable_ReadingTheLastPage_HasNoNextPage()
+    {
+        var handler = new StubHttpMessageHandler(r => PageByIndex(r, 450));
+
+        var data = await Client(handler).GetDataByVariableAsync(72305, BdlLevel.Gmina, maxPages: 5, startPage: 4, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal(50, data.Units.Count);
+        Assert.False(data.Truncated);
+        Assert.Null(data.NextPage);
+    }
+
+    [Fact]
+    public async Task ByVariable_RejectsANegativeStartPage()
+    {
+        var handler = new StubHttpMessageHandler(r => PageByIndex(r, 10));
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => Client(handler).GetDataByVariableAsync(72305, BdlLevel.Gmina, startPage: -1, cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Empty(handler.RequestUris);
+    }
+
+    [Fact]
+    public async Task ByVariable_NoTotal_KeepsReadingWhilePagesAreFull()
+    {
+        var handler = new StubHttpMessageHandler(r => StubHttpMessageHandler.Json(HttpStatusCode.OK,
+            PageByIndex(r, 250).Content.ReadAsStringAsync().GetAwaiter().GetResult().Replace("\"totalRecords\":250,", string.Empty)));
+
+        var data = await Client(handler).GetDataByVariableAsync(72305, BdlLevel.Gmina, maxPages: 5, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal(3, handler.RequestUris.Count);
+        Assert.Equal(250, data.Units.Count);
+        Assert.False(data.Truncated);
+    }
+
+    [Fact]
+    public async Task ByVariable_NoTotal_AFullLastPageUnderTheCap_IsTruncated()
+    {
+        var handler = new StubHttpMessageHandler(r => StubHttpMessageHandler.Json(HttpStatusCode.OK,
+            PageByIndex(r, 250).Content.ReadAsStringAsync().GetAwaiter().GetResult().Replace("\"totalRecords\":250,", string.Empty)));
+
+        var data = await Client(handler).GetDataByVariableAsync(72305, BdlLevel.Gmina, maxPages: 1, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.True(data.Truncated);
+        Assert.Equal(1, data.NextPage);
     }
 }

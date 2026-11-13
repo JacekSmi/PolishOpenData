@@ -41,4 +41,11 @@ public class BdlModelTests
         Assert.Equal(BdlValueKind.Unknown, BdlAttributes.Get(999).Kind);
         Assert.Equal(3, BdlAttributes.ValueFor(999, 3));
     }
+
+    [Fact]
+    public void Teryt_IsNullForANonNumericId()
+    {
+        Assert.Null(new BdlUnit("01121216X011", "x", null, BdlLevel.Gmina, null).Teryt);
+        Assert.Null(new BdlUnit("0112121610", "x", null, BdlLevel.Gmina, null).Teryt);
+    }
 }

@@ -56,7 +56,7 @@ public sealed class BdlToolsTests : IAsyncDisposable
     private static StubHttpMessageHandler Fixture(string fixture, HttpStatusCode status = HttpStatusCode.OK) =>
         new(_ => StubHttpMessageHandler.FromFixture(status, fixture));
 
-    private const string Attribution = "Source: GUS, Bank Danych Lokalnych (CC BY 4.0)";
+    private const string Attribution = "Source: Główny Urząd Statystyczny (GUS), Bank Danych Lokalnych, CC BY 4.0";
 
     [Fact]
     public async Task Tools_AreListedWithoutAnyKey()
@@ -245,5 +245,81 @@ public sealed class BdlToolsTests : IAsyncDisposable
         _ = Data(await CallAsync(handler, "find_statistical_unit", new() { ["name"] = "Kraków" }));
 
         Assert.Null(handler.Requests.Single().ClientId);
+    }
+
+    [Fact]
+    public async Task Quota_NamesTheResetTime_WhenGusSendsIt()
+    {
+        var handler = new StubHttpMessageHandler(_ =>
+        {
+            var response = StubHttpMessageHandler.Json((HttpStatusCode)429, "{}");
+            response.Headers.TryAddWithoutValidation("X-Rate-Limit-Reset", "2026-11-20T08:57:02Z");
+            return response;
+        });
+
+        var result = await CallAsync(handler, "get_statistics", new() { ["unitId"] = "011212161011", ["variableIds"] = new[] { 72305 } });
+
+        Assert.True(result.IsError);
+        Assert.Contains("2026-11-20 08:57 UTC", Text(result), StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("find_statistical_unit")]
+    [InlineData("search_statistics")]
+    public async Task Quota_OnFindAndSearch_AlsoPointsAtTheClientIdVariable(string tool)
+    {
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Json((HttpStatusCode)429, "{}"));
+        var args = tool == "find_statistical_unit" ? new Dictionary<string, object?> { ["name"] = "Krak\u00f3w" } : new Dictionary<string, object?> { ["query"] = "ludno\u015b\u0107" };
+
+        var result = await CallAsync(handler, tool, args);
+
+        Assert.True(result.IsError);
+        Assert.Contains("POLISHOPENDATA_BDL_CLIENT_ID", Text(result), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetStatistics_MissingUnitId_IsToolError()
+    {
+        var handler = Fixture("bdl/data-by-unit-krakow.json");
+
+        var result = await CallAsync(handler, "get_statistics", new() { ["variableIds"] = new[] { 72305 } });
+
+        Assert.True(result.IsError);
+        Assert.Empty(handler.RequestUris);
+    }
+
+    [Fact]
+    public async Task GetStatistics_NoVariableIds_IsToolError()
+    {
+        var handler = Fixture("bdl/data-by-unit-krakow.json");
+
+        var result = await CallAsync(handler, "get_statistics", new() { ["unitId"] = "011212161011", ["variableIds"] = Array.Empty<int>() });
+
+        Assert.True(result.IsError);
+        Assert.Empty(handler.RequestUris);
+    }
+
+    [Fact]
+    public async Task FindStatisticalUnit_LevelOutOfRange_IsToolError()
+    {
+        var handler = Fixture("bdl/units-search-krakow.json");
+
+        var result = await CallAsync(handler, "find_statistical_unit", new() { ["name"] = "Krak\u00f3w", ["level"] = 9 });
+
+        Assert.True(result.IsError);
+        Assert.Empty(handler.RequestUris);
+    }
+
+    [Fact]
+    public async Task InvalidClientIdVariable_FailsAtStartupAndNamesTheVariable()
+    {
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => McpTestSession.StartAsync(
+            http => http.ConfigurePrimaryHttpMessageHandler(() => Fixture("bdl/units-search-krakow.json")),
+            null,
+            TestContext.Current.CancellationToken,
+            bdlClientId: "bad key"));
+
+        Assert.Contains("POLISHOPENDATA_BDL_CLIENT_ID", ex.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("bad key", ex.ToString(), StringComparison.Ordinal);
     }
 }

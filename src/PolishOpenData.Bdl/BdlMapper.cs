@@ -28,7 +28,7 @@ internal static class BdlMapper
         return new BdlUnitData(dto.UnitId ?? string.Empty, dto.UnitName ?? string.Empty, series);
     }
 
-    public static BdlVariableData ToVariableData(BdlVariableDataDto dto, bool truncated)
+    public static BdlVariableData ToVariableData(BdlVariableDataDto dto, int? nextPage, bool rateLimited)
     {
         var units = new List<BdlUnitValues>();
         foreach (var u in dto.Results ?? [])
@@ -36,7 +36,7 @@ internal static class BdlMapper
             units.Add(new BdlUnitValues(u.Id ?? string.Empty, u.Name ?? string.Empty, Values(u.Values)));
         }
 
-        return new BdlVariableData(dto.VariableId, dto.MeasureUnitId, units, dto.TotalRecords ?? units.Count, truncated);
+        return new BdlVariableData(dto.VariableId, dto.MeasureUnitId, units, dto.TotalRecords ?? units.Count, nextPage is not null, nextPage, rateLimited);
     }
 
     private static List<BdlValue> Values(List<BdlYearValueDto>? values)
@@ -61,9 +61,10 @@ internal static class BdlMapper
     private static BdlLevel Level(int level) =>
         level is >= 0 and <= 7 ? (BdlLevel)level : throw new FormatException("BDL level is out of range.");
 
-    private static DateTimeOffset? Timestamp(string? text) =>
+    // GUS sends no offset and does not document the zone: keep it as sent (Unspecified) instead of guessing one.
+    private static DateTime? Timestamp(string? text) =>
         string.IsNullOrEmpty(text) ? null
-        : DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var t) ? t
+        : DateTime.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var t) ? t
         : throw new FormatException("BDL timestamp is not readable.");
 
     private static List<string> Dimensions(params string?[] names)

@@ -43,8 +43,11 @@ public interface IBdlClient
 
     /// <summary>
     /// Reads one variable for many units of a level (optionally below one parent unit). One request returns 100 units; the call
-    /// reads at most <paramref name="maxPages"/> pages and sets <see cref="BdlVariableData.Truncated"/> when more exist. Every page
-    /// is one request against the rate limit: all gminas of Poland are about 25 pages.
+    /// reads at most <paramref name="maxPages"/> pages, starting at page <paramref name="startPage"/>, and sets
+    /// <see cref="BdlVariableData.Truncated"/> with <see cref="BdlVariableData.NextPage"/> when more exist. Every page is one request
+    /// against the rate limit: all gminas of Poland are about 25 pages. When GUS's rate limit stops the read after the first page, the
+    /// units already read are returned with <see cref="BdlVariableData.RateLimited"/> set (continue from <c>NextPage</c> later);
+    /// a rate limit on the first page throws <see cref="QuotaExceededException"/>.
     /// </summary>
-    Task<BdlVariableData> GetDataByVariableAsync(int variableId, BdlLevel level, string? parentUnitId = null, IReadOnlyCollection<int>? years = null, int maxPages = 1, CancellationToken cancellationToken = default);
+    Task<BdlVariableData> GetDataByVariableAsync(int variableId, BdlLevel level, string? parentUnitId = null, IReadOnlyCollection<int>? years = null, int maxPages = 1, int startPage = 0, CancellationToken cancellationToken = default);
 }
