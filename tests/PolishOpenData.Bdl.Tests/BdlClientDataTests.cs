@@ -147,4 +147,45 @@ public class BdlClientDataTests
         Assert.Equal("Kraków", data.Units.Single().Name);
         Assert.False(data.Truncated);
     }
+
+    [Fact]
+    public async Task ByVariable_BadYear_IsAnUnreadableResponse_NotARawFormatException()
+    {
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK,
+            "{\"totalRecords\":1,\"variableId\":1,\"results\":[{\"id\":\"1\",\"name\":\"x\",\"values\":[{\"year\":\"20x5\",\"val\":1,\"attrId\":1}]}]}"));
+
+        var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => Client(handler).GetDataByVariableAsync(1, BdlLevel.Gmina, cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.IsType<FormatException>(ex.InnerException);
+    }
+
+    [Fact]
+    public async Task ByUnit_BadYear_IsAnUnreadableResponse()
+    {
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK,
+            "{\"unitId\":\"1\",\"unitName\":\"x\",\"results\":[{\"id\":1,\"measureUnitId\":1,\"values\":[{\"year\":\"20x5\",\"val\":1,\"attrId\":1}]}]}"));
+
+        await Assert.ThrowsAsync<PolishOpenDataApiException>(() => Client(handler).GetDataByUnitAsync("1", [1], cancellationToken: TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ByVariable_RejectsLocalityLevel()
+    {
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, Page(1, 1, 0)));
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => Client(handler).GetDataByVariableAsync(72305, BdlLevel.Locality, cancellationToken: TestContext.Current.CancellationToken));
+        Assert.Empty(handler.RequestUris);
+    }
+
+    [Fact]
+    public async Task ByVariable_MissingTotalRecords_FallsBackToWhatWasRead()
+    {
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK,
+            "{\"variableId\":1,\"results\":[{\"id\":\"1\",\"name\":\"x\",\"values\":[]}]}"));
+
+        var data = await Client(handler).GetDataByVariableAsync(1, BdlLevel.Gmina, cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal(1, data.TotalRecords);
+        Assert.False(data.Truncated);
+    }
 }

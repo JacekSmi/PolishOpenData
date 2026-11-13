@@ -36,7 +36,7 @@ internal static class BdlMapper
             units.Add(new BdlUnitValues(u.Id ?? string.Empty, u.Name ?? string.Empty, Values(u.Values)));
         }
 
-        return new BdlVariableData(dto.VariableId, dto.MeasureUnitId, units, dto.TotalRecords, truncated);
+        return new BdlVariableData(dto.VariableId, dto.MeasureUnitId, units, dto.TotalRecords ?? units.Count, truncated);
     }
 
     private static List<BdlValue> Values(List<BdlYearValueDto>? values)
@@ -49,7 +49,10 @@ internal static class BdlMapper
                 throw new FormatException("BDL year is not a number.");
             }
 
-            result.Add(new BdlValue(year, BdlAttributes.ValueFor(v.AttrId, v.Val), BdlAttributes.Get(v.AttrId)));
+            // A value without an attribute id is kept as given and marked Unknown: dropping a number is worse.
+            result.Add(v.AttrId is { } attr
+                ? new BdlValue(year, BdlAttributes.ValueFor(attr, v.Val), BdlAttributes.Get(attr))
+                : new BdlValue(year, v.Val, new BdlValueFlag(-1, null, BdlValueKind.Unknown)));
         }
 
         return result;

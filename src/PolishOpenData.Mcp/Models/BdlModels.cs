@@ -10,6 +10,9 @@ internal sealed record BdlUnitSearchResult
 {
     public required string Query { get; init; }
 
+    /// <summary>All matches GUS reports; <see cref="Units"/> holds the first 20.</summary>
+    public required int TotalMatches { get; init; }
+
     public required IReadOnlyList<BdlUnitView> Units { get; init; }
 
     /// <summary>Attribution required by the CC BY 4.0 licence.</summary>

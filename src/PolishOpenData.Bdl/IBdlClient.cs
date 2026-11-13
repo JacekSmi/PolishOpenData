@@ -13,11 +13,12 @@ namespace PolishOpenData.Bdl;
 public interface IBdlClient
 {
     /// <summary>
-    /// Finds units whose name contains <paramref name="name"/> (at most 100, one request). The same name can match several
+    /// Finds units whose name contains <paramref name="name"/> (the first 100 plus the total, one request). The same name can match several
     /// levels (a subregion, a powiat and a gmina all called "Kraków"): look at <see cref="BdlUnit.Level"/>.
     /// </summary>
     /// <exception cref="System.ArgumentException"><paramref name="name"/> is shorter than 2 characters.</exception>
-    Task<IReadOnlyList<BdlUnit>> SearchUnitsAsync(string name, BdlLevel? level = null, CancellationToken cancellationToken = default);
+    /// <exception cref="System.ArgumentOutOfRangeException"><paramref name="level"/> is <see cref="BdlLevel.Locality"/>: statistical localities are not supported.</exception>
+    Task<BdlPage<BdlUnit>> SearchUnitsAsync(string name, BdlLevel? level = null, CancellationToken cancellationToken = default);
 
     /// <summary>Reads one unit by its 12-digit BDL id; null when it does not exist.</summary>
     Task<BdlUnit?> GetUnitAsync(string unitId, CancellationToken cancellationToken = default);

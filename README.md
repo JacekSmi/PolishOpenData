@@ -156,7 +156,7 @@ dotnet add package PolishOpenData.Bdl
 ```csharp
 services.AddBdlClient();   // optional: o => o.ClientId = "your-own-key"
 var bdl = provider.GetRequiredService<IBdlClient>();
-var gmina = (await bdl.SearchUnitsAsync("Kraków", BdlLevel.Gmina)).Single();   // the same name also matches a powiat and a subregion: pick the level
+var gmina = (await bdl.SearchUnitsAsync("Kraków", BdlLevel.Gmina)).Items.Single();   // the same name also matches a powiat and a subregion: pick the level
 var data = await bdl.GetDataByUnitAsync(gmina.Id, [72305], [2025]);            // variable 72305: population, total
 foreach (var value in data.Series[0].Values)
 {

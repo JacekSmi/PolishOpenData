@@ -18,7 +18,7 @@ public class BdlServiceCollectionTests
 
         var units = await provider.GetRequiredService<IBdlClient>().SearchUnitsAsync("Kraków", cancellationToken: TestContext.Current.CancellationToken);
 
-        Assert.Equal(3, units.Count);
+        Assert.Equal(3, units.Items.Count);
         Assert.Equal("key-123", handler.Requests.Single().ClientId);
     }
 

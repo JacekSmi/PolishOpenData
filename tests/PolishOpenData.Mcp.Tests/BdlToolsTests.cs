@@ -150,6 +150,53 @@ public sealed class BdlToolsTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task GetStatistics_UnknownAttribute_IsNotPresentedAsACleanNumber()
+    {
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK,
+            "{\"unitId\":\"1\",\"unitName\":\"x\",\"results\":[{\"id\":5,\"measureUnitId\":1,\"values\":[{\"year\":\"2025\",\"val\":0,\"attrId\":99}]}]}"));
+
+        var data = Data(await CallAsync(handler, "get_statistics", new() { ["unitId"] = "011212161011", ["variableIds"] = new[] { 5 } }));
+
+        var value = data.GetProperty("series")[0].GetProperty("values")[0];
+        Assert.Contains("unknown", value.GetProperty("flag").GetString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task SearchStatistics_AFailedSubjectLookup_FallsBackToTheSubjectId()
+    {
+        var handler = new StubHttpMessageHandler(r => r.RequestUri!.AbsolutePath.EndsWith("/variables/search", StringComparison.Ordinal)
+            ? StubHttpMessageHandler.Json(HttpStatusCode.OK, VariablesJson())
+            : StubHttpMessageHandler.Json((HttpStatusCode)429, "{}"));
+
+        var data = Data(await CallAsync(handler, "search_statistics", new() { ["query"] = "ludność" }));
+
+        Assert.StartsWith("P1: ogółem", data.GetProperty("variables")[0].GetProperty("label").GetString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task FindStatisticalUnit_ReportsTheTotalWhenResultsAreCut()
+    {
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK,
+            "{\"totalRecords\":250,\"results\":[" + string.Join(",", Enumerable.Range(1, 30).Select(i => "{\"id\":\"" + (100000000000L + i).ToString(System.Globalization.CultureInfo.InvariantCulture) + "\",\"name\":\"Nowa " + i + "\",\"level\":6}")) + "]}"));
+
+        var data = Data(await CallAsync(handler, "find_statistical_unit", new() { ["name"] = "Nowa" }));
+
+        Assert.Equal(250, data.GetProperty("totalMatches").GetInt32());
+        Assert.Equal(20, data.GetProperty("units").GetArrayLength());
+    }
+
+    [Fact]
+    public async Task FindStatisticalUnit_LocalityLevel_IsToolError()
+    {
+        var handler = Fixture("bdl/units-search-krakow.json");
+
+        var result = await CallAsync(handler, "find_statistical_unit", new() { ["name"] = "Kraków", ["level"] = 7 });
+
+        Assert.True(result.IsError);
+        Assert.Empty(handler.RequestUris);
+    }
+
+    [Fact]
     public async Task GetStatistics_UnknownUnit_SaysNotFound()
     {
         var data = Data(await CallAsync(Fixture("bdl/empty-unit.json"), "get_statistics", new() { ["unitId"] = "999999999999", ["variableIds"] = new[] { 72305 } }));

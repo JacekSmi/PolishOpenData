@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,9 +33,10 @@ public sealed class BdlClient : IBdlClient
     }
 
     /// <inheritdoc/>
-    public async Task<IReadOnlyList<BdlUnit>> SearchUnitsAsync(string name, BdlLevel? level = null, CancellationToken cancellationToken = default)
+    public async Task<BdlPage<BdlUnit>> SearchUnitsAsync(string name, BdlLevel? level = null, CancellationToken cancellationToken = default)
     {
         RequireText(name, nameof(name), 2);
+        RejectLocality(level);
         var query = new Query().Add("name", name.Trim());
         if (level is { } l)
         {
@@ -42,7 +44,7 @@ public sealed class BdlClient : IBdlClient
         }
 
         var result = await SendAsync("units/search", query.Add("page-size", "100"), BdlJson.Units, notFoundIsNull: false, ToUnits, cancellationToken).ConfigureAwait(false);
-        return result ?? [];
+        return result ?? new BdlPage<BdlUnit>([], 0);
     }
 
     /// <inheritdoc/>
@@ -64,7 +66,7 @@ public sealed class BdlClient : IBdlClient
         }
 
         var page = await SendAsync("variables/search", query.Add("page-size", "100"), BdlJson.Variables, notFoundIsNull: false,
-            static dto => new BdlPage<BdlVariable>(dto.Results is null ? [] : dto.Results.ConvertAll(BdlMapper.ToVariable), dto.TotalRecords), cancellationToken).ConfigureAwait(false);
+            static dto => new BdlPage<BdlVariable>(dto.Results is null ? [] : dto.Results.ConvertAll(BdlMapper.ToVariable), dto.TotalRecords ?? dto.Results?.Count ?? 0), cancellationToken).ConfigureAwait(false);
         return page ?? new BdlPage<BdlVariable>([], 0);
     }
 
@@ -107,6 +109,7 @@ public sealed class BdlClient : IBdlClient
     public async Task<BdlVariableData> GetDataByVariableAsync(int variableId, BdlLevel level, string? parentUnitId = null, IReadOnlyCollection<int>? years = null, int maxPages = 1, CancellationToken cancellationToken = default)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(maxPages, 1);
+        RejectLocality(level);
         BdlVariableDataDto? merged = null;
         for (var page = 0; page < maxPages; page++)
         {
@@ -133,14 +136,21 @@ public sealed class BdlClient : IBdlClient
                 (merged.Results ??= []).AddRange(dto.Results ?? []);
             }
 
-            if (dto.Results is not { Count: > 0 } || merged.Results!.Count >= merged.TotalRecords)
+            if (dto.Results is not { Count: > 0 } || merged.Results!.Count >= (merged.TotalRecords ?? 0))
             {
                 break;
             }
         }
 
         merged ??= new BdlVariableDataDto { VariableId = variableId };
-        return BdlMapper.ToVariableData(merged, truncated: (merged.Results?.Count ?? 0) < merged.TotalRecords);
+        try
+        {
+            return BdlMapper.ToVariableData(merged, truncated: (merged.Results?.Count ?? 0) < (merged.TotalRecords ?? 0));
+        }
+        catch (FormatException ex)
+        {
+            throw new PolishOpenDataApiException(Service + " returned a value this library cannot read: " + ex.Message, HttpStatusCode.OK, null, null, ex);
+        }
     }
 
     private static void AddYears(Query query, IReadOnlyCollection<int>? years)
@@ -151,8 +161,16 @@ public sealed class BdlClient : IBdlClient
         }
     }
 
-    private static IReadOnlyList<BdlUnit> ToUnits(BdlPagedDto<BdlUnitDto> page) =>
-        page.Results is null ? [] : page.Results.ConvertAll(BdlMapper.ToUnit);
+    private static BdlPage<BdlUnit> ToUnits(BdlPagedDto<BdlUnitDto> page) =>
+        new(page.Results is null ? [] : page.Results.ConvertAll(BdlMapper.ToUnit), page.TotalRecords ?? page.Results?.Count ?? 0);
+
+    private static void RejectLocality(BdlLevel? level)
+    {
+        if (level == BdlLevel.Locality)
+        {
+            throw new ArgumentOutOfRangeException(nameof(level), "Statistical localities (level 7) are not supported.");
+        }
+    }
 
     private static string Number(int value) => value.ToString(CultureInfo.InvariantCulture);
 
@@ -191,7 +209,13 @@ public sealed class BdlClient : IBdlClient
 
         if (!response.IsSuccessStatusCode)
         {
-            await response.ThrowForStatusAsync(Service, cancellationToken).ConfigureAwait(false);
+            if ((int)response.StatusCode == 429 || (int)response.StatusCode >= 500)
+            {
+                await response.ThrowForStatusAsync(Service, cancellationToken).ConfigureAwait(false);
+            }
+
+            // any other 4xx: a gateway could echo the X-ClientId header into its page, so the body goes through the same scrubbing
+            throw await RejectedAsync(response, clientId, cancellationToken).ConfigureAwait(false);
         }
 
         var (value, body) = await response.ReadJsonAsync(typeInfo, Service, cancellationToken).ConfigureAwait(false);
@@ -224,7 +248,7 @@ public sealed class BdlClient : IBdlClient
             // not the documented error body: keep the snippet, no code
         }
 
-        var scrubbed = clientId is null ? body : body.Replace(clientId, "***");
+        var scrubbed = clientId is null ? body : Regex.Replace(body, Regex.Escape(clientId), "***", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         var status = Number((int)response.StatusCode);
         var codeText = code is { } c ? Number(c) : null;
         return new PolishOpenDataApiException(

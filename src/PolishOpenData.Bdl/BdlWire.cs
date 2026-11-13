@@ -7,7 +7,7 @@ namespace PolishOpenData.Bdl;
 
 internal sealed class BdlPagedDto<T>
 {
-    public int TotalRecords { get; set; }
+    public int? TotalRecords { get; set; }
 
     public List<T>? Results { get; set; }
 }
@@ -65,7 +65,7 @@ internal sealed class BdlYearValueDto
 
     public double? Val { get; set; }
 
-    public int AttrId { get; set; }
+    public int? AttrId { get; set; }
 }
 
 internal sealed class BdlVariableValuesDto
@@ -99,7 +99,7 @@ internal sealed class BdlUnitValuesDto
 
 internal sealed class BdlVariableDataDto
 {
-    public int TotalRecords { get; set; }
+    public int? TotalRecords { get; set; }
 
     public int VariableId { get; set; }
 

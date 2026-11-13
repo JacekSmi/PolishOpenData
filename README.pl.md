@@ -133,7 +133,7 @@ Jedna osoba może mieć kilka wpisów (zakończony i działający), więc wyszuk
 ```csharp
 services.AddBdlClient();   // opcjonalnie: o => o.ClientId = "twój-własny-klucz"
 var bdl = provider.GetRequiredService<IBdlClient>();
-var gmina = (await bdl.SearchUnitsAsync("Kraków", BdlLevel.Gmina)).Single();   // ta sama nazwa pasuje też do powiatu i podregionu: wybierz poziom
+var gmina = (await bdl.SearchUnitsAsync("Kraków", BdlLevel.Gmina)).Items.Single();   // ta sama nazwa pasuje też do powiatu i podregionu: wybierz poziom
 var data = await bdl.GetDataByUnitAsync(gmina.Id, [72305], [2025]);            // zmienna 72305: ludność ogółem
 foreach (var value in data.Series[0].Values)
 {

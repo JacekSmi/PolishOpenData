@@ -25,7 +25,7 @@ public sealed class BdlLiveTests
         try
         {
             var units = await client.SearchUnitsAsync("Kraków", BdlLevel.Gmina, ct);
-            var gmina = Assert.Single(units, u => u.Id == Krakow);
+            var gmina = Assert.Single(units.Items, u => u.Id == Krakow);
             Assert.Equal("1261011", gmina.Teryt);
 
             var data = await client.GetDataByUnitAsync(Krakow, [PopulationTotal], [2025], ct);

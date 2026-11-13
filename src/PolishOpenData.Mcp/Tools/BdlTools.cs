@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using ModelContextProtocol.Protocol;
@@ -39,11 +40,12 @@ internal sealed class BdlTools(IBdlClient client)
             return ToolResults.Error("level must be 0 to 6.");
         }
 
-        var units = await client.SearchUnitsAsync(name, level is { } l ? (BdlLevel)l : null, cancellationToken).ConfigureAwait(false);
+        var page = await client.SearchUnitsAsync(name, level is { } l ? (BdlLevel)l : null, cancellationToken).ConfigureAwait(false);
         var result = new BdlUnitSearchResult
         {
             Query = name.Trim(),
-            Units = units.Take(MaxUnits).Select(u => new BdlUnitView(u.Id, RegonTools.Clean(u.Name) ?? string.Empty, LevelName(u.Level), u.Kind, u.Teryt, u.ParentId)).ToList(),
+            TotalMatches = page.TotalRecords,
+            Units = page.Items.Take(MaxUnits).Select(u => new BdlUnitView(u.Id, RegonTools.Clean(u.Name) ?? string.Empty, LevelName(u.Level), u.Kind, u.Teryt, u.ParentId)).ToList(),
             Source = Attribution,
         };
         return ToolResults.Ok(result, McpJson.Relaxed.BdlUnitSearchResult);
@@ -67,7 +69,15 @@ internal sealed class BdlTools(IBdlClient client)
         var subjects = new Dictionary<string, string?>(StringComparer.Ordinal);
         foreach (var subjectId in shown.Select(v => v.SubjectId).Distinct(StringComparer.Ordinal).Take(MaxSubjectLookups))
         {
-            subjects[subjectId] = (await client.GetSubjectAsync(subjectId, cancellationToken).ConfigureAwait(false))?.Name;
+            try
+            {
+                subjects[subjectId] = (await client.GetSubjectAsync(subjectId, cancellationToken).ConfigureAwait(false))?.Name;
+            }
+            catch (Exception ex) when (ex is PolishOpenDataException or HttpRequestException)
+            {
+                // a failed lookup (the 5 per second limit, a timeout) must not discard the search that succeeded: label by subject id
+                subjects[subjectId] = null;
+            }
         }
 
         var result = new BdlVariableSearchResult
@@ -85,7 +95,7 @@ internal sealed class BdlTools(IBdlClient client)
     }
 
     [McpServerTool(Name = "get_statistics", Title = "Get GUS local statistics for one voivodeship, powiat or gmina", ReadOnly = true, OpenWorld = true, Idempotent = true, Destructive = false, UseStructuredContent = true, OutputSchemaType = typeof(BdlStatisticsResult))]
-    [Description("Reads values of up to 20 indicators for one territorial unit by year, from the GUS local data bank (one request). A null value means GUS has no value for that year (confidential, not applicable or not yet published): never read it as zero; flag is GUS's one-letter marker. Unit ids come from find_statistical_unit and variable ids from search_statistics. Public statistics (GUS, CC BY 4.0): cite the source.")]
+    [Description("Reads values of up to 20 indicators for one territorial unit by year, from the GUS local data bank (one request). A null value means GUS has no value for that year (confidential, not applicable or not yet published): never read it as zero; flag is GUS's one-letter marker, 'no data', or 'unknown attribute' (a value GUS flagged in a way this server does not know: treat it with caution). Unit ids come from find_statistical_unit and variable ids from search_statistics. Public statistics (GUS, CC BY 4.0): cite the source.")]
     public async Task<CallToolResult> GetStatistics(
         [Description("12-digit unit id from find_statistical_unit, for example 011212161011.")] string? unitId = null,
         [Description("Variable ids from search_statistics (1 to 20).")] int[]? variableIds = null,
@@ -118,7 +128,10 @@ internal sealed class BdlTools(IBdlClient client)
     private static BdlValueView ToView(BdlValue v) => new(
         v.Year,
         v.Value,
-        v.Flag.Symbol is { Length: > 0 } ? v.Flag.Symbol : v.Flag.Kind == BdlValueKind.NoValue ? "no data" : null);
+        v.Flag.Symbol is { Length: > 0 } ? v.Flag.Symbol
+        : v.Flag.Kind == BdlValueKind.NoValue ? "no data"
+        : v.Flag.Kind == BdlValueKind.Unknown ? "unknown attribute"
+        : null);
 
     private static string LevelName(BdlLevel level) => level switch
     {

@@ -24,7 +24,8 @@ public class BdlClientTests
 
         var units = await Client(handler).SearchUnitsAsync("Kraków", cancellationToken: TestContext.Current.CancellationToken);
 
-        Assert.Equal(3, units.Count);
+        Assert.Equal(3, units.Items.Count);
+        Assert.Equal(3, units.TotalRecords);
         var url = handler.RequestUris.Single().AbsoluteUri;
         Assert.StartsWith("https://bdl.stat.gov.pl/api/v1/units/search?name=Krak%C3%B3w", url, StringComparison.Ordinal);
         Assert.Contains("page-size=100", url, StringComparison.Ordinal);
@@ -120,6 +121,43 @@ public class BdlClientTests
             Client(handler, new BdlClientOptions { ClientId = ClientId }).SearchUnitsAsync("Kraków", cancellationToken: TestContext.Current.CancellationToken));
 
         Assert.DoesNotContain(ClientId, ex.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain(ClientId, ex.ResponseSnippet ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("***", ex.ResponseSnippet, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(HttpStatusCode.Forbidden)]
+    [InlineData(HttpStatusCode.Unauthorized)]
+    [InlineData(HttpStatusCode.MethodNotAllowed)]
+    public async Task OtherClientErrors_ScrubTheClientIdFromTheSnippet_EvenUpperCased(HttpStatusCode status)
+    {
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Json(status, "<html>denied for X-ClientId: " + ClientId.ToUpperInvariant() + "</html>"));
+
+        var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(() =>
+            Client(handler, new BdlClientOptions { ClientId = ClientId }).SearchUnitsAsync("Kraków", cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.Equal(status, ex.StatusCode);
+        Assert.DoesNotContain(ClientId, ex.ResponseSnippet ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task SearchUnits_RejectsLocalityLevel()
+    {
+        var handler = Respond(HttpStatusCode.OK, "bdl/units-search-krakow.json");
+
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => Client(handler).SearchUnitsAsync("Kraków", BdlLevel.Locality, TestContext.Current.CancellationToken));
+        Assert.Empty(handler.RequestUris);
+    }
+
+    [Fact]
+    public async Task SearchUnits_TotalRecordsIsPassedOn()
+    {
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, "{\"totalRecords\":250,\"results\":[{\"id\":\"011212161011\",\"name\":\"Kraków\",\"level\":6}]}"));
+
+        var page = await Client(handler).SearchUnitsAsync("Kraków", cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal(250, page.TotalRecords);
+        Assert.Single(page.Items);
     }
 
     [Fact]

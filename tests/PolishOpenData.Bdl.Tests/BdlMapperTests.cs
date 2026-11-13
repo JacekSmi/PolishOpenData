@@ -47,6 +47,18 @@ public class BdlMapperTests
     }
 
     [Fact]
+    public void MissingAttrId_KeepsTheValueAsUnknown()
+    {
+        var json = """{"unitId":"1","unitName":"x","results":[{"id":1,"measureUnitId":1,"values":[{"year":"2025","val":816614},{"year":"2024","val":5,"attrId":null}]}]}""";
+
+        var values = BdlMapper.ToUnitData(JsonSerializer.Deserialize(json, BdlJson.UnitData)!).Series.Single().Values;
+
+        Assert.All(values, v => Assert.Equal(BdlValueKind.Unknown, v.Flag.Kind));
+        Assert.Equal(816614, values.Single(v => v.Year == 2025).Value);
+        Assert.Equal(5, values.Single(v => v.Year == 2024).Value);
+    }
+
+    [Fact]
     public void Year_NonNumeric_ThrowsFormatException()
     {
         var json = """{"unitId":"1","unitName":"x","results":[{"id":1,"measureUnitId":1,"values":[{"year":"20x5","val":1,"attrId":1}]}]}""";
