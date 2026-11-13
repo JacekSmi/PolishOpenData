@@ -48,9 +48,9 @@ public sealed class CeidgClientOptions
 
         foreach (var c in token)
         {
-            if (char.IsWhiteSpace(c) || char.IsControl(c))
+            if (c < '!' || c > '~')
             {
-                throw new InvalidOperationException("CeidgClientOptions.Token must not contain whitespace or control characters.");
+                throw new InvalidOperationException("CeidgClientOptions.Token must be printable ASCII without whitespace.");
             }
         }
 

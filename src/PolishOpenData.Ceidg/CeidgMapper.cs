@@ -8,7 +8,7 @@ internal static class CeidgMapper
 {
     public static CeidgBusiness Map(CeidgFirmaDto dto) => new()
     {
-        Id = Guid.TryParse(dto.Id, out var id) ? id : Guid.Empty,
+        Id = Id(dto.Id),
         Name = dto.Nazwa,
         Status = MapStatus(dto.Status),
         StatusRaw = dto.Status,
@@ -36,8 +36,15 @@ internal static class CeidgMapper
         _ => CeidgStatus.Unknown,
     };
 
+    // An unreadable id or date throws (the client reports it as an unusable response) rather than becoming a missing value:
+    // a business that "was never suspended" because its date changed format is worse than an error.
+    private static Guid Id(string? text) =>
+        string.IsNullOrEmpty(text) ? Guid.Empty : Guid.TryParse(text, out var id) ? id : throw new FormatException("CEIDG id is not a GUID.");
+
     private static DateOnly? Date(string? text) =>
-        DateOnly.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? d : null;
+        string.IsNullOrEmpty(text) ? null
+        : DateOnly.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? d
+        : throw new FormatException("CEIDG date is not in the format yyyy-MM-dd.");
 
     private static CeidgAddress MapAddress(CeidgAdresDto a) => new()
     {

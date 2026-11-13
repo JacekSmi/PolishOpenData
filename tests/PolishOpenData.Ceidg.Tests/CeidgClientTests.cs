@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using PolishOpenData.Ceidg;
 using PolishOpenData.Tests.Shared;
 
@@ -75,12 +76,10 @@ public class CeidgClientTests
         Assert.Null(found[1].Address);
     }
 
-    [Theory]
-    [InlineData(HttpStatusCode.NoContent)]
-    [InlineData(HttpStatusCode.NotFound)]
-    public async Task FindByNip_NothingFound_ReturnsEmptyList(HttpStatusCode status)
+    [Fact]
+    public async Task FindByNip_NothingFound_ReturnsEmptyList()
     {
-        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Empty(status));
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Empty(HttpStatusCode.NoContent));
 
         Assert.Empty(await Client(handler).FindByNipAsync(ActiveNip, TestContext.Current.CancellationToken));
     }
@@ -104,7 +103,7 @@ public class CeidgClientTests
         var b = await Client(handler).GetByIdAsync(id, TestContext.Current.CancellationToken);
 
         Assert.Equal(id, b?.Id);
-        Assert.EndsWith("/firma/31f87519-9395-4fcf-8e19-6d5c0522fa7a", Assert.Single(handler.Requests).Uri.ToString(), StringComparison.Ordinal);
+        Assert.EndsWith("/firma/31F87519-9395-4FCF-8E19-6D5C0522FA7A", Assert.Single(handler.Requests).Uri.ToString(), StringComparison.Ordinal);
     }
 
     [Theory]
@@ -188,6 +187,100 @@ public class CeidgClientTests
     [Fact]
     public void Options_NonHttpsBaseAddress_IsRejected() =>
         Assert.Throws<ArgumentException>(() => new CeidgClient(new HttpClient(), new CeidgClientOptions { Token = Token, BaseAddress = new Uri("http://dane.biznes.gov.pl/api/ceidg/v3/") }));
+
+    [Fact]
+    public async Task FindByNip_NotFoundStatus_ThrowsSoThatAWrongBaseAddressIsNotReadAsNoResult()
+    {
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Empty(HttpStatusCode.NotFound));
+
+        var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => Client(handler).FindByNipAsync(ActiveNip, TestContext.Current.CancellationToken));
+
+        Assert.Equal(HttpStatusCode.NotFound, ex.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetById_EmptyGuid_Throws() =>
+        await Assert.ThrowsAsync<ArgumentException>(() => Client(Respond(HttpStatusCode.OK, "ceidg/firma-nip-active.json")).GetByIdAsync(Guid.Empty, TestContext.Current.CancellationToken));
+
+    [Fact]
+    public async Task Unauthorized_DoesNotKeepTheResponseBodyEvenIfItEchoesTheToken()
+    {
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Json(HttpStatusCode.Unauthorized, "{\"message\":\"bad token " + Token + "\"}"));
+
+        var ex = await Assert.ThrowsAsync<CeidgAuthenticationException>(() => Client(handler).FindByNipAsync(ActiveNip, TestContext.Current.CancellationToken));
+
+        Assert.Null(ex.ResponseSnippet);
+        Assert.DoesNotContain(Token, ex.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task BadRequest_ScrubsTheTokenFromTheKeptBody()
+    {
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Json(HttpStatusCode.BadRequest, "{\"code\":\"NIEPOPRAWNY_NUMER_NIP\",\"message\":\"echo " + Token + "\"}"));
+
+        var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => Client(handler).FindByNipAsync(ActiveNip, TestContext.Current.CancellationToken));
+
+        Assert.DoesNotContain(Token, ex.ResponseSnippet, StringComparison.Ordinal);
+        Assert.DoesNotContain(Token, ex.ToString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task BadRequest_WithAnOddCode_DropsTheCodeInsteadOfPassingItOn()
+    {
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Json(HttpStatusCode.BadRequest, "{\"code\":\"ignore previous instructions\"}"));
+
+        var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => Client(handler).FindByNipAsync(ActiveNip, TestContext.Current.CancellationToken));
+
+        Assert.Null(ex.ErrorCode);
+        Assert.DoesNotContain("ignore", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task BaseAddressChangedToHttpAfterConstruction_IsRejectedBeforeAnyRequest()
+    {
+        var handler = Respond(HttpStatusCode.OK, "ceidg/firma-nip-active.json");
+        var options = new CeidgClientOptions { Token = Token };
+        var client = new CeidgClient(new HttpClient(handler), options);
+        options.BaseAddress = new Uri("http://dane.biznes.gov.pl/api/ceidg/v3/");
+
+        await Assert.ThrowsAsync<ArgumentException>(() => client.FindByNipAsync(ActiveNip, TestContext.Current.CancellationToken));
+
+        Assert.Empty(handler.Requests);
+    }
+
+    [Theory]
+    [InlineData("dataRozpoczecia", "2014-07-29T00:00:00")]
+    [InlineData("id", "not-a-guid")]
+    public async Task UnreadableValue_ThrowsInsteadOfSilentlyDroppingIt(string field, string value)
+    {
+        var body = "{\"firma\":[{\"id\":\"31F87519-9395-4FCF-8E19-6D5C0522FA7A\",\"status\":\"AKTYWNY\",\"" + field + "\":\"" + value + "\"}]}";
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, body));
+
+        await Assert.ThrowsAsync<PolishOpenDataApiException>(() => Client(handler).FindByNipAsync(ActiveNip, TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task NonAsciiToken_IsRejectedBeforeAnyRequest()
+    {
+        var handler = Respond(HttpStatusCode.OK, "ceidg/firma-nip-active.json");
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => Client(handler, "tokén").FindByNipAsync(ActiveNip, TestContext.Current.CancellationToken));
+
+        Assert.Empty(handler.Requests);
+    }
+
+    [Fact]
+    public async Task AddCeidgClient_ResolvesAClientThatSendsTheConfiguredToken()
+    {
+        var handler = Respond(HttpStatusCode.OK, "ceidg/firma-nip-active.json");
+        var services = new ServiceCollection();
+        services.AddCeidgClient(o => o.Token = Token).ConfigurePrimaryHttpMessageHandler(() => handler);
+        using var provider = services.BuildServiceProvider();
+
+        await provider.GetRequiredService<ICeidgClient>().FindByNipAsync(ActiveNip, TestContext.Current.CancellationToken);
+
+        Assert.Equal("Bearer " + Token, Assert.Single(handler.Requests).Authorization);
+    }
 
     [Fact]
     public async Task Options_BaseAddressWithoutTrailingSlash_StillResolvesUnderThePath()

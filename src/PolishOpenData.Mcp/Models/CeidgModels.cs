@@ -40,7 +40,7 @@ internal sealed record CeidgBusinessView
 
     public CeidgPkdView? MainPkd { get; init; }
 
-    /// <summary>The other PKD codes (at most 10).</summary>
+    /// <summary>The PKD codes (at most 10).</summary>
     public IReadOnlyList<CeidgPkdView> Pkd { get; init; } = [];
 
     public required string Note { get; init; }

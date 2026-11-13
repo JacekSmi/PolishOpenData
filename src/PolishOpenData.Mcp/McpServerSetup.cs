@@ -74,7 +74,7 @@ internal static class McpServerSetup
         }
 
         // Opt-in like REGON: without the user's own token there is no CEIDG client and no CEIDG traffic. Never retried:
-        // after HTTP 429 CEIDG blocks the token for a while and a retry only makes that longer.
+        // CEIDG allows 1,000 requests per 60 minutes per token, and a retry is one more request against that limit.
         var ceidgKey = (ceidgToken ?? Environment.GetEnvironmentVariable(CeidgTokenVariable))?.Trim();
         if (!string.IsNullOrEmpty(ceidgKey))
         {

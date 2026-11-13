@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -53,12 +54,19 @@ public sealed class CeidgClient : ICeidgClient
     /// <inheritdoc/>
     public async Task<CeidgBusiness?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var found = await GetAsync("firma/" + id.ToString("D", CultureInfo.InvariantCulture), cancellationToken).ConfigureAwait(false);
+        if (id == Guid.Empty)
+        {
+            throw new ArgumentException("The id is empty.", nameof(id));
+        }
+
+        // The API writes ids in upper case and says parameter values are case-sensitive.
+        var found = await GetAsync("firma/" + id.ToString("D", CultureInfo.InvariantCulture).ToUpperInvariant(), cancellationToken, notFoundIsEmpty: true).ConfigureAwait(false);
         return found.Count == 0 ? null : found[0];
     }
 
-    private async Task<IReadOnlyList<CeidgBusiness>> GetAsync(string relative, CancellationToken cancellationToken)
+    private async Task<IReadOnlyList<CeidgBusiness>> GetAsync(string relative, CancellationToken cancellationToken, bool notFoundIsEmpty = false)
     {
+        _options.Validate();   // the options are mutable: BaseAddress may have changed since construction
         var token = _options.ResolveToken();
         using var request = HttpHelpers.CreateGet(new Uri(_options.ResolveBaseAddress(), relative));
         request.Headers.TryAddWithoutValidation("Authorization", "Bearer " + token);
@@ -67,54 +75,79 @@ public sealed class CeidgClient : ICeidgClient
         switch (response.StatusCode)
         {
             case HttpStatusCode.NoContent:
-            case HttpStatusCode.NotFound:
+                return [];
+            case HttpStatusCode.NotFound when notFoundIsEmpty:
                 return [];
             case HttpStatusCode.Unauthorized:
             case HttpStatusCode.Forbidden:
-                var denied = await response.Content.ReadStringAsync(cancellationToken).ConfigureAwait(false);
+                // No body is kept: a gateway could echo the Authorization header into it.
                 throw new CeidgAuthenticationException(
                     "CEIDG did not accept the token (HTTP " + ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture) + ").",
                     response.StatusCode,
-                    HttpHelpers.Truncate(denied));
+                    null);
             case HttpStatusCode.BadRequest:
-                throw await BadRequestAsync(response, cancellationToken).ConfigureAwait(false);
+                throw await RejectedAsync(response, token, withCode: true, cancellationToken).ConfigureAwait(false);
         }
 
         if (!response.IsSuccessStatusCode)
         {
-            await response.ThrowForStatusAsync(Service, cancellationToken).ConfigureAwait(false);
+            if ((int)response.StatusCode == 429 || (int)response.StatusCode >= 500)
+            {
+                await response.ThrowForStatusAsync(Service, cancellationToken).ConfigureAwait(false);
+            }
+
+            // other 4xx, for example 404 from a query endpoint: an error, so that a wrong BaseAddress is not read as "no result"
+            throw await RejectedAsync(response, token, withCode: false, cancellationToken).ConfigureAwait(false);
         }
 
-        var (value, _) = await response.ReadJsonAsync(CeidgJson.Response, Service, cancellationToken).ConfigureAwait(false);
+        var (value, body) = await response.ReadJsonAsync(CeidgJson.Response, Service, cancellationToken).ConfigureAwait(false);
         var result = new List<CeidgBusiness>();
         if (value?.Firma is { } list)
         {
-            foreach (var dto in list)
+            try
             {
-                result.Add(CeidgMapper.Map(dto));
+                foreach (var dto in list)
+                {
+                    result.Add(CeidgMapper.Map(dto));
+                }
+            }
+            catch (FormatException ex)
+            {
+                throw HttpHelpers.UnreadableResponse(Service + " returned a value this library cannot read: " + ex.Message, response, body, ex);
             }
         }
 
         return result;
     }
 
-    private static async Task<PolishOpenDataApiException> BadRequestAsync(HttpResponseMessage response, CancellationToken cancellationToken)
+    private static async Task<PolishOpenDataApiException> RejectedAsync(HttpResponseMessage response, string token, bool withCode, CancellationToken cancellationToken)
     {
-        var body = await response.Content.ReadStringAsync(cancellationToken).ConfigureAwait(false);
+        // HttpResponseMessage.Content is never null from a real HttpClient, but a custom handler on .NET Framework may leave it so.
+        var body = response.Content is null ? string.Empty : await response.Content.ReadStringAsync(cancellationToken).ConfigureAwait(false);
         string? code = null;
-        try
+        if (withCode)
         {
-            code = JsonSerializer.Deserialize(body, CeidgJson.Error)?.Code;
-        }
-        catch (JsonException)
-        {
-            // not the documented error body: keep the snippet, no code
+            try
+            {
+                code = JsonSerializer.Deserialize(body, CeidgJson.Error)?.Code;
+            }
+            catch (JsonException)
+            {
+                // not the documented error body: keep the snippet, no code
+            }
+
+            // the documented codes are upper-case words (NIEPOPRAWNY_NUMER_NIP); anything else is not passed on
+            if (code is null || code.Length > 64 || !code.All(static c => (c >= 'A' && c <= 'Z') || c == '_'))
+            {
+                code = null;
+            }
         }
 
+        var status = ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture);
         return new PolishOpenDataApiException(
-            Service + " rejected the request (HTTP 400" + (code is null ? string.Empty : ", " + code) + ").",
+            Service + " rejected the request (HTTP " + status + (code is null ? string.Empty : ", " + code) + ").",
             response.StatusCode,
             code,
-            HttpHelpers.Truncate(body));
+            HttpHelpers.Truncate(body.Replace(token, "***")));
     }
 }

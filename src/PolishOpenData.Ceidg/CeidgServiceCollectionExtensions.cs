@@ -8,8 +8,8 @@ public static class CeidgServiceCollectionExtensions
 {
     /// <summary>
     /// Registers <see cref="ICeidgClient"/> as a typed HttpClient. Returns the builder so callers can add resilience or a
-    /// custom primary handler. Do not enable retries: after HTTP 429 the API blocks the token for a while, and a retry
-    /// only makes that longer. Set <see cref="CeidgClientOptions.Token"/> in <paramref name="configure"/>.
+    /// custom primary handler. Do not enable retries: the API allows 1,000 requests per 60 minutes per token, and a retry
+    /// is one more request against that limit. Set <see cref="CeidgClientOptions.Token"/> in <paramref name="configure"/>.
     /// </summary>
     public static IHttpClientBuilder AddCeidgClient(this IServiceCollection services, Action<CeidgClientOptions>? configure = null)
     {
