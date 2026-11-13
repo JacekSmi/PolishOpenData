@@ -1,0 +1,11 @@
+{
+  "errors": [
+    {
+      "errorResult": "Parametr 'pageSize' może przyjmować jedynie wartości z zakresu <1, 100>.",
+      "errorReason": "Parametr 'pageSize' wykracza poza zakres <1, 100>.",
+      "errorSolution": "Proszę podać parametr 'pageSize' o wartości z wymaganego zakresu <1, 100>.",
+      "errorCode": 8,
+      "errorHelp": "https://bdl.stat.gov.pl/api/v1/help/code/8"
+    }
+  ]
+}
