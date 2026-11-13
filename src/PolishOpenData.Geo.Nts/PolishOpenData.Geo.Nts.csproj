@@ -4,8 +4,6 @@
     <RootNamespace>PolishOpenData.Geo</RootNamespace>
     <Description>NetTopologySuite adapter for PolishOpenData: turns the WKT parcel boundary from the ULDK client and the typed PL-1992 / WGS-84 points into NetTopologySuite geometries (area, intersection, buffer, distance). Unofficial; not affiliated with the Polish government.</Description>
     <PackageTags>$(PackageTags);geo;nettopologysuite;nts;wkt;epsg-2180;uldk</PackageTags>
-    <!-- New package: no release to compare with yet, and the shared baseline predates it. Delete this override (and its line) once the first Geo.Nts version is on nuget.org, or the package is never baseline-validated. -->
-    <PackageValidationBaselineVersion></PackageValidationBaselineVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\PolishOpenData.Geo.Core\PolishOpenData.Geo.Core.csproj" />
