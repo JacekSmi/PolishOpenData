@@ -72,3 +72,7 @@ jobs:
           python3 build/mcp-stdio-check.py
           --expect-tools lookup_company,check_vat_bank_account,check_vat_bank_account_offline,get_krs_extract,validate_identifier,find_parcel,geocode_address,property_prices,lookup_regon
           -- artifacts/aot/PolishOpenData.Mcp
+      - name: Publish and run the NetTopologySuite adapter probe with Native AOT (warnings are errors)
+        run: |
+          dotnet publish tools/AotProbe.Nts/AotProbe.Nts.csproj -c Release -r linux-x64 -p:AotGate=true -o artifacts/aot-nts
+          artifacts/aot-nts/AotProbe.Nts
