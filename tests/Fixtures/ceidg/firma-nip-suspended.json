@@ -1,0 +1,24 @@
+{
+  "firma": [
+    {
+      "id": "6976CDA9-521A-44BE-9216-8EB1B459A68F",
+      "nazwa": "Anna Przykładowa",
+      "adresDzialalnosci": { "miasto": "Kraków", "kraj": "PL", "kod": "30-001" },
+      "wlasciciel": { "imie": "Anna", "nazwisko": "Przykładowa", "nip": "2367852376" },
+      "dataRozpoczecia": "2019-03-01",
+      "dataZawieszenia": "2024-05-10",
+      "dataWznowienia": "2025-01-02",
+      "dataZakonczenia": "2025-09-30",
+      "status": "ZAWIESZONY",
+      "link": "https://dane.biznes.gov.pl/api/ceidg/v3/firma/6976CDA9-521A-44BE-9216-8EB1B459A68F"
+    },
+    {
+      "id": "9D2531B1-6DED-4538-95EA-22FF2C7D2E20",
+      "nazwa": "Anna Przykładowa",
+      "wlasciciel": { "imie": "Anna", "nazwisko": "Przykładowa", "nip": "2367852376" },
+      "dataRozpoczecia": "2010-01-04",
+      "status": "NOWY_STATUS_Z_PRZYSZLOSCI",
+      "link": "https://dane.biznes.gov.pl/api/ceidg/v3/firma/9D2531B1-6DED-4538-95EA-22FF2C7D2E20"
+    }
+  ]
+}

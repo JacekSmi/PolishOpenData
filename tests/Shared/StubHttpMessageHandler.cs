@@ -20,6 +20,7 @@ internal sealed class RecordedRequest
         Sid = HeaderText(request.Headers, "sid");
         ContentType = request.Content?.Headers.ContentType?.ToString();
         UserAgent = HeaderText(request.Headers, "User-Agent");
+        Authorization = HeaderText(request.Headers, "Authorization");
         ExpectContinue = request.Headers.ExpectContinue == true;
         Body = body;
     }
@@ -35,6 +36,9 @@ internal sealed class RecordedRequest
     public string? ContentType { get; }
 
     public string? UserAgent { get; }
+
+    /// <summary>The value of the <c>Authorization</c> request header, or null.</summary>
+    public string? Authorization { get; }
 
     public bool ExpectContinue { get; }
 
