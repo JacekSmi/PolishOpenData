@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>
+    <RootNamespace>PolishOpenData.Bdl</RootNamespace>
+    <Description>Typed .NET client for the GUS Bank Danych Lokalnych (BDL) API: find voivodeships, powiats and gminas, search statistical indicators and read their values by year. No key needed (an optional free key raises the rate limits); data is CC BY 4.0. Unofficial; not affiliated with GUS.</Description>
+    <PackageTags>$(PackageTags);bdl;gus;statistics;demographics;local-data</PackageTags>
+    <!-- New package: no release to compare with yet, and the shared baseline predates it. Delete this override (and its line) once the first Bdl version is on nuget.org, or the package is never baseline-validated. -->
+    <PackageValidationBaselineVersion></PackageValidationBaselineVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
+    <PackageReference Include="Microsoft.Bcl.TimeProvider" />
+    <PackageReference Include="Portable.System.DateTimeOnly" />
+    <PackageReference Include="Polyfill" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PolishOpenData.Core\PolishOpenData.Core.csproj" />
+    <Compile Include="..\Shared\**\*.cs" LinkBase="Shared" />
+    <InternalsVisibleTo Include="PolishOpenData.Bdl.Tests" />
+  </ItemGroup>
+</Project>

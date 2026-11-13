@@ -62,7 +62,7 @@ jobs:
       - name: Drive the AOT binary over stdio
         run: >
           python3 build/mcp-stdio-check.py
-          --expect-tools lookup_company,check_vat_bank_account,check_vat_bank_account_offline,get_krs_extract,validate_identifier,find_parcel,geocode_address,property_prices
+          --expect-tools lookup_company,check_vat_bank_account,check_vat_bank_account_offline,get_krs_extract,validate_identifier,find_parcel,geocode_address,property_prices,find_statistical_unit,search_statistics,get_statistics
           -- artifacts/aot/PolishOpenData.Mcp
       - name: Drive the AOT binary with a REGON key set (opt-in tool is registered)
         env:
@@ -70,7 +70,7 @@ jobs:
           POLISHOPENDATA_REGON_KEY: dummy-key-not-a-secret
         run: >
           python3 build/mcp-stdio-check.py
-          --expect-tools lookup_company,check_vat_bank_account,check_vat_bank_account_offline,get_krs_extract,validate_identifier,find_parcel,geocode_address,property_prices,lookup_regon
+          --expect-tools lookup_company,check_vat_bank_account,check_vat_bank_account_offline,get_krs_extract,validate_identifier,find_parcel,geocode_address,property_prices,find_statistical_unit,search_statistics,get_statistics,lookup_regon
           -- artifacts/aot/PolishOpenData.Mcp
       - name: Drive the AOT binary with a CEIDG token set (opt-in tool is registered)
         env:
@@ -78,7 +78,7 @@ jobs:
           POLISHOPENDATA_CEIDG_TOKEN: dummy-token-not-a-secret
         run: >
           python3 build/mcp-stdio-check.py
-          --expect-tools lookup_company,check_vat_bank_account,check_vat_bank_account_offline,get_krs_extract,validate_identifier,find_parcel,geocode_address,property_prices,lookup_ceidg
+          --expect-tools lookup_company,check_vat_bank_account,check_vat_bank_account_offline,get_krs_extract,validate_identifier,find_parcel,geocode_address,property_prices,find_statistical_unit,search_statistics,get_statistics,lookup_ceidg
           -- artifacts/aot/PolishOpenData.Mcp
       - name: Publish and run the NetTopologySuite adapter probe with Native AOT (warnings are errors)
         run: |

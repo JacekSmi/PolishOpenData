@@ -19,6 +19,9 @@ internal static class ToolErrors
     private const string GeocodeTool = "geocode_address";
     private const string ParcelTool = "find_parcel";
     private const string PropertyTool = "property_prices";
+    private const string FindUnitTool = "find_statistical_unit";
+    private const string SearchStatisticsTool = "search_statistics";
+    private const string StatisticsTool = "get_statistics";
 
     /// <param name="exception">The failure.</param>
     /// <param name="toolName">The tool that failed, when known: some errors only have a specific meaning for one tool.</param>
@@ -39,6 +42,14 @@ internal static class ToolErrors
             "GUGiK is rate-limiting requests: " + quota.Message.TrimEnd('.') +
             (quota.RetryAfter is { } wait ? " (retry after " + ((int)Math.Ceiling(wait.TotalSeconds)).ToString(CultureInfo.InvariantCulture) + " s)" : string.Empty) +
             ". Wait a minute before trying again and avoid repeated or parallel lookups.",
+        // GUS BDL: anonymous limits are 5 per second, 100 per 15 minutes; a free key raises them.
+        QuotaExceededException quota when toolName is FindUnitTool or SearchStatisticsTool or StatisticsTool =>
+            "GUS is rate-limiting requests: " + quota.Message.TrimEnd('.') +
+            (quota.RetryAfter is { } wait ? " (retry after " + ((int)Math.Ceiling(wait.TotalSeconds)).ToString(CultureInfo.InvariantCulture) + " s)" : string.Empty) +
+            (quota.ResetsAt is { } at ? " (the limit window resets " + at.UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) + " UTC)" : string.Empty) +
+            (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable(McpServerSetup.BdlClientIdVariable))
+                ? ". Anonymous use allows 100 requests per 15 minutes: wait, or register a free BDL key and set it in " + McpServerSetup.BdlClientIdVariable + " for higher limits."
+                : ". Wait before trying again; a key is already set in " + McpServerSetup.BdlClientIdVariable + ", so these are the registered-user limits."),
         // The pointer to the offline VAT tool only helps for Biała Lista; a KRS 429 (no tool name) gets none.
         QuotaExceededException quota => "Request limit reached: " + quota.Message +
             (quota.ResetsAt is { } at ? " (resets " + at.UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) + " UTC)." : string.Empty) +

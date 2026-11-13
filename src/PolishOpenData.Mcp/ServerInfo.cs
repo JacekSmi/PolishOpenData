@@ -6,7 +6,7 @@ namespace PolishOpenData.Mcp;
 internal static class ServerInfo
 {
     public static string InstructionsFor(bool regonEnabled, bool ceidgEnabled = false) =>
-        (regonEnabled ? Base.Replace("RCN: GUGiK)", "RCN: GUGiK; REGON: GUS)", StringComparison.Ordinal) + RegonSentence : Base) +
+        (regonEnabled ? Base.Replace("statistics: GUS)", "statistics and REGON: GUS)", StringComparison.Ordinal) + RegonSentence : Base) +
         (ceidgEnabled ? CeidgSentence : string.Empty);
 
     private const string CeidgSentence =
@@ -24,7 +24,8 @@ internal static class ServerInfo
         "geocode_address: coordinates (WGS-84) of a Polish address, saying whether the match is an address, a street or a city. " +
         "find_parcel: a cadastral parcel (działka) by parcel ID, coordinates, address or region name and number, optionally with its boundary; data from EGiB via GUGiK, never land-registry (KW) numbers or owners. " +
         "property_prices: what real estate sold for near an address or coordinates, or in a powiat: median and quartile price per m² of flats and the latest single transactions (premises, parcels or buildings); data from the RCN register via GUGiK, published with a delay, informational and not a valuation; never land-registry (KW) numbers. " +
-        "Data comes from official registers (KRS: Ministry of Justice; Biała Lista: Ministry of Finance; RCN: GUGiK); cite the source and retrieval time. " +
+        "find_statistical_unit, search_statistics, get_statistics: GUS local statistics (population, unemployment, housing...) for voivodeships, powiats and gminas by year: find the unit, search the indicator, then read its values; a null value means no data, never zero; anonymous use allows 100 requests per 15 minutes and search_statistics costs up to 6, so do not repeat searches; cite \"Główny Urząd Statystyczny (GUS), Bank Danych Lokalnych, CC BY 4.0\". " +
+        "Data comes from official registers (KRS: Ministry of Justice; Biała Lista: Ministry of Finance; RCN: GUGiK; statistics: GUS); cite the source and retrieval time. " +
         "Biała Lista allows about 100 searches per day per IP address, so avoid repeating lookups or use check_vat_bank_account_offline. This server never queries the eKW land-registry portal.";
 
     public static string Version { get; } =

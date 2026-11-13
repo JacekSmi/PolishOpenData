@@ -20,6 +20,7 @@
 | [`PolishOpenData.BialaLista.Offline`](https://www.nuget.org/packages/PolishOpenData.BialaLista.Offline) | VAT whitelist checked offline against the Ministry of Finance daily flat file: no request limit, many pairs at once, no request ID | net10.0, netstandard2.0 |
 | [`PolishOpenData.Regon`](https://www.nuget.org/packages/PolishOpenData.Regon) | GUS REGON (BIR1.2): search by NIP/REGON/KRS, batches of 20, full reports, session and request limiter; needs your own free GUS key | net10.0, netstandard2.0 |
 | [`PolishOpenData.Ceidg`](https://www.nuget.org/packages/PolishOpenData.Ceidg) | CEIDG v3 (register of sole traders): entries by NIP, REGON or id with status, dates, address and PKD; needs your own free API token | net10.0, netstandard2.0 |
+| [`PolishOpenData.Bdl`](https://www.nuget.org/packages/PolishOpenData.Bdl) | GUS Bank Danych Lokalnych: find voivodeships, powiats and gminas, search indicators, read values by year (population, unemployment, budgets...); no key needed | net10.0, netstandard2.0 |
 | [`PolishOpenData.Geo.Core`](https://www.nuget.org/packages/PolishOpenData.Geo.Core) | Typed Polish coordinates: `Pl1992Point` (EPSG:2180) and `Wgs84Point` with a built-in conversion, `Pl1992Bbox`, `ParcelId` (TERYT parcel identifier) | net10.0, netstandard2.0 |
 | [`PolishOpenData.Uldk`](https://www.nuget.org/packages/PolishOpenData.Uldk) | GUGiK ULDK: cadastral parcel by ID, by point or by region name and number, with its boundary as WKT | net10.0, netstandard2.0 |
 | [`PolishOpenData.Geo.Nts`](https://www.nuget.org/packages/PolishOpenData.Geo.Nts) | Optional NetTopologySuite adapter: `ParcelGeometry.ToNtsGeometry()` and `ToNtsPoint()` for area, intersection, buffer and distance on parcels | net10.0, netstandard2.0 |
@@ -143,6 +144,27 @@ foreach (var business in await ceidg.FindByNipAsync(Nip.Parse("5260250995")))   
 ```
 
 A person can have several entries (an ended one and a running one), so lookups return lists. CEIDG allows 1,000 requests per 60 minutes per token; the client neither limits itself nor retries (a retry is one more request against the limit). Sole traders' names are personal data: use them to identify a business, not to build lists.
+
+## Local statistics: GUS Bank Danych Lokalnych
+
+`PolishOpenData.Bdl` reads GUS's local data bank (BDL): thousands of indicators (population, unemployment, housing, budgets...) for every voivodeship, powiat and gmina, by year. No key is needed; a free personal key from the BDL registration (sent as `X-ClientId`) raises the limits.
+
+```bash
+dotnet add package PolishOpenData.Bdl
+```
+
+```csharp
+services.AddBdlClient();   // optional: o => o.ClientId = "your-own-key"
+var bdl = provider.GetRequiredService<IBdlClient>();
+var gmina = (await bdl.SearchUnitsAsync("Kraków", BdlLevel.Gmina)).Items.Single();   // the same name also matches a powiat and a subregion: pick the level
+var data = await bdl.GetDataByUnitAsync(gmina.Id, [72305], [2025]);            // variable 72305: population, total
+foreach (var value in data.Series[0].Values)
+{
+    Console.WriteLine($"{value.Year}: {value.Value?.ToString() ?? "no data"}");
+}
+```
+
+Variable names mean little alone ("ogółem, ogółem"): `GetSubjectAsync` gives the topic that makes them readable. A cell can be a placeholder zero that GUS marks as confidential, not applicable or not yet published; the library turns those into `Value == null` and keeps GUS's flag in `Flag`. An id that does not exist is not an error: the data calls return an empty result. Anonymous limits are 5 requests per second, 100 per 15 minutes, 1,000 per 12 hours and 10,000 per week (a wrong `ClientId` is not rejected, you silently get the anonymous limits); the client neither limits itself nor retries, and `GetDataByVariableAsync` spends one request per 100 units (all gminas of Poland are about 25). The data is licensed CC BY 4.0: cite "Główny Urząd Statystyczny, Bank Danych Lokalnych". The TERYT code in `BdlUnit.Teryt` is derived from the unit id, which GUS does not document.
 
 ## Offline VAT whitelist check
 
@@ -312,6 +334,8 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 
 **Optional: the CEIDG tool.** `lookup_ceidg` appears only when the server finds your own CEIDG API token in the environment variable `POLISHOPENDATA_CEIDG_TOKEN`; without it the server has no CEIDG tool and sends nothing to CEIDG. Apply for the token on biznes.gov.pl (e-service 00_9999_00, Profil Zaufany login); it is personal, stays on your machine and is sent only to CEIDG. Set it in the same `env` block as in the REGON example above.
 
+**Statistics tools (no key).** `find_statistical_unit`, `search_statistics` and `get_statistics` read GUS Bank Danych Lokalnych. They work without a key under GUS's anonymous limits (5 per second, 100 per 15 minutes); a free personal key from the BDL registration, set in `POLISHOPENDATA_BDL_CLIENT_ID`, raises them (a wrong key is not rejected, you silently get the anonymous limits). The data is CC BY 4.0.
+
 Claude Code (`claude mcp add --env`) and VS Code (`env` in `.vscode/mcp.json`) take the same variable.
 
 | Tool | What it answers |
@@ -325,6 +349,9 @@ Claude Code (`claude mcp add --env`) and VS Code (`env` in `.vscode/mcp.json`) t
 | `property_prices` | "What did real estate sell for here?" — the median and quartile price per m² of flats (market sales of whole premises; the premises price over its usable area) and the newest single transactions for premises, parcels or buildings, from the RCN register via GUGiK. Search by exactly one of an address (it must resolve to one address point, otherwise the geocoder's candidates), WGS-84 coordinates (latitude first) or a four-digit powiat code; an address or coordinates take a radius of 50 to 2,500 m (default 500). Default period: the last 24 months; default premises function: residential (`premisesFunction` also takes garage, commercial, other and any). The data lag by months, so every answer says how old the newest transaction is. When more than 1,000 transactions match, the tool returns an error asking you to narrow the area, the period or the filters instead of a partial answer. A transaction shows date, price, address, floor, area, market, the deed number and the buyer and seller by kind only (natural person, company, …); the notary is never shown and there is no search by person. Informational, not a valuation. Sources: RCN, and UUG for an address (`sources`) |
 | `lookup_regon` | "What does GUS's REGON register say about this NIP?" (optional, needs your own GUS key) — for every matching entry: type, name, REGON, NIP, address and, for the first five, status (derived from GUS's dates), key dates, main PKD activity, and for legal persons legal form and register. Never contact data, owners' personal details or local-unit lists; names are untrusted text. Production data only; source: GUS BIR1.2 (`sources`) |
 | `lookup_ceidg` | "Is this sole trader in CEIDG, and is the business running?" (optional, needs your own CEIDG token in `POLISHOPENDATA_CEIDG_TOKEN`; the tool exists only then) — every entry of the owner with that NIP: name, status, start/suspension/end dates, address, PKD codes. No contact data; the owner's name and the address (possibly a home address) are personal data |
+| `find_statistical_unit` | "Which unit is this?": a voivodeship, powiat or gmina of the GUS local data bank by name, with level, TERYT code and parent (the same name can match several levels). No key. |
+| `search_statistics` | "Which indicator measures this?": GUS indicators by text with a readable label (topic and dimensions), unit and id; costs up to 6 requests against GUS's anonymous limit of 100 per 15 minutes. No key. |
+| `get_statistics` | "What is the population / unemployment here, by year?": up to 20 indicators for one unit in one request; a `null` value means GUS has no value (confidential, not applicable, not yet published), never zero. No key; cites "Główny Urząd Statystyczny (GUS), Bank Danych Lokalnych, CC BY 4.0". |
 | `validate_identifier` | Offline checksum validation of NIP, REGON, KRS, NRB and KW numbers, with typo suggestions |
 
 ## Land-registry (KW) numbers

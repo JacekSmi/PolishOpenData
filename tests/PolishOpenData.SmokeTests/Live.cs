@@ -29,9 +29,10 @@ namespace PolishOpenData.SmokeTests;
 /// <item><term>GUGiK orthophoto tiles (<c>DemoSiteLiveTests</c>: Chrome loads the deployed page, searches "Warszawa, Krucza 50" once and zooms to the parcel; needs <c>CHROME_BIN</c>)</term><description>0 / 0 / 0, about 30 tile requests (29 on 2026-11-05; the count is logged in the test output)</description></item>
 /// <item><term>GUS BIR test environment requests (published test key, no secret)</term><description>5 / 0 / 0 = 5</description></item>
 /// <item><term>GUS BIR production requests (needs <c>POLISHOPENDATA_REGON_KEY</c>, owner-run, skipped otherwise)</term><description>4 / 4 / 0 = 8 (the library test: login, search, report, logout; the lookup_regon test: login, search, core report, PKD report)</description></item>
+/// <item><term>GUS BDL requests (<c>BdlLiveTests</c>, anonymous, no key; anonymous limits are 5 per second and 100 per 15 minutes)</term><description>3 / 0 / 0 = 3 (find a gmina by name, read its population, check the attribute list)</description></item>
 /// <item><term>CEIDG production requests (<c>CeidgLiveTests</c>, needs <c>POLISHOPENDATA_CEIDG_TOKEN</c>, owner-run, skipped otherwise)</term><description>1 / 0 / 0 = 1, or 2 with <c>POLISHOPENDATA_CEIDG_NIP</c> set (CEIDG allows 1,000 per 60 minutes)</description></item>
 /// </list>
-/// Runtime: the 22 other network tests (9 of them GUGiK) take at most 2 min each and the published-package test 5 min; the offline test adds
+/// Runtime: the 24 other network tests (9 of them GUGiK) take at most 2 min each and the published-package test 5 min; the offline test adds
 /// a few minutes when MF is fast and 15 min (then it skips) when MF is slow (it served 35 to 40 KB/s on 2026-10-13, 8 MB/s at night).
 /// The change feed asks for an earlier weekday only while the feeds it got were empty (a public holiday, or a feed not
 /// yet published). The MCP tests share one server session, so its cache answers repeated lookups without new upstream

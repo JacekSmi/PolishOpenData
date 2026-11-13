@@ -1,0 +1,11 @@
+{
+  "errors": [
+    {
+      "errorResult": "Brak wymaganego parametru 'varId' w zapytaniu",
+      "errorReason": "Parametr 'varId' jest wymagany",
+      "errorSolution": "Proszę podać parametr 'varId' w zapytaniu",
+      "errorCode": 9,
+      "errorHelp": "https://bdl.stat.gov.pl/api/v1/help/code/9"
+    }
+  ]
+}
