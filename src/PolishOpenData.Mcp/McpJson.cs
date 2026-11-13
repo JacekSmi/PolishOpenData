@@ -14,6 +14,7 @@ namespace PolishOpenData.Mcp;
 [JsonSerializable(typeof(GeocodeResult))]
 [JsonSerializable(typeof(FindParcelResult))]
 [JsonSerializable(typeof(RegonOverview))]
+[JsonSerializable(typeof(CeidgOverview))]
 [JsonSerializable(typeof(PropertyPricesResult))]
 internal sealed partial class McpJsonContext : JsonSerializerContext;
 

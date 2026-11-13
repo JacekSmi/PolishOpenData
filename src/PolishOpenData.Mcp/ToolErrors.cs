@@ -6,6 +6,7 @@ using System.Net.Http;
 using Polly;
 using PolishOpenData.BialaLista.Offline;
 using PolishOpenData.Bir;
+using PolishOpenData.Ceidg;
 
 namespace PolishOpenData.Mcp;
 
@@ -26,6 +27,8 @@ internal static class ToolErrors
         OperationCanceledException => null,
         // GUS answers an unknown or revoked key with an empty login result. Never echo the key.
         RegonAuthenticationException => "GUS did not accept the key in " + McpServerSetup.RegonKeyVariable + ". Check it, or remove the variable to hide lookup_regon.",
+        // CEIDG answers 401/403 for a missing, expired or unauthorised token. Never echo the token.
+        CeidgAuthenticationException => "CEIDG did not accept the token in " + McpServerSetup.CeidgTokenVariable + ". Check it or get a new one, or remove the variable to hide lookup_ceidg.",
         // Only the offline tool waits for a lock file held by another process (the library's lock timeout).
         TimeoutException => "Another process is preparing this date; try again later.",
         // The offline library reports an unusable data directory as an IOException whose message names the folder.

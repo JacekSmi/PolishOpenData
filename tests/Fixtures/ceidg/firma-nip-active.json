@@ -1,0 +1,41 @@
+{
+  "firma": [
+    {
+      "id": "31F87519-9395-4FCF-8E19-6D5C0522FA7A",
+      "nazwa": "Jan Testowy Usługi Informatyczne",
+      "adresDzialalnosci": {
+        "ulica": "ul. Zwierzyniecka",
+        "budynek": "1",
+        "lokal": "4",
+        "miasto": "Białystok",
+        "wojewodztwo": "PODLASKIE",
+        "powiat": "Białystok",
+        "gmina": "Białystok",
+        "kraj": "PL",
+        "kod": "15-333",
+        "terc": "2061011",
+        "simc": "0922410",
+        "ulic": "26305"
+      },
+      "wlasciciel": {
+        "imie": "Jan",
+        "nazwisko": "Testowy",
+        "nip": "3563457932",
+        "regon": "618155359"
+      },
+      "obywatelstwa": [ { "symbol": "PL", "kraj": "Polska" } ],
+      "rokPkd": "2007",
+      "pkd": [
+        { "kod": "6201Z", "nazwa": "Działalność związana z oprogramowaniem" },
+        { "kod": "6202Z", "nazwa": "Działalność związana z doradztwem w zakresie informatyki" }
+      ],
+      "pkdGlowny": { "kod": "6201Z", "nazwa": "Działalność związana z oprogramowaniem" },
+      "dataRozpoczecia": "2014-07-29",
+      "status": "AKTYWNY",
+      "numerStatusu": 1,
+      "email": "jan@example.invalid",
+      "link": "https://dane.biznes.gov.pl/api/ceidg/v3/firma/31F87519-9395-4FCF-8E19-6D5C0522FA7A"
+    }
+  ],
+  "properties": { "title": "CEIDG", "provider": "Ministerstwo Rozwoju i Technologii" }
+}

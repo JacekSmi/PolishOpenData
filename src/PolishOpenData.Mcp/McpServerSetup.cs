@@ -11,6 +11,7 @@ using ModelContextProtocol.Server;
 using PolishOpenData.BialaLista;
 using PolishOpenData.BialaLista.Offline;
 using PolishOpenData.Bir;
+using PolishOpenData.Ceidg;
 using PolishOpenData.Krs;
 using PolishOpenData.Rcn;
 using PolishOpenData.Uldk;
@@ -26,8 +27,11 @@ internal static class McpServerSetup
     /// <summary>Environment variable with the user's own GUS BIR key. The REGON tool exists only when it is set.</summary>
     public const string RegonKeyVariable = "POLISHOPENDATA_REGON_KEY";
 
+    /// <summary>Environment variable with the user's own CEIDG API token. The CEIDG tool exists only when it is set.</summary>
+    public const string CeidgTokenVariable = "POLISHOPENDATA_CEIDG_TOKEN";
+
     /// <summary>Registers the registry clients (with resilience and the Biała Lista quota guard) and the cache.</summary>
-    public static IServiceCollection AddPolishOpenDataServices(this IServiceCollection services, Action<IHttpClientBuilder>? configureHttp = null, string? offlineDataDirectory = null, string? regonKey = null)
+    public static IServiceCollection AddPolishOpenDataServices(this IServiceCollection services, Action<IHttpClientBuilder>? configureHttp = null, string? offlineDataDirectory = null, string? regonKey = null, string? ceidgToken = null)
     {
         services.TryAddSingleton(TimeProvider.System);
         services.AddMemoryCache();
@@ -69,6 +73,16 @@ internal static class McpServerSetup
             configureHttp?.Invoke(regon);
         }
 
+        // Opt-in like REGON: without the user's own token there is no CEIDG client and no CEIDG traffic. Never retried:
+        // CEIDG allows 1,000 requests per 60 minutes per token, and a retry is one more request against that limit.
+        var ceidgKey = (ceidgToken ?? Environment.GetEnvironmentVariable(CeidgTokenVariable))?.Trim();
+        if (!string.IsNullOrEmpty(ceidgKey))
+        {
+            var ceidg = services.AddCeidgClient(o => o.Token = ceidgKey);
+            ceidg.AddStandardResilienceHandler(o => o.Retry.ShouldHandle = static _ => ValueTask.FromResult(false));
+            configureHttp?.Invoke(ceidg);
+        }
+
         configureHttp?.Invoke(krs);
         configureHttp?.Invoke(vat);
         configureHttp?.Invoke(offline);
@@ -98,10 +112,16 @@ internal static class McpServerSetup
 
         // The tool is registered exactly when AddPolishOpenDataServices found a key; the instructions follow it.
         var regonEnabled = builder.Services.Any(d => d.ServiceType == typeof(IRegonClient));
-        builder.Services.Configure<McpServerOptions>(o => o.ServerInstructions = ServerInfo.InstructionsFor(regonEnabled));
+        var ceidgEnabled = builder.Services.Any(d => d.ServiceType == typeof(ICeidgClient));
+        builder.Services.Configure<McpServerOptions>(o => o.ServerInstructions = ServerInfo.InstructionsFor(regonEnabled, ceidgEnabled));
         if (regonEnabled)
         {
             builder.WithTools<RegonTools>(json);
+        }
+
+        if (ceidgEnabled)
+        {
+            builder.WithTools<CeidgTools>(json);
         }
 
         return builder

@@ -11,6 +11,7 @@
   <Folder Name="/src/">
     <Project Path="src/PolishOpenData.BialaLista.Offline/PolishOpenData.BialaLista.Offline.csproj" />
     <Project Path="src/PolishOpenData.BialaLista/PolishOpenData.BialaLista.csproj" />
+    <Project Path="src/PolishOpenData.Ceidg/PolishOpenData.Ceidg.csproj" />
     <Project Path="src/PolishOpenData.Core/PolishOpenData.Core.csproj" />
     <Project Path="src/PolishOpenData.Geo.Core/PolishOpenData.Geo.Core.csproj" />
     <Project Path="src/PolishOpenData.Geo.Nts/PolishOpenData.Geo.Nts.csproj" />
@@ -24,6 +25,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/PolishOpenData.BialaLista.Offline.Tests/PolishOpenData.BialaLista.Offline.Tests.csproj" />
     <Project Path="tests/PolishOpenData.BialaLista.Tests/PolishOpenData.BialaLista.Tests.csproj" />
+    <Project Path="tests/PolishOpenData.Ceidg.Tests/PolishOpenData.Ceidg.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Core.Tests/PolishOpenData.Core.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Demo.Tests/PolishOpenData.Demo.Tests.csproj" />
     <Project Path="tests/PolishOpenData.Geo.Core.Tests/PolishOpenData.Geo.Core.Tests.csproj" />

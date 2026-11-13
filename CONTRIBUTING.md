@@ -7,7 +7,7 @@ dotnet build -c Release
 dotnet test -c Release
 ```
 
-Requirements: .NET 10 SDK (see `global.json`). On Windows the Core, Shared, Krs, BialaLista, BialaLista.Offline, Regon, Geo.Core, Uldk, Uug and Rcn tests also run on .NET Framework 4.7.2. Tests use xUnit v3 on Microsoft Testing Platform (`dotnet test --project tests/<Project>` runs one project).
+Requirements: .NET 10 SDK (see `global.json`). On Windows the Core, Shared, Krs, BialaLista, BialaLista.Offline, Regon, Ceidg, Geo.Core, Uldk, Uug and Rcn tests also run on .NET Framework 4.7.2. Tests use xUnit v3 on Microsoft Testing Platform (`dotnet test --project tests/<Project>` runs one project).
 
 ## Live tests
 
@@ -44,6 +44,7 @@ One run costs, per IP address:
 | KRS requests | 5 (up to 9) | 1 | 1 | **7** (up to 11) |
 | GUS BIR test environment requests (published test key, no secret) | 5 | 0 | 0 | **5** |
 | GUS BIR production requests (needs `POLISHOPENDATA_REGON_KEY`, owner-run, skipped otherwise) | 4 | 4 | 0 | **8** |
+| CEIDG production requests (needs `POLISHOPENDATA_CEIDG_TOKEN`, owner-run, skipped otherwise; a second one with `POLISHOPENDATA_CEIDG_NIP`) | 1 (2) | 0 | 0 | **1** (**2**) |
 | GUGiK ULDK requests (no key) | 5 | 0 | 0 | **5**, **6** with the demo test (1) |
 | GUGiK UUG requests (no key) | 3 | 1 | 0 | **4**, **5** with the demo test (1) (the MCP one geocodes the address of the `property_prices` test) |
 | GUGiK RCN requests (no key) | 4 (1+1+2) | 1 | 0 | **5**, **6** with the demo test (1) (library: premises in a bbox, residential premises for the median, parcels, buildings; MCP: `property_prices` for "Warszawa, Krucza 50"; each a single bounded query of at most 1,000 rows) |
@@ -52,6 +53,10 @@ One run costs, per IP address:
 These are the counts when every call succeeds. The change feed test asks for an earlier weekday, up to 5 in all, only while the feeds it got were empty (a public holiday, or a feed not yet published). Failed calls are not cached, so a cancelled or failed search is sent again by the next test that needs it: a run with failures spends at most 9 searches. The MCP server never retries Biała Lista; its KRS client retries transient failures (5xx, 408, 429, connection errors and 10-second attempt timeouts), which can add KRS requests.
 
 The offline flat-file test (`BialaListaOfflineLiveTests`) downloads one file of about 250 MB from the Ministry of Finance, which has no request quota, and uses 14 Biała Lista checks as its oracle (counted in the checks row). It skips itself after 15 minutes of downloading, because MF's server can be slow during the working day.
+
+Keep your own keys in a git-ignored `.env` at the repository root: copy `.env.example` to `.env` and fill in what you have. The live tests load it before they run (variables already set in your shell win), so nothing has to be typed or exported each time; the libraries themselves never read it. CI has no such file. Never commit real values, and never paste them into an issue, a PR or a chat.
+
+The CEIDG test is owner-run: it needs your own CEIDG API token (a personal JWT from e-service 00_9999_00 on biznes.gov.pl, which asks for a Profil Zaufany login), kept only in `POLISHOPENDATA_CEIDG_TOKEN`; CI never sets it and it must not go into GitHub secrets or logs. It sends one request (the Ministry of Finance's NIP, which is not a sole trader, so the answer is empty and proves the token works) and, when `POLISHOPENDATA_CEIDG_NIP` holds your own NIP, a second one that checks the mapped entry. The repository holds no real person's NIP: the CEIDG fixtures are synthetic, shaped after the official documentation.
 
 The GUS test-environment test needs no secret. GUS publishes limits for the service in general (3 requests per second, 120 per minute); it does not state whether the test service applies them, and 5 requests are far inside them either way. The production test runs only when `POLISHOPENDATA_REGON_KEY` holds your own key and is never run by CI: the production key does not go into GitHub secrets, and GUS forbids several accounts for one entity. GUS logs the IP address, time and content of every request and forbids enumerating identifiers, so run the production test sparingly, never in a loop.
 

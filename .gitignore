@@ -24,3 +24,6 @@ CLAUDE.local.md
 .vscode/
 .idea/
 .DS_Store
+
+# local secrets for the live tests (see .env.example)
+.env
