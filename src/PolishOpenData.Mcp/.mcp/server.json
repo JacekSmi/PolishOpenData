@@ -32,6 +32,11 @@
           "description": "Optional. Your own free CEIDG API token (a personal JWT from biznes.gov.pl, e-service 00_9999_00); enables the lookup_ceidg tool. Stays on your machine.",
           "isRequired": false,
           "isSecret": true
+        },
+        {
+          "name": "POLISHOPENDATA_BDL_CLIENT_ID",
+          "description": "Optional. Your own free GUS BDL API key (from the BDL registration); raises the rate limits of find_statistical_unit, search_statistics and get_statistics, which work without it.",
+          "isRequired": false
         }
       ]
     }

@@ -10,6 +10,7 @@ using ModelContextProtocol;
 using ModelContextProtocol.Server;
 using PolishOpenData.BialaLista;
 using PolishOpenData.BialaLista.Offline;
+using PolishOpenData.Bdl;
 using PolishOpenData.Bir;
 using PolishOpenData.Ceidg;
 using PolishOpenData.Krs;
@@ -30,8 +31,11 @@ internal static class McpServerSetup
     /// <summary>Environment variable with the user's own CEIDG API token. The CEIDG tool exists only when it is set.</summary>
     public const string CeidgTokenVariable = "POLISHOPENDATA_CEIDG_TOKEN";
 
+    /// <summary>Optional environment variable with the user's own free BDL key (sent as X-ClientId); it raises GUS's rate limits. The BDL tools exist without it.</summary>
+    public const string BdlClientIdVariable = "POLISHOPENDATA_BDL_CLIENT_ID";
+
     /// <summary>Registers the registry clients (with resilience and the Biała Lista quota guard) and the cache.</summary>
-    public static IServiceCollection AddPolishOpenDataServices(this IServiceCollection services, Action<IHttpClientBuilder>? configureHttp = null, string? offlineDataDirectory = null, string? regonKey = null, string? ceidgToken = null)
+    public static IServiceCollection AddPolishOpenDataServices(this IServiceCollection services, Action<IHttpClientBuilder>? configureHttp = null, string? offlineDataDirectory = null, string? regonKey = null, string? ceidgToken = null, string? bdlClientId = null)
     {
         services.TryAddSingleton(TimeProvider.System);
         services.AddMemoryCache();
@@ -83,6 +87,13 @@ internal static class McpServerSetup
             configureHttp?.Invoke(ceidg);
         }
 
+        // Always on: GUS BDL needs no key. The optional key only raises the limits. Never retried: anonymous use allows 100 requests
+        // per 15 minutes and a retry is one more request against that limit.
+        var bdlKey = (bdlClientId ?? Environment.GetEnvironmentVariable(BdlClientIdVariable))?.Trim();
+        var bdl = services.AddBdlClient(o => o.ClientId = string.IsNullOrEmpty(bdlKey) ? null : bdlKey);
+        bdl.AddStandardResilienceHandler(o => o.Retry.ShouldHandle = static _ => ValueTask.FromResult(false));
+        configureHttp?.Invoke(bdl);
+
         configureHttp?.Invoke(krs);
         configureHttp?.Invoke(vat);
         configureHttp?.Invoke(offline);
@@ -130,6 +141,7 @@ internal static class McpServerSetup
             .WithTools<IdentifierTools>(json)
             .WithTools<GeoTools>(json)
             .WithTools<PropertyTools>(json)
+            .WithTools<BdlTools>(json)
             .WithRequestFilters(filters => filters.AddCallToolFilter(next => async (context, cancellationToken) =>
             {
                 try
