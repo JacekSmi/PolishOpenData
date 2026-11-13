@@ -20,6 +20,7 @@
 | [`PolishOpenData.BialaLista.Offline`](https://www.nuget.org/packages/PolishOpenData.BialaLista.Offline) | VAT whitelist checked offline against the Ministry of Finance daily flat file: no request limit, many pairs at once, no request ID | net10.0, netstandard2.0 |
 | [`PolishOpenData.Regon`](https://www.nuget.org/packages/PolishOpenData.Regon) | GUS REGON (BIR1.2): search by NIP/REGON/KRS, batches of 20, full reports, session and request limiter; needs your own free GUS key | net10.0, netstandard2.0 |
 | [`PolishOpenData.Ceidg`](https://www.nuget.org/packages/PolishOpenData.Ceidg) | CEIDG v3 (register of sole traders): entries by NIP, REGON or id with status, dates, address and PKD; needs your own free API token | net10.0, netstandard2.0 |
+| [`PolishOpenData.Bdl`](https://www.nuget.org/packages/PolishOpenData.Bdl) | GUS Bank Danych Lokalnych: find voivodeships, powiats and gminas, search indicators, read values by year (population, unemployment, budgets...); no key needed | net10.0, netstandard2.0 |
 | [`PolishOpenData.Geo.Core`](https://www.nuget.org/packages/PolishOpenData.Geo.Core) | Typed Polish coordinates: `Pl1992Point` (EPSG:2180) and `Wgs84Point` with a built-in conversion, `Pl1992Bbox`, `ParcelId` (TERYT parcel identifier) | net10.0, netstandard2.0 |
 | [`PolishOpenData.Uldk`](https://www.nuget.org/packages/PolishOpenData.Uldk) | GUGiK ULDK: cadastral parcel by ID, by point or by region name and number, with its boundary as WKT | net10.0, netstandard2.0 |
 | [`PolishOpenData.Geo.Nts`](https://www.nuget.org/packages/PolishOpenData.Geo.Nts) | Optional NetTopologySuite adapter: `ParcelGeometry.ToNtsGeometry()` and `ToNtsPoint()` for area, intersection, buffer and distance on parcels | net10.0, netstandard2.0 |
@@ -143,6 +144,27 @@ foreach (var business in await ceidg.FindByNipAsync(Nip.Parse("5260250995")))   
 ```
 
 A person can have several entries (an ended one and a running one), so lookups return lists. CEIDG allows 1,000 requests per 60 minutes per token; the client neither limits itself nor retries (a retry is one more request against the limit). Sole traders' names are personal data: use them to identify a business, not to build lists.
+
+## Local statistics: GUS Bank Danych Lokalnych
+
+`PolishOpenData.Bdl` reads GUS's local data bank (BDL): thousands of indicators (population, unemployment, housing, budgets...) for every voivodeship, powiat and gmina, by year. No key is needed; a free personal key from the BDL registration (sent as `X-ClientId`) raises the limits.
+
+```bash
+dotnet add package PolishOpenData.Bdl
+```
+
+```csharp
+services.AddBdlClient();   // optional: o => o.ClientId = "your-own-key"
+var bdl = provider.GetRequiredService<IBdlClient>();
+var gmina = (await bdl.SearchUnitsAsync("Kraków", BdlLevel.Gmina)).Single();   // the same name also matches a powiat and a subregion: pick the level
+var data = await bdl.GetDataByUnitAsync(gmina.Id, [72305], [2025]);            // variable 72305: population, total
+foreach (var value in data.Series[0].Values)
+{
+    Console.WriteLine($"{value.Year}: {value.Value?.ToString() ?? "no data"}");
+}
+```
+
+Variable names mean little alone ("ogółem, ogółem"): `GetSubjectAsync` gives the topic that makes them readable. A cell can be a placeholder zero that GUS marks as confidential, not applicable or not yet published; the library turns those into `Value == null` and keeps GUS's flag in `Flag`. An id that does not exist is not an error: the data calls return an empty result. Anonymous limits are 5 requests per second, 100 per 15 minutes, 1,000 per 12 hours and 10,000 per week (a wrong `ClientId` is not rejected, you silently get the anonymous limits); the client neither limits itself nor retries, and `GetDataByVariableAsync` spends one request per 100 units (all gminas of Poland are about 25). The data is licensed CC BY 4.0: cite "Główny Urząd Statystyczny, Bank Danych Lokalnych". The TERYT code in `BdlUnit.Teryt` is derived from the unit id, which GUS does not document.
 
 ## Offline VAT whitelist check
 

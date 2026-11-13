@@ -16,6 +16,7 @@
 | `PolishOpenData.BialaLista.Offline` | Sprawdzanie rachunków offline na podstawie dziennego pliku płaskiego Ministerstwa Finansów: bez limitu zapytań, wiele par naraz, bez identyfikatora zapytania |
 | `PolishOpenData.Regon` | GUS REGON (BIR1.2): wyszukiwanie po NIP/REGON/KRS, zapytania zbiorcze po 20, pełne raporty, sesja i ogranicznik zapytań; wymaga własnego, bezpłatnego klucza GUS |
 | `PolishOpenData.Ceidg` | CEIDG v3 (rejestr jednoosobowych działalności): wpisy po NIP, REGON lub identyfikatorze ze statusem, datami, adresem i PKD; wymaga własnego bezpłatnego tokenu API |
+| `PolishOpenData.Bdl` | GUS Bank Danych Lokalnych: jednostki (województwa, powiaty, gminy), wyszukiwanie wskaźników, wartości po latach (ludność, bezrobocie, budżety...); bez klucza |
 | `PolishOpenData.Geo.Core` | Typowane współrzędne polskie: `Pl1992Point` (EPSG:2180) i `Wgs84Point` z wbudowaną konwersją, `Pl1992Bbox`, `ParcelId` (identyfikator działki TERYT) |
 | `PolishOpenData.Uldk` | ULDK GUGiK: działka ewidencyjna po identyfikatorze, po punkcie albo po nazwie obrębu i numerze, z granicą w WKT |
 | `PolishOpenData.Geo.Nts` | Opcjonalny adapter NetTopologySuite: `ParcelGeometry.ToNtsGeometry()` i `ToNtsPoint()` do liczenia pola, części wspólnej, bufora i odległości na działkach |
@@ -124,6 +125,23 @@ foreach (var firma in await ceidg.FindByNipAsync(Nip.Parse("5260250995")))   // 
 ```
 
 Jedna osoba może mieć kilka wpisów (zakończony i działający), więc wyszukiwanie zwraca listy. CEIDG pozwala na 1000 zapytań na 60 minut na token; klient sam się nie ogranicza i niczego nie ponawia (ponowienie to kolejne zapytanie wliczane do limitu). Imiona i nazwiska przedsiębiorców to dane osobowe: używaj ich do identyfikacji firmy, nie do budowania list.
+
+## Statystyka lokalna: GUS Bank Danych Lokalnych
+
+`PolishOpenData.Bdl` czyta Bank Danych Lokalnych GUS (BDL): tysiące wskaźników (ludność, bezrobocie, mieszkania, budżety...) dla każdego województwa, powiatu i gminy, po latach. Klucz nie jest potrzebny; darmowy osobisty klucz z rejestracji w BDL (nagłówek `X-ClientId`) podnosi limity.
+
+```csharp
+services.AddBdlClient();   // opcjonalnie: o => o.ClientId = "twój-własny-klucz"
+var bdl = provider.GetRequiredService<IBdlClient>();
+var gmina = (await bdl.SearchUnitsAsync("Kraków", BdlLevel.Gmina)).Single();   // ta sama nazwa pasuje też do powiatu i podregionu: wybierz poziom
+var data = await bdl.GetDataByUnitAsync(gmina.Id, [72305], [2025]);            // zmienna 72305: ludność ogółem
+foreach (var value in data.Series[0].Values)
+{
+    Console.WriteLine($"{value.Year}: {value.Value?.ToString() ?? "brak danych"}");
+}
+```
+
+Nazwy zmiennych same w sobie mówią niewiele („ogółem, ogółem”): `GetSubjectAsync` zwraca temat, który je wyjaśnia. Komórka może mieć zero-zapychacz, które GUS oznacza jako tajemnicę statystyczną, brak lub dane jeszcze niedostępne; biblioteka zamienia je na `Value == null` i zachowuje znacznik GUS w `Flag`. Nieistniejący identyfikator nie jest błędem: zapytania o dane zwracają pusty wynik. Limity anonimowe to 5 zapytań na sekundę, 100 na 15 minut, 1000 na 12 godzin i 10 000 na tydzień (błędny `ClientId` nie jest odrzucany, po cichu dostajesz limity anonimowe); klient sam się nie ogranicza i niczego nie ponawia, a `GetDataByVariableAsync` zużywa jedno zapytanie na 100 jednostek (wszystkie gminy w Polsce to około 25). Dane mają licencję CC BY 4.0: podawaj „Główny Urząd Statystyczny, Bank Danych Lokalnych”. Kod TERYT w `BdlUnit.Teryt` jest wyliczany z identyfikatora jednostki, czego GUS nie dokumentuje.
 
 ## Sprawdzanie Białej Listy offline
 
