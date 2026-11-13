@@ -33,4 +33,17 @@ public interface IBdlClient
 
     /// <summary>Reads one subject (topic) with its name and dimensions; null when it does not exist.</summary>
     Task<BdlSubject?> GetSubjectAsync(string subjectId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reads 1 to 100 variables for one unit in one request, optionally limited to some years. An unknown unit gives empty
+    /// <see cref="BdlUnitData.Series"/>. Duplicate ids are sent once.
+    /// </summary>
+    Task<BdlUnitData> GetDataByUnitAsync(string unitId, IReadOnlyCollection<int> variableIds, IReadOnlyCollection<int>? years = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reads one variable for many units of a level (optionally below one parent unit). One request returns 100 units; the call
+    /// reads at most <paramref name="maxPages"/> pages and sets <see cref="BdlVariableData.Truncated"/> when more exist. Every page
+    /// is one request against the rate limit: all gminas of Poland are about 25 pages.
+    /// </summary>
+    Task<BdlVariableData> GetDataByVariableAsync(int variableId, BdlLevel level, string? parentUnitId = null, IReadOnlyCollection<int>? years = null, int maxPages = 1, CancellationToken cancellationToken = default);
 }

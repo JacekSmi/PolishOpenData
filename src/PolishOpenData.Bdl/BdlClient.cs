@@ -81,6 +81,76 @@ public sealed class BdlClient : IBdlClient
             static dto => string.IsNullOrEmpty(dto.Id) ? null : BdlMapper.ToSubject(dto), cancellationToken);
     }
 
+    /// <inheritdoc/>
+    public async Task<BdlUnitData> GetDataByUnitAsync(string unitId, IReadOnlyCollection<int> variableIds, IReadOnlyCollection<int>? years = null, CancellationToken cancellationToken = default)
+    {
+        RequireText(unitId, nameof(unitId), 1);
+        ArgumentNullException.ThrowIfNull(variableIds);
+        var ids = variableIds.Distinct().ToList();
+        if (ids.Count is < 1 or > 100)
+        {
+            throw new ArgumentOutOfRangeException(nameof(variableIds), "Pass 1 to 100 distinct variable ids.");
+        }
+
+        var query = new Query();
+        foreach (var id in ids)
+        {
+            query.Add("var-id", Number(id));
+        }
+
+        AddYears(query, years);
+        var data = await SendAsync("data/by-unit/" + Uri.EscapeDataString(unitId.Trim()), query.Add("page-size", "100"), BdlJson.UnitData, notFoundIsNull: false, BdlMapper.ToUnitData, cancellationToken).ConfigureAwait(false);
+        return data ?? new BdlUnitData(unitId.Trim(), string.Empty, []);
+    }
+
+    /// <inheritdoc/>
+    public async Task<BdlVariableData> GetDataByVariableAsync(int variableId, BdlLevel level, string? parentUnitId = null, IReadOnlyCollection<int>? years = null, int maxPages = 1, CancellationToken cancellationToken = default)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThan(maxPages, 1);
+        BdlVariableDataDto? merged = null;
+        for (var page = 0; page < maxPages; page++)
+        {
+            var query = new Query().Add("unit-level", Number((int)level));
+            if (!string.IsNullOrWhiteSpace(parentUnitId))
+            {
+                query.Add("unit-parent-id", parentUnitId!.Trim());
+            }
+
+            AddYears(query, years);
+            query.Add("page-size", "100").Add("page", Number(page));
+            var dto = await SendAsync("data/by-variable/" + Number(variableId), query, BdlJson.VariableData, notFoundIsNull: false, static d => d, cancellationToken).ConfigureAwait(false);
+            if (dto is null)
+            {
+                break;
+            }
+
+            if (merged is null)
+            {
+                merged = dto;
+            }
+            else
+            {
+                (merged.Results ??= []).AddRange(dto.Results ?? []);
+            }
+
+            if (dto.Results is not { Count: > 0 } || merged.Results!.Count >= merged.TotalRecords)
+            {
+                break;
+            }
+        }
+
+        merged ??= new BdlVariableDataDto { VariableId = variableId };
+        return BdlMapper.ToVariableData(merged, truncated: (merged.Results?.Count ?? 0) < merged.TotalRecords);
+    }
+
+    private static void AddYears(Query query, IReadOnlyCollection<int>? years)
+    {
+        foreach (var y in years ?? [])
+        {
+            query.Add("year", Number(y));
+        }
+    }
+
     private static IReadOnlyList<BdlUnit> ToUnits(BdlPagedDto<BdlUnitDto> page) =>
         page.Results is null ? [] : page.Results.ConvertAll(BdlMapper.ToUnit);
 
