@@ -19,6 +19,7 @@
 | [`PolishOpenData.BialaLista`](https://www.nuget.org/packages/PolishOpenData.BialaLista) | VAT whitelist: status, bank-account check with request ID, batches, daily-limit guard | net10.0, netstandard2.0 |
 | [`PolishOpenData.BialaLista.Offline`](https://www.nuget.org/packages/PolishOpenData.BialaLista.Offline) | VAT whitelist checked offline against the Ministry of Finance daily flat file: no request limit, many pairs at once, no request ID | net10.0, netstandard2.0 |
 | [`PolishOpenData.Regon`](https://www.nuget.org/packages/PolishOpenData.Regon) | GUS REGON (BIR1.2): search by NIP/REGON/KRS, batches of 20, full reports, session and request limiter; needs your own free GUS key | net10.0, netstandard2.0 |
+| [`PolishOpenData.Ceidg`](https://www.nuget.org/packages/PolishOpenData.Ceidg) | CEIDG v3 (register of sole traders): entries by NIP, REGON or id with status, dates, address and PKD; needs your own free API token | net10.0, netstandard2.0 |
 | [`PolishOpenData.Geo.Core`](https://www.nuget.org/packages/PolishOpenData.Geo.Core) | Typed Polish coordinates: `Pl1992Point` (EPSG:2180) and `Wgs84Point` with a built-in conversion, `Pl1992Bbox`, `ParcelId` (TERYT parcel identifier) | net10.0, netstandard2.0 |
 | [`PolishOpenData.Uldk`](https://www.nuget.org/packages/PolishOpenData.Uldk) | GUGiK ULDK: cadastral parcel by ID, by point or by region name and number, with its boundary as WKT | net10.0, netstandard2.0 |
 | [`PolishOpenData.Geo.Nts`](https://www.nuget.org/packages/PolishOpenData.Geo.Nts) | Optional NetTopologySuite adapter: `ParcelGeometry.ToNtsGeometry()` and `ToNtsPoint()` for area, intersection, buffer and distance on parcels | net10.0, netstandard2.0 |
@@ -123,6 +124,25 @@ Retries stay off for REGON, as for Biała Lista: a retry made by a resilience ha
 **Keys and the test environment.** The library is bring-your-own-key: it ships no production key, never reads environment variables and never logs or prints your key. GUS's technical manual (section 3.6.3) calls it unacceptable for software to make every end user apply for their own key, but GUS told the maintainer on 2026-10-15 that for this project each end user may apply for and use their own key; that answer covers this project, so check GUS's rules before you distribute your own application built on the library. `RegonEnvironment.Test` selects GUS's public test service and its published test key (a `UserKey` that you configure is ignored there and never sent to the test service, so you can keep your own key configured and switch the environment); every result says which environment it came from (`RegonResult.Environment`), so anonymised test data (mostly from 2014) cannot pass for current data.
 
 **Cost.** Details cost requests: a legal person takes a login, a search and one report (3 requests), each optional list (`RegonInclude.Pkd`, `LocalUnits`, `Partners`) one more, and a sole trader the general report plus one report per activity type. `RegonResult.DataAsOf` is filled once `GetDataDateAsync` has been called (one request).
+
+## Sole traders: the CEIDG register
+
+`PolishOpenData.Ceidg` reads CEIDG (the register of sole traders) through the Ministry's API v3: look up the entries of an owner by NIP or REGON, or one entry by id, with status, start/suspension/end dates, address and PKD codes. It is bring-your-own-token: apply for a free token at biznes.gov.pl (e-service 00_9999_00, which asks for a Profil Zaufany login). The token is personal, so keep it on a server and never in a browser (the API sends no CORS headers anyway).
+
+```bash
+dotnet add package PolishOpenData.Ceidg
+```
+
+```csharp
+services.AddCeidgClient(o => o.Token = Environment.GetEnvironmentVariable("MY_APP_CEIDG_TOKEN")); // your token, from your own configuration
+var ceidg = provider.GetRequiredService<ICeidgClient>();
+foreach (var business in await ceidg.FindByNipAsync(Nip.Parse("3563457932")))   // empty list: not in CEIDG (companies are in KRS)
+{
+    Console.WriteLine($"{business.Name}: {business.Status}, started {business.StartDate}");
+}
+```
+
+A person can have several entries (an ended one and a running one), so lookups return lists. CEIDG allows 1,000 requests per 60 minutes per token; the client neither limits itself nor retries (after HTTP 429 the API blocks the token for a while). Sole traders' names are personal data: use them to identify a business, not to build lists.
 
 ## Offline VAT whitelist check
 
@@ -302,6 +322,7 @@ Claude Code (`claude mcp add --env`) and VS Code (`env` in `.vscode/mcp.json`) t
 | `geocode_address` | "Where is this address?" — WGS-84 coordinates and match accuracy; every match says whether it is an address, a street or a city (a partial address gives a representative point of the street or city). Source: UUG (`source`) |
 | `property_prices` | "What did real estate sell for here?" — the median and quartile price per m² of flats (market sales of whole premises; the premises price over its usable area) and the newest single transactions for premises, parcels or buildings, from the RCN register via GUGiK. Search by exactly one of an address (it must resolve to one address point, otherwise the geocoder's candidates), WGS-84 coordinates (latitude first) or a four-digit powiat code; an address or coordinates take a radius of 50 to 2,500 m (default 500). Default period: the last 24 months; default premises function: residential (`premisesFunction` also takes garage, commercial, other and any). The data lag by months, so every answer says how old the newest transaction is. When more than 1,000 transactions match, the tool returns an error asking you to narrow the area, the period or the filters instead of a partial answer. A transaction shows date, price, address, floor, area, market, the deed number and the buyer and seller by kind only (natural person, company, …); the notary is never shown and there is no search by person. Informational, not a valuation. Sources: RCN, and UUG for an address (`sources`) |
 | `lookup_regon` | "What does GUS's REGON register say about this NIP?" (optional, needs your own GUS key) — for every matching entry: type, name, REGON, NIP, address and, for the first five, status (derived from GUS's dates), key dates, main PKD activity, and for legal persons legal form and register. Never contact data, owners' personal details or local-unit lists; names are untrusted text. Production data only; source: GUS BIR1.2 (`sources`) |
+| `lookup_ceidg` | "Is this sole trader in CEIDG, and is the business running?" (optional, needs your own CEIDG token in `POLISHOPENDATA_CEIDG_TOKEN`; the tool exists only then) — every entry of the owner with that NIP: name, status, start/suspension/end dates, address, PKD codes; the owner's name is personal data |
 | `validate_identifier` | Offline checksum validation of NIP, REGON, KRS, NRB and KW numbers, with typo suggestions |
 
 ## Land-registry (KW) numbers

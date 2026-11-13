@@ -15,6 +15,7 @@
 | `PolishOpenData.BialaLista` | Wykaz podatników VAT: status, sprawdzenie rachunku z identyfikatorem zapytania, zapytania zbiorcze, ochrona limitu dziennego |
 | `PolishOpenData.BialaLista.Offline` | Sprawdzanie rachunków offline na podstawie dziennego pliku płaskiego Ministerstwa Finansów: bez limitu zapytań, wiele par naraz, bez identyfikatora zapytania |
 | `PolishOpenData.Regon` | GUS REGON (BIR1.2): wyszukiwanie po NIP/REGON/KRS, zapytania zbiorcze po 20, pełne raporty, sesja i ogranicznik zapytań; wymaga własnego, bezpłatnego klucza GUS |
+| `PolishOpenData.Ceidg` | CEIDG v3 (rejestr jednoosobowych działalności): wpisy po NIP, REGON lub identyfikatorze ze statusem, datami, adresem i PKD; wymaga własnego bezpłatnego tokenu API |
 | `PolishOpenData.Geo.Core` | Typowane współrzędne polskie: `Pl1992Point` (EPSG:2180) i `Wgs84Point` z wbudowaną konwersją, `Pl1992Bbox`, `ParcelId` (identyfikator działki TERYT) |
 | `PolishOpenData.Uldk` | ULDK GUGiK: działka ewidencyjna po identyfikatorze, po punkcie albo po nazwie obrębu i numerze, z granicą w WKT |
 | `PolishOpenData.Geo.Nts` | Opcjonalny adapter NetTopologySuite: `ParcelGeometry.ToNtsGeometry()` i `ToNtsPoint()` do liczenia pola, części wspólnej, bufora i odległości na działkach |
@@ -108,6 +109,21 @@ Ponawianie zapytań (retry) jest wyłączone także dla REGON, tak jak dla Biał
 **Klucze i środowisko testowe.** Biblioteka działa w modelu „przynieś własny klucz”: nie zawiera produkcyjnego klucza, nigdy nie czyta zmiennych środowiskowych i nigdy nie zapisuje ani nie wypisuje Twojego klucza. Instrukcja techniczna GUS (rozdział 3.6.3) uznaje za niedopuszczalne, by oprogramowanie wymuszało na każdym użytkowniku końcowym osobny wniosek o klucz, ale GUS poinformował autora 2026-10-15, że w tym projekcie każdy użytkownik końcowy może wystąpić o własny klucz i z niego korzystać; ta odpowiedź dotyczy tego projektu, więc zanim zaczniesz rozpowszechniać własną aplikację opartą na bibliotece, sprawdź zasady GUS. `RegonEnvironment.Test` wybiera publiczną usługę testową GUS i jej opublikowany klucz testowy (skonfigurowany `UserKey` jest tam pomijany i nigdy nie trafia do usługi testowej, więc możesz zostawić własny klucz w konfiguracji i tylko przełączyć środowisko); każdy wynik podaje środowisko, z którego pochodzi (`RegonResult.Environment`), więc zanonimizowane dane testowe (głównie z 2014 r.) nie wyglądają na aktualne.
 
 **Koszt.** Szczegóły kosztują zapytania: osoba prawna to logowanie, wyszukanie i jeden raport (3 zapytania), każda opcjonalna lista (`RegonInclude.Pkd`, `LocalUnits`, `Partners`) to kolejne zapytanie, a przedsiębiorca jednoosobowy potrzebuje raportu ogólnego oraz jednego raportu na rodzaj działalności. `RegonResult.DataAsOf` jest wypełnione dopiero po wywołaniu `GetDataDateAsync` (jedno zapytanie).
+
+## Jednoosobowe działalności: rejestr CEIDG
+
+`PolishOpenData.Ceidg` czyta CEIDG (Centralną Ewidencję i Informację o Działalności Gospodarczej) przez API v3 Ministerstwa: wpisy właściciela po NIP lub REGON albo jeden wpis po identyfikatorze, ze statusem, datami rozpoczęcia, zawieszenia i zakończenia, adresem i kodami PKD. Wymaga własnego, bezpłatnego tokenu z biznes.gov.pl (e-usługa 00_9999_00, wymaga logowania Profilem Zaufanym). Token jest osobisty: trzymaj go na serwerze, nigdy w przeglądarce (API i tak nie wysyła nagłówków CORS).
+
+```csharp
+services.AddCeidgClient(o => o.Token = Environment.GetEnvironmentVariable("MY_APP_CEIDG_TOKEN")); // Twój token, z własnej konfiguracji
+var ceidg = provider.GetRequiredService<ICeidgClient>();
+foreach (var firma in await ceidg.FindByNipAsync(Nip.Parse("3563457932")))   // pusta lista: brak w CEIDG (spółki są w KRS)
+{
+    Console.WriteLine($"{firma.Name}: {firma.Status}, od {firma.StartDate}");
+}
+```
+
+Jedna osoba może mieć kilka wpisów (zakończony i działający), więc wyszukiwanie zwraca listy. CEIDG pozwala na 1000 zapytań na 60 minut na token; klient sam się nie ogranicza i niczego nie ponawia (po HTTP 429 API blokuje token na jakiś czas). Imiona i nazwiska przedsiębiorców to dane osobowe: używaj ich do identyfikacji firmy, nie do budowania list.
 
 ## Sprawdzanie Białej Listy offline
 
