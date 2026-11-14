@@ -27,6 +27,20 @@ public class ToolErrorsTests
     }
 
     [Fact]
+    public void Sejm_quota_names_the_sejm_api_and_the_wait_for_every_sejm_tool()
+    {
+        var quota = new QuotaExceededException("Sejm rate limit reached (HTTP 429).", (HttpStatusCode)429, null, null, TimeSpan.FromSeconds(30));
+        foreach (var tool in new[] { "search_sejm_processes", "get_sejm_process", "search_sejm_votings", "get_sejm_voting", "get_sejm_body" })
+        {
+            var text = ToolErrors.Describe(quota, tool);
+            Assert.NotNull(text);
+            Assert.StartsWith("The Sejm API is rate-limiting requests", text, StringComparison.Ordinal);
+            Assert.Contains("retry after 30 s", text, StringComparison.Ordinal);
+            Assert.DoesNotContain("Biała Lista", text, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
     public void Daily_limit_error_points_to_offline_tool()
     {
         var quota = new QuotaExceededException("Biała Lista daily request limit for this IP address is exhausted (WL-191).", (HttpStatusCode)429, "WL-191", null, null);

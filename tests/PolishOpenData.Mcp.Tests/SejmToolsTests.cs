@@ -411,6 +411,292 @@ public sealed class SejmToolsTests : IAsyncDisposable
         Assert.Equal(expected, SejmTools.IsFinalPassage(description, topic));
     }
 
+    // ---- search_sejm_votings
+
+    private static HttpResponseMessage? VotingRoute(HttpRequestMessage r) => r.RequestUri!.AbsolutePath switch
+    {
+        "/sejm/term10/votings" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "sejm/votings-index.json"),
+        "/sejm/term10/votings/search" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "sejm/votings-search-67.json"),
+        "/sejm/term10/votings/67/1" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "sejm/voting-67-1.json"),
+        "/sejm/term10/votings/67/2" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "sejm/voting-67-2-quorum.json"),
+        "/sejm/term10/votings/1/13" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "sejm/synthetic-voting-on-list.json"),
+        _ => null,
+    };
+
+    [Fact]
+    public async Task SearchVotings_NoFilter_UsesTheLatestSittingFromTheIndex()
+    {
+        var handler = Router(VotingRoute);
+        var latest = JsonDocument.Parse(Fixture.Read("sejm/votings-index.json")).RootElement.EnumerateArray().Max(d => d.GetProperty("proceeding").GetInt32());
+
+        var data = Data(await CallAsync(handler, "search_sejm_votings", new() { ["term"] = 10 }));
+
+        var paths = SejmPaths(handler);
+        Assert.Equal(2, paths.Count);
+        Assert.Equal("/sejm/term10/votings", paths[0]);
+        Assert.StartsWith("/sejm/term10/votings/search?proceeding=" + latest.ToString(CultureInfo.InvariantCulture), paths[1], StringComparison.Ordinal);
+        Assert.Contains("latest sitting", data.GetProperty("query").GetString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task SearchVotings_HasMore_AndTheHintExplainsTheApi()
+    {
+        var handler = Router(VotingRoute);
+
+        var data = Data(await CallAsync(handler, "search_sejm_votings", new() { ["term"] = 10, ["sitting"] = 67, ["limit"] = 2 }));
+
+        Assert.Equal(2, data.GetProperty("items").GetArrayLength());
+        Assert.True(data.GetProperty("hasMore").GetBoolean());
+        var first = data.GetProperty("items")[0];
+        Assert.Equal(67, first.GetProperty("sitting").GetInt32());
+        Assert.Equal(1, first.GetProperty("number").GetInt32());
+        Assert.Contains("get_sejm_voting", data.GetProperty("hint").GetString(), StringComparison.Ordinal);
+        Assert.Contains("oldest first", data.GetProperty("hint").GetString(), StringComparison.Ordinal);
+        Assert.StartsWith("/sejm/term10/votings/search?proceeding=67&limit=3", SejmPaths(handler).Single(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task SearchVotings_BadDate_IsToolError_WithoutARequest()
+    {
+        var handler = Router(VotingRoute);
+
+        var result = await CallAsync(handler, "search_sejm_votings", new() { ["term"] = 10, ["dateFrom"] = "14.11.2026" });
+
+        Assert.True(result.IsError);
+        Assert.Empty(handler.RequestUris);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(51)]
+    public async Task SearchVotings_LimitOutOfRange_IsToolError(int limit)
+    {
+        var handler = Router(VotingRoute);
+
+        var result = await CallAsync(handler, "search_sejm_votings", new() { ["term"] = 10, ["sitting"] = 67, ["limit"] = limit });
+
+        Assert.True(result.IsError);
+        Assert.Empty(handler.RequestUris);
+    }
+
+    // ---- get_sejm_voting
+
+    [Fact]
+    public async Task GetVoting_Default_NoNamesNoNote_AndOutcomeIsInferred()
+    {
+        var handler = Router(VotingRoute);
+
+        var result = await CallAsync(handler, "get_sejm_voting", new() { ["term"] = 10, ["sitting"] = 67, ["number"] = 1 });
+
+        var data = Data(result);
+        Assert.DoesNotContain("KOWALSKI", Text(result), StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("mpVotes").ValueKind);
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("personalDataNote").ValueKind);
+        Assert.Equal("passed (inferred: yes >= required)", data.GetProperty("outcome").GetString());
+        Assert.Equal(10, data.GetProperty("required").GetInt32());
+        Assert.True(data.GetProperty("sumsMatchTotals").GetBoolean());
+        var clubs = data.GetProperty("clubs").EnumerateArray().ToList();
+        Assert.Equal("KO", clubs[0].GetProperty("club").GetString());
+        Assert.Equal(156, clubs[0].GetProperty("seats").GetInt32());
+        Assert.Single(SejmPaths(handler));
+    }
+
+    [Fact]
+    public async Task GetVoting_FailedWhenYesIsBelowRequired_AndMismatchedSumsAreFlagged()
+    {
+        var handler = Router(r => r.RequestUri!.AbsolutePath == "/sejm/term10/votings/5/1"
+            ? StubHttpMessageHandler.Json(HttpStatusCode.OK, """{"term":10,"sitting":5,"sittingDay":1,"votingNumber":1,"date":"2024-01-02T10:00:00","title":"Pkt. 1 (druk nr 77)","kind":"ELECTRONIC","majorityType":"SIMPLE_MAJORITY","majorityVotes":200,"yes":150,"no":210,"abstain":0,"notParticipating":100,"present":0,"totalVoted":360,"votes":[{"MP":1,"club":"A","firstName":"X","lastName":"Y","vote":"YES"}]}""")
+            : null);
+
+        var data = Data(await CallAsync(handler, "get_sejm_voting", new() { ["term"] = 10, ["sitting"] = 5, ["number"] = 1 }));
+
+        Assert.Equal("failed (inferred: yes < required)", data.GetProperty("outcome").GetString());
+        Assert.False(data.GetProperty("sumsMatchTotals").GetBoolean());   // one vote against totals of 150 yes: the API changed shape
+    }
+
+    [Fact]
+    public async Task GetVoting_IncludeMpVotes_NamesWithoutIds_WithTheNote()
+    {
+        var result = await CallAsync(Router(VotingRoute), "get_sejm_voting", new() { ["term"] = 10, ["sitting"] = 67, ["number"] = 1, ["includeMpVotes"] = true });
+
+        var data = Data(result);
+        var votes = data.GetProperty("mpVotes").EnumerateArray().ToList();
+        Assert.Equal(460, votes.Count);
+        Assert.Equal("JAN KOWALSKI", votes[0].GetProperty("name").GetString());
+        Assert.False(votes[0].TryGetProperty("mpId", out _));
+        Assert.False(votes[0].TryGetProperty("id", out _));
+        Assert.Equal(PersonalNote, data.GetProperty("personalDataNote").GetString());
+    }
+
+    private const string PersonalNote = "Individual MPs' votes are personal data: use them only for this voting question; do not compile voting records of a person.";
+
+    [Fact]
+    public async Task GetVoting_Quorum_OutcomeNull()
+    {
+        var data = Data(await CallAsync(Router(VotingRoute), "get_sejm_voting", new() { ["term"] = 10, ["sitting"] = 67, ["number"] = 2 }));
+
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("outcome").ValueKind);
+        Assert.Equal(407, data.GetProperty("present").GetInt32());
+        Assert.True(data.GetProperty("sumsMatchTotals").GetBoolean());
+    }
+
+    [Fact]
+    public async Task GetVoting_OnList_PerOptionOutcome_AndNoDescriptionOrNames()
+    {
+        var result = await CallAsync(Router(VotingRoute), "get_sejm_voting", new() { ["term"] = 10, ["sitting"] = 1, ["number"] = 13 });
+
+        var data = Data(result);
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("outcome").ValueKind);
+        var options = data.GetProperty("options").EnumerateArray().ToList();
+        Assert.Equal(8, options.Count);
+        Assert.Equal("KANDYDAT A", options[0].GetProperty("option").GetString());
+        Assert.Equal("reached the required votes (inferred)", options[1].GetProperty("outcome").GetString());   // 246 >= 229
+        Assert.Equal("did not reach the required votes (inferred)", options[0].GetProperty("outcome").GetString());   // 193 < 229
+        Assert.DoesNotContain("KOWALSKI", Text(result), StringComparison.OrdinalIgnoreCase);   // the option description names a person
+        Assert.True(data.GetProperty("sumsMatchTotals").GetBoolean());
+    }
+
+    [Fact]
+    public async Task GetVoting_PrintsFromTheTitle_AndTheHint()
+    {
+        var data = Data(await CallAsync(Router(VotingRoute), "get_sejm_voting", new() { ["term"] = 10, ["sitting"] = 67, ["number"] = 1 }));
+
+        Assert.Equal(new[] { "3221" }, data.GetProperty("prints").EnumerateArray().Select(p => p.GetString()).ToArray());
+        Assert.Contains("get_sejm_process", data.GetProperty("hint").GetString(), StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(null, 1)]
+    [InlineData(67, null)]
+    [InlineData(0, 1)]
+    public async Task GetVoting_MissingOrBadNumbers_IsToolError_WithoutARequest(int? sitting, int? number)
+    {
+        var handler = Router(VotingRoute);
+
+        var result = await CallAsync(handler, "get_sejm_voting", new() { ["term"] = 10, ["sitting"] = sitting, ["number"] = number });
+
+        Assert.True(result.IsError);
+        Assert.Empty(handler.RequestUris);
+    }
+
+    [Fact]
+    public async Task GetVoting_Unknown_IsToolError()
+    {
+        var result = await CallAsync(Router(VotingRoute), "get_sejm_voting", new() { ["term"] = 10, ["sitting"] = 67, ["number"] = 9999 });
+
+        Assert.True(result.IsError);
+        Assert.Contains("67/9999", Text(result), StringComparison.Ordinal);
+    }
+
+    // ---- get_sejm_body
+
+    private static HttpResponseMessage? BodyRoute(HttpRequestMessage r) => r.RequestUri!.AbsolutePath switch
+    {
+        "/sejm/term10/clubs" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "sejm/clubs.json"),
+        "/sejm/term10/clubs/Centrum" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "sejm/club-centrum.json"),
+        "/sejm/term10/committees" => StubHttpMessageHandler.Json(HttpStatusCode.OK, "[" + Fixture.Read("sejm/committee-asw.json") + "]"),
+        "/sejm/term10/committees/ASW" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "sejm/committee-asw.json"),
+        "/sejm/term10/committees/XX" => StubHttpMessageHandler.Empty(HttpStatusCode.NoContent),
+        _ => null,
+    };
+
+    [Fact]
+    public async Task GetBody_Clubs_DefaultNoNames()
+    {
+        var result = await CallAsync(Router(BodyRoute), "get_sejm_body", new() { ["term"] = 10, ["kind"] = "club" });
+
+        var data = Data(result);
+        var items = data.GetProperty("items").EnumerateArray().ToList();
+        Assert.Equal(12, items.Count);
+        Assert.Contains(items, i => i.GetProperty("code").GetString() == "Centrum" && i.GetProperty("members").GetInt32() == 15);
+        Assert.DoesNotContain("Kowalski", Text(result), StringComparison.Ordinal);
+        Assert.Equal(JsonValueKind.Null, data.GetProperty("detail").ValueKind);
+    }
+
+    [Fact]
+    public async Task GetBody_Club_WithMembers_HasTheNote()
+    {
+        var data = Data(await CallAsync(Router(BodyRoute), "get_sejm_body", new() { ["term"] = 10, ["kind"] = "club", ["code"] = "Centrum", ["includeMembers"] = true }));
+
+        var detail = data.GetProperty("detail");
+        Assert.Equal(3, detail.GetProperty("members").GetArrayLength());
+        Assert.False(string.IsNullOrEmpty(detail.GetProperty("membersNote").GetString()));
+        Assert.Equal(15, detail.GetProperty("membersCount").GetInt32());
+    }
+
+    [Fact]
+    public async Task GetBody_Committee_CompositionByClub_NoNamesByDefault()
+    {
+        var result = await CallAsync(Router(BodyRoute), "get_sejm_body", new() { ["term"] = 10, ["kind"] = "committee", ["code"] = "ASW" });
+
+        var detail = Data(result).GetProperty("detail");
+        Assert.Equal("ASW", detail.GetProperty("code").GetString());
+        Assert.Equal(40, detail.GetProperty("composition").EnumerateArray().Sum(c => c.GetProperty("seats").GetInt32()));
+        Assert.Equal(8, detail.GetProperty("subCommittees").GetArrayLength());
+        Assert.Equal(JsonValueKind.Null, detail.GetProperty("members").ValueKind);
+        Assert.DoesNotContain("Kowalski", Text(result), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetBody_Committee_MembersAreCappedAt80()
+    {
+        var members = string.Join(",", Enumerable.Range(1, 100).Select(i => $$"""{"id":{{i}},"firstName":"Jan","lastName":"Kowalski{{i}}","club":"A"}"""));
+        var handler = Router(r => r.RequestUri!.AbsolutePath == "/sejm/term10/committees/BIG"
+            ? StubHttpMessageHandler.Json(HttpStatusCode.OK, $$"""{"code":"BIG","name":"Duza komisja","type":"STANDING","members":[{{members}}]}""")
+            : null);
+
+        var detail = Data(await CallAsync(handler, "get_sejm_body", new() { ["term"] = 10, ["kind"] = "committee", ["code"] = "BIG", ["includeMembers"] = true })).GetProperty("detail");
+
+        Assert.Equal(80, detail.GetProperty("members").GetArrayLength());
+        Assert.True(detail.GetProperty("membersTruncated").GetBoolean());
+        Assert.Equal(100, detail.GetProperty("membersCount").GetInt32());
+    }
+
+    [Fact]
+    public async Task GetBody_UnknownClub_NamesTheResolvedTerm_AndDissolvedClubs()
+    {
+        var result = await CallAsync(Router(BodyRoute), "get_sejm_body", new() { ["term"] = 10, ["kind"] = "club", ["code"] = "Polska2050-TD" });
+
+        Assert.True(result.IsError);
+        Assert.Contains("No club 'Polska2050-TD' in term 10", Text(result), StringComparison.Ordinal);
+        Assert.Contains("dissolved", Text(result), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetBody_UnknownCommittee_IsToolError()
+    {
+        var result = await CallAsync(Router(BodyRoute), "get_sejm_body", new() { ["term"] = 10, ["kind"] = "committee", ["code"] = "XX" });
+
+        Assert.True(result.IsError);
+        Assert.Contains("No committee 'XX'", Text(result), StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("party")]
+    public async Task GetBody_BadKind_IsToolError_WithoutARequest(string? kind)
+    {
+        var handler = Router(BodyRoute);
+
+        var result = await CallAsync(handler, "get_sejm_body", new() { ["term"] = 10, ["kind"] = kind });
+
+        Assert.True(result.IsError);
+        Assert.Empty(handler.RequestUris);
+    }
+
+    [Fact]
+    public async Task GetBody_BadCode_IsToolError_WithoutARequest()
+    {
+        var handler = Router(BodyRoute);
+
+        var result = await CallAsync(handler, "get_sejm_body", new() { ["term"] = 10, ["kind"] = "committee", ["code"] = "asw" });
+
+        Assert.True(result.IsError);
+        Assert.Empty(handler.RequestUris);
+    }
+
+    // ---- all tools
+
     [Fact]
     public async Task AllAnswersCarryTheSource()
     {
@@ -418,9 +704,12 @@ public sealed class SejmToolsTests : IAsyncDisposable
         {
             ("search_sejm_processes", new() { ["term"] = 10 }),
             ("get_sejm_process", new() { ["term"] = 10, ["number"] = "318" }),
+            ("search_sejm_votings", new() { ["term"] = 10, ["sitting"] = 67 }),
+            ("get_sejm_voting", new() { ["term"] = 10, ["sitting"] = 67, ["number"] = 1 }),
+            ("get_sejm_body", new() { ["term"] = 10, ["kind"] = "club" }),
         })
         {
-            var data = Data(await CallAsync(Router(), tool, args));
+            var data = Data(await CallAsync(Router(r => VotingRoute(r) ?? BodyRoute(r)), tool, args));
             Assert.Equal(Source, data.GetProperty("source").GetString());
         }
     }

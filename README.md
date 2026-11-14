@@ -383,6 +383,8 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 
 **Legal-act tools (no key).** `search_legal_acts`, `get_legal_act` and `get_legal_article` read the Sejm ELI API. Read `isCurrent` and `warning` on every article: the API serves the text of acts as HTML only up to 2024, so for the Kodeks cywilny the tool quotes the 2024 consolidated text and says that a newer one (PDF-only) exists and which amendments came after it. A repealed act is never reported as current. Acts are public law; cite "Sejm RP, ELI API".
 
+**Parliament tools (no key).** `search_sejm_processes`, `get_sejm_process`, `search_sejm_votings`, `get_sejm_voting` and `get_sejm_body` read the Sejm API. Votes come per club; a deputy's own vote and the names of club or committee members appear only with `includeMpVotes` or `includeMembers`, one voting or body per call, and the answer says they are personal data. A process the Sejm passed is not necessarily a law: `get_sejm_process` gives the ELI id of the resulting act (for `get_legal_act`) only when there is one. A voting's pass or fail is an inference (yes against the required majority), not a field the API has. The API cannot sort, so the tools use extra requests for newest-first lists. Cite the source: Sejm RP, API Sejmu.
+
 Claude Code (`claude mcp add --env`) and VS Code (`env` in `.vscode/mcp.json`) take the same variable.
 
 | Tool | What it answers |
@@ -402,6 +404,11 @@ Claude Code (`claude mcp add --env`) and VS Code (`env` in `.vscode/mcp.json`) t
 | `search_legal_acts` | "Which act is this?": Polish legal acts (Dziennik Ustaw, Monitor Polski) by words in the title, type and year, with ELI id, status, in force or not, and whether a text is available. No key. |
 | `get_legal_act` | "Is this law in force, and how current is its text?": status, dates and, for a base act, the newest consolidated text, the newest one available as HTML, the amendments since and those that take effect later; a warning when the act is repealed. No key. |
 | `get_legal_article` | "What does art. 415 of the civil code say?": one article (or a § of a regulation) as plain text with its provenance: which text it was read from, `isCurrent`, newer consolidated texts, amendments since, and a warning whenever the quote may be out of date. The API serves HTML only up to 2024, so quotes are often older than the law in force. No key. |
+| `search_sejm_processes` | "What is the status of this bill?": legislative processes of the Sejm by title fragment, type, print number or recent change, with status (passed and published as an act, passed but not an act, rejected, in progress) and the ELI id of the act. Newest first on request. No key. |
+| `get_sejm_process` | "What happened to bill 318?": one process by the number of any of its prints: who submitted it, a timeline of readings, committee work, votings, Senate and President, and the resulting act for `get_legal_act`. No key. |
+| `search_sejm_votings` | "Which votings were there?": votings by sitting, date range or title text with the official totals and whether it looks like the final passage; oldest first, no total. No key. |
+| `get_sejm_voting` | "How did the clubs vote?": one voting with yes, no, abstain, absent per club (summed from the individual votes and checked against the official totals) and an inferred outcome; individual deputies' votes only with `includeMpVotes`. No key. |
+| `get_sejm_body` | "Which clubs and committees are there?": clubs or committees with member counts, one with its scope and, for a committee, the seats per club; member names only with `includeMembers`. No key. |
 | `validate_identifier` | Offline checksum validation of NIP, REGON, KRS, NRB and KW numbers, with typo suggestions |
 
 ## Land-registry (KW) numbers
