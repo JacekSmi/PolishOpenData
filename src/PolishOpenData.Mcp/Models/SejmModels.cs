@@ -77,6 +77,9 @@ internal sealed record SejmProcessResult
     /// <summary>Votings found by title, only with includeAllVotings; null otherwise.</summary>
     public IReadOnlyList<SejmVotingRow>? AllVotings { get; init; }
 
+    /// <summary>True when the list of all votings is partial (more than 6 prints, a full search page, or more than 40 votes); null without includeAllVotings.</summary>
+    public bool? AllVotingsTruncated { get; init; }
+
     public required string Note { get; init; }
 
     public required string Source { get; init; }

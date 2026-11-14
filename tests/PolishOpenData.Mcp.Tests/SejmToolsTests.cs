@@ -155,7 +155,7 @@ public sealed class SejmToolsTests : IAsyncDisposable
         Assert.Equal("passed; published as Dz.U. 2024 poz. 878", items[0].GetProperty("status").GetString());
         Assert.Equal("DU/2024/878", items[0].GetProperty("eli").GetString());
         Assert.Equal("passed; not published as an act (motion, appointment or similar)", items[1].GetProperty("status").GetString());
-        Assert.Equal("rejected or closed on 2023-12-13", items[2].GetProperty("status").GetString());
+        Assert.Equal("not passed; closed on 2023-12-13", items[2].GetProperty("status").GetString());
         Assert.Equal("in progress", items[3].GetProperty("status").GetString());
         Assert.Equal(JsonValueKind.Null, items[1].GetProperty("eli").ValueKind);
     }
@@ -389,13 +389,71 @@ public sealed class SejmToolsTests : IAsyncDisposable
 
         var data = Data(await CallAsync(handler, "get_sejm_process", new() { ["term"] = 10, ["number"] = "318", ["includeAllVotings"] = true }));
 
-        var searches = SejmPaths(handler).Count(p => p.Contains("/votings/search", StringComparison.Ordinal));
-        Assert.InRange(searches, 1, 6);
+        var searchPaths = SejmPaths(handler).Where(p => p.Contains("/votings/search", StringComparison.Ordinal)).ToList();
+        Assert.Equal(2, searchPaths.Count);   // one search per print (318 and 401), not per sitting
+        Assert.All(searchPaths, p => Assert.DoesNotContain("proceeding=", p, StringComparison.Ordinal));
+        Assert.False(data.GetProperty("allVotingsTruncated").GetBoolean());
         var lines = data.GetProperty("allVotings").EnumerateArray().ToList();
         Assert.Equal(new[] { 27, 28 }, lines.Select(l => l.GetProperty("number").GetInt32()).OrderBy(n => n).ToArray());   // deduped, 3180 dropped
         var finalLine = lines.Single(l => l.GetProperty("number").GetInt32() == 28);
         Assert.True(finalLine.GetProperty("isFinalPassage").GetBoolean());
         Assert.False(lines.Single(l => l.GetProperty("number").GetInt32() == 27).GetProperty("isFinalPassage").GetBoolean());
+    }
+
+    [Fact]
+    public async Task IncludeAllVotings_MorePrintsThanTheCap_SearchesSixAndSaysTheListIsPartial()
+    {
+        var handler = Router(r => r.RequestUri!.AbsolutePath == "/sejm/term10/votings/search" ? StubHttpMessageHandler.Json(HttpStatusCode.OK, "[]") : null);
+
+        var result = await CallAsync(handler, "get_sejm_process", new() { ["term"] = 10, ["number"] = "900", ["includeAllVotings"] = true });
+
+        var data = Data(result);
+        Assert.Equal(6, SejmPaths(handler).Count(p => p.Contains("/votings/search", StringComparison.Ordinal)));   // process 900 has 12 prints
+        Assert.True(data.GetProperty("allVotingsTruncated").GetBoolean());
+        Assert.Contains("partial", data.GetProperty("note").GetString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task IncludeAllVotings_AFullSearchPage_SaysTheListIsPartial()
+    {
+        // the API has no total: a page that came back full (the client asks for limit+1) means there may be more
+        var many = "[" + string.Join(",", Enumerable.Range(1, 101).Select(i => $$"""{"term":10,"sitting":1,"sittingDay":1,"votingNumber":{{i}},"date":"2024-05-23T14:00:54","title":"Pkt. {{i}} (druk nr 318)","kind":"ELECTRONIC","majorityType":"SIMPLE_MAJORITY","majorityVotes":22,"yes":1,"no":0,"abstain":0,"notParticipating":0,"present":0,"totalVoted":1}""")) + "]";
+        var handler = Router(r => r.RequestUri!.AbsolutePath == "/sejm/term10/votings/search" ? StubHttpMessageHandler.Json(HttpStatusCode.OK, many) : null);
+
+        var data = Data(await CallAsync(handler, "get_sejm_process", new() { ["term"] = 10, ["number"] = "318", ["includeAllVotings"] = true }));
+
+        Assert.True(data.GetProperty("allVotingsTruncated").GetBoolean());
+    }
+
+    // ---- a process that did not pass but has a linked act (a rejected no-confidence motion is linked to a Monitor Polski entry)
+
+    private static HttpResponseMessage? NotPassedWithEli(HttpRequestMessage r) => r.RequestUri!.AbsolutePath switch
+    {
+        "/sejm/term10/processes" => WithTotal(StubHttpMessageHandler.Json(HttpStatusCode.OK, """[{"number":"921","title":"Wniosek o wotum nieufno\u015bci","documentType":"wniosek","passed":false,"ELI":"MP/2025/55","displayAddress":"M.P. 2025 poz. 55","changeDate":"2025-02-01T10:00:00","processStartDate":"2025-01-10","closureDate":"2025-01-30","term":10}]"""), 1),
+        "/sejm/term10/processes/921" => StubHttpMessageHandler.Json(HttpStatusCode.OK, """{"number":"921","title":"Wniosek o wotum nieufno\u015bci","documentType":"wniosek","passed":false,"ELI":"MP/2025/55","displayAddress":"M.P. 2025 poz. 55","changeDate":"2025-02-01T10:00:00","processStartDate":"2025-01-10","closureDate":"2025-01-30","term":10,"stages":[{"stageType":"End","stageName":"Odrzucono"}]}"""),
+        _ => null,
+    };
+
+    [Fact]
+    public async Task Search_NotPassedButLinkedToAnAct_IsNeverReportedAsPublished()
+    {
+        var data = Data(await CallAsync(Router(NotPassedWithEli), "search_sejm_processes", new() { ["term"] = 10 }));
+
+        var status = Assert.Single(data.GetProperty("items").EnumerateArray()).GetProperty("status").GetString();
+        Assert.StartsWith("not passed; closed on 2025-01-30", status, StringComparison.Ordinal);
+        Assert.Contains("linked act M.P. 2025 poz. 55", status, StringComparison.Ordinal);
+        Assert.DoesNotContain("published as", status, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetProcess_NotPassedButLinkedToAnAct_SaysTheActIsOnlyLinked()
+    {
+        var data = Data(await CallAsync(Router(NotPassedWithEli), "get_sejm_process", new() { ["term"] = 10, ["number"] = "921" }));
+
+        Assert.StartsWith("not passed; closed on 2025-01-30", data.GetProperty("status").GetString(), StringComparison.Ordinal);
+        var act = data.GetProperty("act");
+        Assert.Equal("MP/2025/55", act.GetProperty("eli").GetString());
+        Assert.Contains("did not pass", act.GetProperty("hint").GetString(), StringComparison.Ordinal);
     }
 
     [Theory]

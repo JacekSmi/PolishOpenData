@@ -22,35 +22,35 @@
  "votes": [
   {
    "MP": 1,
-   "club": "PiS",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 2,
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
-   "MP": 3,
+   "MP": 2,
    "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 3,
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 4,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 5,
-   "club": "Demokracja",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -64,7 +64,7 @@
   },
   {
    "MP": 7,
-   "club": "PiS",
+   "club": "Centrum",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -78,28 +78,28 @@
   },
   {
    "MP": 9,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 10,
-   "club": "RozwojPlus",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 11,
-   "club": "RozwojPlus",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 12,
-   "club": "PSL-TD",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -113,31 +113,31 @@
   },
   {
    "MP": 14,
-   "club": "PSL-TD",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 15,
-   "club": "Konfederacja",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 16,
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 17,
    "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 18,
@@ -155,28 +155,28 @@
   },
   {
    "MP": 20,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 21,
-   "club": "PiS",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 22,
-   "club": "Centrum",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "ABSENT"
   },
   {
    "MP": 23,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -190,35 +190,35 @@
   },
   {
    "MP": 25,
-   "club": "PiS",
+   "club": "Centrum",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 26,
-   "club": "Lewica",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 27,
-   "club": "PiS",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "ABSENT"
-  },
-  {
-   "MP": 28,
-   "club": "KO",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
+   "MP": 28,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
    "MP": 29,
-   "club": "PiS",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -232,49 +232,49 @@
   },
   {
    "MP": 31,
-   "club": "Konfederacja",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 32,
-   "club": "Konfederacja",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "ABSENT"
-  },
-  {
-   "MP": 33,
-   "club": "Polska2050",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "ABSENT"
-  },
-  {
-   "MP": 34,
-   "club": "Centrum",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "ABSENT"
-  },
-  {
-   "MP": 35,
-   "club": "PiS",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 36,
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
-   "MP": 37,
+   "MP": 32,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 33,
    "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 34,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 35,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 36,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 37,
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -309,21 +309,21 @@
   },
   {
    "MP": 42,
-   "club": "KO",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 43,
    "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
+   "MP": 43,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
    "MP": 44,
-   "club": "KO",
+   "club": "Lewica",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -337,35 +337,35 @@
   },
   {
    "MP": 46,
-   "club": "RozwojPlus",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 47,
-   "club": "RozwojPlus",
+   "club": "Polska2050",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 48,
-   "club": "Centrum",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 49,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 50,
-   "club": "PiS",
+   "club": "Lewica",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -379,28 +379,28 @@
   },
   {
    "MP": 52,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 53,
-   "club": "Lewica",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 54,
-   "club": "PiS",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 55,
-   "club": "Lewica",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -421,28 +421,28 @@
   },
   {
    "MP": 58,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 59,
-   "club": "Centrum",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 60,
-   "club": "PiS",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 61,
-   "club": "PiS",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -456,21 +456,21 @@
   },
   {
    "MP": 63,
-   "club": "KO",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 64,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 65,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -491,63 +491,63 @@
   },
   {
    "MP": 68,
-   "club": "RozwojPlus",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "ABSENT"
-  },
-  {
-   "MP": 69,
-   "club": "PSL-TD",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 70,
-   "club": "PiS",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 71,
-   "club": "Lewica",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 72,
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
+   "MP": 69,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 70,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 71,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 72,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
    "MP": 73,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 74,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 75,
-   "club": "Konfederacja",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 76,
-   "club": "Konfederacja_KP",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -557,11 +557,11 @@
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 78,
-   "club": "KO",
+   "club": "Razem",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -575,7 +575,7 @@
   },
   {
    "MP": 80,
-   "club": "KO",
+   "club": "Demokracja",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -585,81 +585,81 @@
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 82,
-   "club": "KO",
+   "club": "Konfederacja",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 83,
-   "club": "KO",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 84,
-   "club": "Lewica",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 85,
-   "club": "KO",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 86,
-   "club": "PiS",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 87,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 88,
-   "club": "KO",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 89,
-   "club": "PiS",
+   "club": "Centrum",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 90,
-   "club": "KO",
+   "club": "Konfederacja_KP",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 91,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 92,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -673,7 +673,7 @@
   },
   {
    "MP": 94,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -687,14 +687,14 @@
   },
   {
    "MP": 96,
-   "club": "KO",
+   "club": "Konfederacja",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 97,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -708,21 +708,21 @@
   },
   {
    "MP": 99,
-   "club": "PiS",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 100,
-   "club": "Polska2050",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 101,
-   "club": "RozwojPlus",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -736,63 +736,63 @@
   },
   {
    "MP": 103,
-   "club": "PiS",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 104,
-   "club": "Lewica",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 105,
-   "club": "Polska2050",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 106,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 107,
-   "club": "KO",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 108,
-   "club": "KO",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "ABSENT"
-  },
-  {
-   "MP": 109,
    "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
-   "MP": 110,
-   "club": "Polska2050",
+   "MP": 108,
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
-   "MP": 111,
+   "MP": 109,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 110,
    "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 111,
+   "club": "Centrum",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -806,24 +806,24 @@
   },
   {
    "MP": 113,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 114,
-   "club": "PSL-TD",
+   "club": "Konfederacja",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 115,
-   "club": "RozwojPlus",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 116,
@@ -834,7 +834,7 @@
   },
   {
    "MP": 117,
-   "club": "RozwojPlus",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -844,46 +844,46 @@
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 119,
-   "club": "KO",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 120,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 121,
-   "club": "KO",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 122,
-   "club": "Centrum",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 123,
-   "club": "PiS",
+   "club": "Centrum",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 124,
-   "club": "PiS",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -897,31 +897,31 @@
   },
   {
    "MP": 126,
-   "club": "Polska2050",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 127,
-   "club": "Polska2050",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 128,
-   "club": "RozwojPlus",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 129,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 130,
@@ -932,7 +932,7 @@
   },
   {
    "MP": 131,
-   "club": "RozwojPlus",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -960,21 +960,21 @@
   },
   {
    "MP": 135,
-   "club": "RozwojPlus",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 136,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 137,
-   "club": "KO",
+   "club": "Polska2050",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -984,7 +984,7 @@
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 139,
@@ -1002,31 +1002,31 @@
   },
   {
    "MP": 141,
-   "club": "niez.",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 142,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 143,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 144,
-   "club": "PiS",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 145,
@@ -1044,7 +1044,7 @@
   },
   {
    "MP": 147,
-   "club": "PiS",
+   "club": "Demokracja",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1065,14 +1065,14 @@
   },
   {
    "MP": 150,
-   "club": "RozwojPlus",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 151,
-   "club": "KO",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1086,17 +1086,17 @@
   },
   {
    "MP": 153,
-   "club": "Centrum",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 154,
-   "club": "PSL-TD",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 155,
@@ -1107,7 +1107,7 @@
   },
   {
    "MP": 156,
-   "club": "PSL-TD",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1117,109 +1117,109 @@
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 158,
-   "club": "PSL-TD",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 159,
-   "club": "RozwojPlus",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "ABSENT"
-  },
-  {
-   "MP": 160,
-   "club": "RozwojPlus",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 161,
-   "club": "KO",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 162,
-   "club": "KO",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 163,
-   "club": "KO",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "ABSENT"
-  },
-  {
-   "MP": 164,
-   "club": "Centrum",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 165,
-   "club": "Razem",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 166,
-   "club": "KO",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 167,
-   "club": "PSL-TD",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 168,
-   "club": "KO",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 169,
    "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "ABSENT"
   },
   {
-   "MP": 170,
+   "MP": 159,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 160,
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "ABSENT"
   },
   {
-   "MP": 171,
+   "MP": 161,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 162,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 163,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 164,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 165,
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
+   "MP": 166,
+   "club": "Konfederacja_KP",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 167,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 168,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 169,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 170,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 171,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
    "MP": 172,
-   "club": "Lewica",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1233,35 +1233,35 @@
   },
   {
    "MP": 174,
-   "club": "Lewica",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 175,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 176,
-   "club": "niez.",
+   "club": "Lewica",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 177,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 178,
-   "club": "PiS",
+   "club": "Konfederacja",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1271,7 +1271,7 @@
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 180,
@@ -1289,31 +1289,31 @@
   },
   {
    "MP": 182,
-   "club": "PSL-TD",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 183,
-   "club": "RozwojPlus",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 184,
-   "club": "PiS",
+   "club": "Konfederacja",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 185,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 186,
@@ -1324,7 +1324,7 @@
   },
   {
    "MP": 187,
-   "club": "KO",
+   "club": "Lewica",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1338,21 +1338,21 @@
   },
   {
    "MP": 189,
-   "club": "KO",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 190,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 191,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1362,21 +1362,21 @@
    "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 193,
-   "club": "PiS",
+   "club": "niez.",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 194,
-   "club": "KO",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 195,
@@ -1387,35 +1387,35 @@
   },
   {
    "MP": 196,
-   "club": "KO",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 197,
-   "club": "RozwojPlus",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 198,
-   "club": "Lewica",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 199,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 200,
-   "club": "Demokracja",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1436,14 +1436,14 @@
   },
   {
    "MP": 203,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 204,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1453,7 +1453,7 @@
    "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 206,
@@ -1464,38 +1464,38 @@
   },
   {
    "MP": 207,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 208,
-   "club": "KO",
+   "club": "Polska2050",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 209,
-   "club": "KO",
+   "club": "Lewica",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 210,
-   "club": "KO",
+   "club": "Centrum",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 211,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 212,
@@ -1520,7 +1520,7 @@
   },
   {
    "MP": 215,
-   "club": "RozwojPlus",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1534,17 +1534,17 @@
   },
   {
    "MP": 217,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 218,
-   "club": "PSL-TD",
+   "club": "Polska2050",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 219,
@@ -1555,7 +1555,7 @@
   },
   {
    "MP": 220,
-   "club": "Polska2050",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1565,11 +1565,11 @@
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 222,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1590,7 +1590,7 @@
   },
   {
    "MP": 225,
-   "club": "KO",
+   "club": "Polska2050",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1604,14 +1604,14 @@
   },
   {
    "MP": 227,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 228,
-   "club": "RozwojPlus",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1621,7 +1621,7 @@
    "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 230,
@@ -1632,35 +1632,35 @@
   },
   {
    "MP": 231,
-   "club": "PiS",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 232,
    "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
+   "MP": 232,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
    "MP": 233,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 234,
-   "club": "KO",
+   "club": "niez.",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 235,
-   "club": "KO",
+   "club": "Konfederacja",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1674,28 +1674,28 @@
   },
   {
    "MP": 237,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 238,
-   "club": "PiS",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 239,
-   "club": "PiS",
+   "club": "Lewica",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 240,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1709,24 +1709,24 @@
   },
   {
    "MP": 242,
-   "club": "niez.",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 243,
-   "club": "niez.",
+   "club": "Lewica",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 244,
-   "club": "Konfederacja",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 245,
@@ -1737,84 +1737,84 @@
   },
   {
    "MP": 246,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 247,
-   "club": "PiS",
+   "club": "Konfederacja",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 248,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 249,
-   "club": "RozwojPlus",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 250,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 251,
-   "club": "PiS",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 252,
-   "club": "KO",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 253,
    "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
+   "MP": 253,
+   "club": "Razem",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
    "MP": 254,
-   "club": "niez.",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 255,
-   "club": "Konfederacja",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "ABSENT"
-  },
-  {
-   "MP": 256,
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
+   "MP": 256,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
    "MP": 257,
-   "club": "KO",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1828,14 +1828,14 @@
   },
   {
    "MP": 259,
-   "club": "KO",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 260,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1845,25 +1845,25 @@
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 262,
-   "club": "KO",
+   "club": "Centrum",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 263,
-   "club": "KO",
+   "club": "Konfederacja",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 264,
-   "club": "Polska2050",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1877,35 +1877,35 @@
   },
   {
    "MP": 266,
-   "club": "Lewica",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 267,
-   "club": "PSL-TD",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 268,
-   "club": "PiS",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "ABSENT"
-  },
-  {
-   "MP": 269,
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
+   "MP": 267,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 268,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 269,
+   "club": "niez.",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
    "MP": 270,
-   "club": "Centrum",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1919,7 +1919,7 @@
   },
   {
    "MP": 272,
-   "club": "Centrum",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1933,21 +1933,21 @@
   },
   {
    "MP": 274,
-   "club": "KO",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 275,
-   "club": "PSL-TD",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 276,
-   "club": "Polska2050",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1961,7 +1961,7 @@
   },
   {
    "MP": 278,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -1975,56 +1975,56 @@
   },
   {
    "MP": 280,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 281,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 282,
-   "club": "PSL-TD",
+   "club": "Polska2050",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 283,
-   "club": "PSL-TD",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 284,
-   "club": "KO",
+   "club": "Polska2050",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 285,
-   "club": "RozwojPlus",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 286,
-   "club": "Konfederacja",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 287,
-   "club": "Centrum",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2034,18 +2034,18 @@
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 289,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 290,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2055,81 +2055,81 @@
    "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 292,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 293,
-   "club": "KO",
+   "club": "Polska2050",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 294,
-   "club": "Centrum",
+   "club": "Razem",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 295,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 296,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 297,
-   "club": "KO",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 298,
-   "club": "Konfederacja",
+   "club": "Lewica",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 299,
-   "club": "PiS",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 300,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 301,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 302,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2143,7 +2143,7 @@
   },
   {
    "MP": 304,
-   "club": "Konfederacja",
+   "club": "Polska2050",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2153,11 +2153,11 @@
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 306,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2171,38 +2171,38 @@
   },
   {
    "MP": 308,
-   "club": "RozwojPlus",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 309,
-   "club": "PSL-TD",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 310,
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
+   "MP": 309,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 310,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
    "MP": 311,
-   "club": "PSL-TD",
+   "club": "Lewica",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 312,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 313,
@@ -2213,21 +2213,21 @@
   },
   {
    "MP": 314,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 315,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 316,
-   "club": "Polska2050",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2241,7 +2241,7 @@
   },
   {
    "MP": 318,
-   "club": "PSL-TD",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2255,42 +2255,42 @@
   },
   {
    "MP": 320,
-   "club": "KO",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 321,
-   "club": "RozwojPlus",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "ABSENT"
   },
   {
+   "MP": 321,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
    "MP": 322,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 323,
-   "club": "PSL-TD",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 324,
-   "club": "Demokracja",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 325,
-   "club": "Demokracja",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2304,7 +2304,7 @@
   },
   {
    "MP": 327,
-   "club": "PSL-TD",
+   "club": "Lewica",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2318,45 +2318,45 @@
   },
   {
    "MP": 329,
-   "club": "PSL-TD",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 330,
-   "club": "Polska2050",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 331,
-   "club": "PiS",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 332,
    "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "ABSENT"
   },
   {
-   "MP": 333,
-   "club": "PiS",
+   "MP": 331,
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
-   "MP": 334,
-   "club": "RozwojPlus",
+   "MP": 332,
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
+  },
+  {
+   "MP": 333,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 334,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
   },
   {
    "MP": 335,
@@ -2367,7 +2367,7 @@
   },
   {
    "MP": 336,
-   "club": "KO",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2381,42 +2381,42 @@
   },
   {
    "MP": 338,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 339,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 340,
-   "club": "Lewica",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 341,
-   "club": "Konfederacja_KP",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 342,
-   "club": "Centrum",
+   "club": "Lewica",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 343,
-   "club": "KO",
+   "club": "Polska2050",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2430,21 +2430,21 @@
   },
   {
    "MP": 345,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 346,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 347,
-   "club": "PSL-TD",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2458,14 +2458,14 @@
   },
   {
    "MP": 349,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 350,
-   "club": "PiS",
+   "club": "Polska2050",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2475,14 +2475,14 @@
    "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 352,
-   "club": "PSL-TD",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 353,
@@ -2493,31 +2493,31 @@
   },
   {
    "MP": 354,
-   "club": "PiS",
+   "club": "Polska2050",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 355,
-   "club": "PSL-TD",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 356,
    "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
-   "MP": 357,
+   "MP": 356,
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 357,
+   "club": "Demokracja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
   },
   {
    "MP": 358,
@@ -2535,31 +2535,31 @@
   },
   {
    "MP": 360,
-   "club": "Razem",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 361,
-   "club": "Polska2050",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 362,
-   "club": "PiS",
+   "club": "Konfederacja",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 363,
-   "club": "Centrum",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 364,
@@ -2584,35 +2584,35 @@
   },
   {
    "MP": 367,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 368,
-   "club": "Lewica",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 369,
-   "club": "RozwojPlus",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 370,
-   "club": "PiS",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 371,
-   "club": "Lewica",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2626,28 +2626,28 @@
   },
   {
    "MP": 373,
-   "club": "KO",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "ABSENT"
-  },
-  {
-   "MP": 374,
-   "club": "KO",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 375,
    "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
-   "MP": 376,
+   "MP": 374,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 375,
    "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 376,
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2661,17 +2661,17 @@
   },
   {
    "MP": 378,
-   "club": "Centrum",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 379,
-   "club": "Konfederacja",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "ABSENT"
+  },
+  {
+   "MP": 379,
+   "club": "niez.",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
   },
   {
    "MP": 380,
@@ -2682,56 +2682,56 @@
   },
   {
    "MP": 381,
-   "club": "RozwojPlus",
+   "club": "niez.",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 382,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 383,
-   "club": "RozwojPlus",
+   "club": "Konfederacja_KP",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 384,
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "ABSENT"
   },
   {
-   "MP": 384,
-   "club": "PiS",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
    "MP": 385,
-   "club": "Polska2050",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 386,
-   "club": "PiS",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 387,
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
-   "MP": 388,
+   "MP": 386,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 387,
    "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 388,
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2745,45 +2745,45 @@
   },
   {
    "MP": 390,
-   "club": "RozwojPlus",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 391,
-   "club": "Lewica",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 392,
-   "club": "RozwojPlus",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 393,
-   "club": "PSL-TD",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 394,
    "club": "Polska2050",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
-   "MP": 395,
+   "MP": 393,
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 394,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 395,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
   },
   {
    "MP": 396,
@@ -2794,21 +2794,21 @@
   },
   {
    "MP": 397,
-   "club": "PSL-TD",
+   "club": "Lewica",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 398,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 399,
-   "club": "Lewica",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2822,63 +2822,63 @@
   },
   {
    "MP": 401,
-   "club": "Konfederacja",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 402,
-   "club": "RozwojPlus",
+   "club": "Centrum",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 403,
-   "club": "Konfederacja",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 404,
-   "club": "KO",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "ABSENT"
-  },
-  {
-   "MP": 405,
-   "club": "Lewica",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 406,
-   "club": "KO",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 407,
-   "club": "PiS",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 408,
    "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
+   "MP": 404,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 405,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 406,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 407,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 408,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
    "MP": 409,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2899,14 +2899,14 @@
   },
   {
    "MP": 412,
-   "club": "KO",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 413,
-   "club": "PiS",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2927,7 +2927,7 @@
   },
   {
    "MP": 416,
-   "club": "Konfederacja",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2941,14 +2941,14 @@
   },
   {
    "MP": 418,
-   "club": "PiS",
+   "club": "Centrum",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 419,
-   "club": "Lewica",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -2962,49 +2962,49 @@
   },
   {
    "MP": 421,
-   "club": "Lewica",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 422,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 423,
    "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
-   "MP": 423,
-   "club": "KO",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "ABSENT"
-  },
-  {
    "MP": 424,
-   "club": "Konfederacja",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 425,
-   "club": "PiS",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 426,
-   "club": "Konfederacja",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 427,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -3018,21 +3018,21 @@
   },
   {
    "MP": 429,
-   "club": "PiS",
+   "club": "Centrum",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 430,
-   "club": "KO",
+   "club": "Lewica",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 431,
-   "club": "Polska2050",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -3046,28 +3046,28 @@
   },
   {
    "MP": 433,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 434,
-   "club": "PiS",
+   "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 435,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 436,
-   "club": "PiS",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -3081,7 +3081,7 @@
   },
   {
    "MP": 438,
-   "club": "PiS",
+   "club": "PSL-TD",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -3095,35 +3095,35 @@
   },
   {
    "MP": 440,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 441,
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
-   "MP": 441,
-   "club": "PiS",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
    "MP": 442,
-   "club": "niez.",
+   "club": "Lewica",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 443,
-   "club": "Razem",
+   "club": "Centrum",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 444,
-   "club": "Konfederacja",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
@@ -3133,42 +3133,42 @@
    "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 446,
-   "club": "Razem",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 447,
-   "club": "Konfederacja_KP",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 448,
-   "club": "KO",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 449,
-   "club": "PSL-TD",
+   "club": "PiS",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 450,
-   "club": "PSL-TD",
+   "club": "Polska2050",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "ABSENT"
+   "vote": "PRESENT"
   },
   {
    "MP": 451,
@@ -3179,63 +3179,63 @@
   },
   {
    "MP": 452,
-   "club": "PiS",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 453,
-   "club": "PiS",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 454,
-   "club": "PSL-TD",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "PRESENT"
-  },
-  {
-   "MP": 455,
    "club": "niez.",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
-   "MP": 456,
-   "club": "PiS",
-   "firstName": "JAN",
-   "lastName": "KOWALSKI",
-   "vote": "ABSENT"
-  },
-  {
-   "MP": 457,
-   "club": "RozwojPlus",
+   "MP": 453,
+   "club": "Razem",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
+  },
+  {
+   "MP": 454,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 455,
+   "club": "Demokracja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 456,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "PRESENT"
+  },
+  {
+   "MP": 457,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
   },
   {
    "MP": 458,
    "club": "RozwojPlus",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
-   "vote": "PRESENT"
+   "vote": "ABSENT"
   },
   {
    "MP": 459,
-   "club": "PSL-TD",
+   "club": "KO",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
   },
   {
    "MP": 460,
-   "club": "Lewica",
+   "club": "niez.",
    "firstName": "JAN",
    "lastName": "KOWALSKI",
    "vote": "PRESENT"
