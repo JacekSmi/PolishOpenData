@@ -1,0 +1,16 @@
+{
+ "changeDate": "2025-01-02T03:04:05",
+ "documentType": "wniosek",
+ "number": "1",
+ "passed": false,
+ "term": 10,
+ "title": "Wniosek testowy",
+ "urgencyStatus": "URGENT",
+ "stages": [
+  {
+   "date": "2025-01-02",
+   "stageName": "Coś nowego",
+   "stageType": "BrandNewStageType"
+  }
+ ]
+}

@@ -13,6 +13,7 @@ using PolishOpenData.BialaLista.Offline;
 using PolishOpenData.Bdl;
 using PolishOpenData.Bir;
 using PolishOpenData.Eli;
+using PolishOpenData.Sejm;
 using PolishOpenData.Ceidg;
 using PolishOpenData.Krs;
 using PolishOpenData.Rcn;
@@ -110,6 +111,11 @@ internal static class McpServerSetup
         eli.AddStandardResilienceHandler(o => o.Retry.ShouldHandle = static _ => ValueTask.FromResult(false));
         configureHttp?.Invoke(eli);
 
+        // Always on: the Sejm API needs no key. One request per call and no published limit: never retried.
+        var sejm = services.AddSejmClient();
+        sejm.AddStandardResilienceHandler(o => o.Retry.ShouldHandle = static _ => ValueTask.FromResult(false));
+        configureHttp?.Invoke(sejm);
+
         configureHttp?.Invoke(krs);
         configureHttp?.Invoke(vat);
         configureHttp?.Invoke(offline);
@@ -159,6 +165,7 @@ internal static class McpServerSetup
             .WithTools<PropertyTools>(json)
             .WithTools<BdlTools>(json)
             .WithTools<EliTools>(json)
+            .WithTools<SejmTools>(json)
             .WithRequestFilters(filters => filters.AddCallToolFilter(next => async (context, cancellationToken) =>
             {
                 try

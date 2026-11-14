@@ -1,0 +1,3247 @@
+{
+ "abstain": 2,
+ "date": "2026-10-20T11:17:31",
+ "description": "wniosek z druku",
+ "kind": "ELECTRONIC",
+ "links": [
+  {
+   "href": "https://api.sejm.gov.pl/sejm/term10/votings/67/1/pdf",
+   "rel": "pdf"
+  }
+ ],
+ "majorityType": "SIMPLE_MAJORITY",
+ "majorityVotes": 10,
+ "no": 9,
+ "notParticipating": 60,
+ "present": 0,
+ "sitting": 67,
+ "sittingDay": 1,
+ "term": 10,
+ "title": "Pkt. 1 Zmiany w składach osobowych komisji sejmowych (druk nr 3221)",
+ "topic": "głosowanie nad przyjęciem wniosku z druku 3221",
+ "totalVoted": 400,
+ "votes": [
+  {
+   "MP": 1,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 2,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 3,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 4,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 5,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 6,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 7,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 8,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 9,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 10,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 11,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 12,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 13,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 14,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 15,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 16,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 17,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 18,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 19,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 20,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 21,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 22,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 23,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 24,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 25,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 26,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 27,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 28,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 29,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 30,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 31,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 32,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 33,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 34,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "NO"
+  },
+  {
+   "MP": 35,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 36,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 37,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 38,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 39,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 40,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 41,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 42,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 43,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 44,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 45,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 46,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 47,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 48,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 49,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 50,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 51,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 52,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 53,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 54,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 55,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 56,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 57,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 58,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 59,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 60,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 61,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 62,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 63,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 64,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 65,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 66,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 67,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 68,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 69,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 70,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 71,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 72,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 73,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 74,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 75,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 76,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 77,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 78,
+   "club": "Razem",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 79,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 80,
+   "club": "Demokracja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 81,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 82,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 83,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 84,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 85,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 86,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 87,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 88,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 89,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 90,
+   "club": "Konfederacja_KP",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 91,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 92,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 93,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 94,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 95,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 96,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 97,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 98,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 99,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 100,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 101,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 102,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 103,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 104,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 105,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 106,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 107,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 108,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 109,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 110,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 111,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 112,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 113,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 114,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 115,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 116,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 117,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 118,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 119,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 120,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 121,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 122,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 123,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 124,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 125,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 126,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 127,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 128,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 129,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 130,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 131,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 132,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 133,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 134,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 135,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 136,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 137,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 138,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 139,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 140,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 141,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 142,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 143,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 144,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 145,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 146,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 147,
+   "club": "Demokracja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 148,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 149,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 150,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 151,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 152,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 153,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 154,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 155,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 156,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 157,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 158,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 159,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 160,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 161,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 162,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 163,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 164,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 165,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 166,
+   "club": "Konfederacja_KP",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 167,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 168,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 169,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 170,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 171,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 172,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 173,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 174,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 175,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 176,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "NO"
+  },
+  {
+   "MP": 177,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 178,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 179,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 180,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 181,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "NO"
+  },
+  {
+   "MP": 182,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 183,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 184,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 185,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 186,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 187,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 188,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 189,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 190,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 191,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 192,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 193,
+   "club": "niez.",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 194,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 195,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 196,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 197,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 198,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 199,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 200,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 201,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 202,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 203,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 204,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 205,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 206,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "NO"
+  },
+  {
+   "MP": 207,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 208,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 209,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 210,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 211,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 212,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 213,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 214,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "NO"
+  },
+  {
+   "MP": 215,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 216,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 217,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 218,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 219,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 220,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 221,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 222,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 223,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 224,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 225,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 226,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 227,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 228,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 229,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 230,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 231,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 232,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 233,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 234,
+   "club": "niez.",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 235,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 236,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 237,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 238,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 239,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 240,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 241,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 242,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 243,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 244,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 245,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 246,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 247,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 248,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 249,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 250,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 251,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 252,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 253,
+   "club": "Razem",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 254,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 255,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 256,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 257,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 258,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 259,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 260,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 261,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 262,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 263,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 264,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 265,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 266,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 267,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 268,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 269,
+   "club": "niez.",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 270,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 271,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 272,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 273,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 274,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 275,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 276,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 277,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 278,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 279,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 280,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 281,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 282,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 283,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 284,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 285,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 286,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "NO"
+  },
+  {
+   "MP": 287,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 288,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 289,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 290,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 291,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 292,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "NO"
+  },
+  {
+   "MP": 293,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 294,
+   "club": "Razem",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 295,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 296,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 297,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 298,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 299,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 300,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 301,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 302,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 303,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 304,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 305,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 306,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 307,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 308,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 309,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 310,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 311,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 312,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 313,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 314,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 315,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 316,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 317,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 318,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 319,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 320,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 321,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 322,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSTAIN"
+  },
+  {
+   "MP": 323,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "NO"
+  },
+  {
+   "MP": 324,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 325,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 326,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 327,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 328,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 329,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 330,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSTAIN"
+  },
+  {
+   "MP": 331,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 332,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 333,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 334,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 335,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 336,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 337,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 338,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 339,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 340,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 341,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 342,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 343,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 344,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 345,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 346,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 347,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 348,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 349,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 350,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 351,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 352,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 353,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 354,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 355,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 356,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 357,
+   "club": "Demokracja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 358,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 359,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 360,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 361,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 362,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 363,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 364,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 365,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 366,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 367,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 368,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 369,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 370,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 371,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 372,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 373,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 374,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 375,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 376,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 377,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 378,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 379,
+   "club": "niez.",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 380,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 381,
+   "club": "niez.",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 382,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 383,
+   "club": "Konfederacja_KP",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 384,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 385,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 386,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 387,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 388,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 389,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 390,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 391,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 392,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 393,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 394,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 395,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 396,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 397,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 398,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 399,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 400,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 401,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 402,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 403,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 404,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 405,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 406,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 407,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 408,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 409,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 410,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 411,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 412,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 413,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 414,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 415,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 416,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 417,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 418,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 419,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 420,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 421,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 422,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 423,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 424,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 425,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 426,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 427,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 428,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 429,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 430,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 431,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 432,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 433,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 434,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 435,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 436,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 437,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 438,
+   "club": "PSL-TD",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 439,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 440,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 441,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 442,
+   "club": "Lewica",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 443,
+   "club": "Centrum",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 444,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 445,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 446,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 447,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 448,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 449,
+   "club": "PiS",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 450,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 451,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 452,
+   "club": "niez.",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "NO"
+  },
+  {
+   "MP": 453,
+   "club": "Razem",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 454,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 455,
+   "club": "Demokracja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 456,
+   "club": "Polska2050",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 457,
+   "club": "Konfederacja",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 458,
+   "club": "RozwojPlus",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "ABSENT"
+  },
+  {
+   "MP": 459,
+   "club": "KO",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  },
+  {
+   "MP": 460,
+   "club": "niez.",
+   "firstName": "JAN",
+   "lastName": "KOWALSKI",
+   "vote": "YES"
+  }
+ ],
+ "votingNumber": 1,
+ "yes": 389
+}

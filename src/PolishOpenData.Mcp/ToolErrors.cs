@@ -25,6 +25,11 @@ internal static class ToolErrors
     private const string SearchActsTool = "search_legal_acts";
     private const string ActTool = "get_legal_act";
     private const string ArticleTool = "get_legal_article";
+    private const string SearchProcessesTool = "search_sejm_processes";
+    private const string ProcessTool = "get_sejm_process";
+    private const string SearchVotingsTool = "search_sejm_votings";
+    private const string VotingTool = "get_sejm_voting";
+    private const string BodyTool = "get_sejm_body";
 
     /// <param name="exception">The failure.</param>
     /// <param name="toolName">The tool that failed, when known: some errors only have a specific meaning for one tool.</param>
@@ -56,6 +61,11 @@ internal static class ToolErrors
         // Sejm ELI: no key and no published limit, so nothing to configure; just slow down.
         QuotaExceededException quota when toolName is SearchActsTool or ActTool or ArticleTool =>
             "The Sejm ELI API is rate-limiting requests: " + quota.Message.TrimEnd('.') +
+            (quota.RetryAfter is { } wait ? " (retry after " + ((int)Math.Ceiling(wait.TotalSeconds)).ToString(CultureInfo.InvariantCulture) + " s)" : string.Empty) +
+            ". Wait a minute before trying again and avoid repeated lookups.",
+        // Sejm API: no key and no published limit, so nothing to configure; just slow down.
+        QuotaExceededException quota when toolName is SearchProcessesTool or ProcessTool or SearchVotingsTool or VotingTool or BodyTool =>
+            "The Sejm API is rate-limiting requests: " + quota.Message.TrimEnd('.') +
             (quota.RetryAfter is { } wait ? " (retry after " + ((int)Math.Ceiling(wait.TotalSeconds)).ToString(CultureInfo.InvariantCulture) + " s)" : string.Empty) +
             ". Wait a minute before trying again and avoid repeated lookups.",
         // The pointer to the offline VAT tool only helps for Biała Lista; a KRS 429 (no tool name) gets none.

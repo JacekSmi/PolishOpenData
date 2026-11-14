@@ -1,0 +1,265 @@
+{
+ "changeDate": "2024-03-01T10:00:00",
+ "closureDate": "2024-03-01",
+ "documentType": "projekt ustawy",
+ "number": "900",
+ "passed": false,
+ "processStartDate": "2024-01-01",
+ "term": 10,
+ "title": "Projekt testowy o głębokim drzewie etapów",
+ "urgencyStatus": "NORMAL",
+ "stages": [
+  {
+   "date": "2024-01-01",
+   "stageName": "Projekt wpłynął do Sejmu",
+   "printNumber": "900",
+   "stageType": "Start"
+  },
+  {
+   "date": "2024-02-01",
+   "stageName": "Praca w komisjach 1",
+   "stageType": "CommitteeWork",
+   "children": [
+    {
+     "date": "2024-02-01",
+     "stageName": "Skierowanie 1",
+     "committeeCode": "Sejm",
+     "stageType": "Referral",
+     "type": "NORMAL",
+     "children": [
+      {
+       "date": "2024-02-01",
+       "stageName": "Sprawozdanie komisji 1",
+       "printNumber": "901",
+       "stageType": "CommitteeReport"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "date": "2024-02-02",
+   "stageName": "Praca w komisjach 2",
+   "stageType": "CommitteeWork",
+   "children": [
+    {
+     "date": "2024-02-02",
+     "stageName": "Skierowanie 2",
+     "committeeCode": "ASW",
+     "stageType": "Referral",
+     "type": "NORMAL",
+     "children": [
+      {
+       "date": "2024-02-02",
+       "stageName": "Sprawozdanie komisji 2",
+       "printNumber": "902",
+       "stageType": "CommitteeReport"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "date": "2024-02-03",
+   "stageName": "Praca w komisjach 3",
+   "stageType": "CommitteeWork",
+   "children": [
+    {
+     "date": "2024-02-03",
+     "stageName": "Skierowanie 3",
+     "committeeCode": "ASW",
+     "stageType": "Referral",
+     "type": "NORMAL",
+     "children": [
+      {
+       "date": "2024-02-03",
+       "stageName": "Sprawozdanie komisji 3",
+       "printNumber": "903",
+       "stageType": "CommitteeReport"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "date": "2024-02-04",
+   "stageName": "Praca w komisjach 4",
+   "stageType": "CommitteeWork",
+   "children": [
+    {
+     "date": "2024-02-04",
+     "stageName": "Skierowanie 4",
+     "committeeCode": "ASW",
+     "stageType": "Referral",
+     "type": "NORMAL",
+     "children": [
+      {
+       "date": "2024-02-04",
+       "stageName": "Sprawozdanie komisji 4",
+       "printNumber": "904",
+       "stageType": "CommitteeReport"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "date": "2024-02-05",
+   "stageName": "Praca w komisjach 5",
+   "stageType": "CommitteeWork",
+   "children": [
+    {
+     "date": "2024-02-05",
+     "stageName": "Skierowanie 5",
+     "committeeCode": "ASW",
+     "stageType": "Referral",
+     "type": "NORMAL",
+     "children": [
+      {
+       "date": "2024-02-05",
+       "stageName": "Sprawozdanie komisji 5",
+       "printNumber": "905",
+       "stageType": "CommitteeReport"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "date": "2024-02-06",
+   "stageName": "Praca w komisjach 6",
+   "stageType": "CommitteeWork",
+   "children": [
+    {
+     "date": "2024-02-06",
+     "stageName": "Skierowanie 6",
+     "committeeCode": "ASW",
+     "stageType": "Referral",
+     "type": "NORMAL",
+     "children": [
+      {
+       "date": "2024-02-06",
+       "stageName": "Sprawozdanie komisji 6",
+       "printNumber": "906",
+       "stageType": "CommitteeReport"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "date": "2024-02-07",
+   "stageName": "Praca w komisjach 7",
+   "stageType": "CommitteeWork",
+   "children": [
+    {
+     "date": "2024-02-07",
+     "stageName": "Skierowanie 7",
+     "committeeCode": "ASW",
+     "stageType": "Referral",
+     "type": "NORMAL",
+     "children": [
+      {
+       "date": "2024-02-07",
+       "stageName": "Sprawozdanie komisji 7",
+       "printNumber": "907",
+       "stageType": "CommitteeReport"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "date": "2024-02-08",
+   "stageName": "Praca w komisjach 8",
+   "stageType": "CommitteeWork",
+   "children": [
+    {
+     "date": "2024-02-08",
+     "stageName": "Skierowanie 8",
+     "committeeCode": "ASW",
+     "stageType": "Referral",
+     "type": "NORMAL",
+     "children": [
+      {
+       "date": "2024-02-08",
+       "stageName": "Sprawozdanie komisji 8",
+       "printNumber": "908",
+       "stageType": "CommitteeReport"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "date": "2024-02-09",
+   "stageName": "Praca w komisjach 9",
+   "stageType": "CommitteeWork",
+   "children": [
+    {
+     "date": "2024-02-09",
+     "stageName": "Skierowanie 9",
+     "committeeCode": "ASW",
+     "stageType": "Referral",
+     "type": "NORMAL",
+     "children": [
+      {
+       "date": "2024-02-09",
+       "stageName": "Sprawozdanie komisji 9",
+       "printNumber": "909",
+       "stageType": "CommitteeReport"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "date": "2024-02-10",
+   "stageName": "Praca w komisjach 10",
+   "stageType": "CommitteeWork",
+   "children": [
+    {
+     "date": "2024-02-10",
+     "stageName": "Skierowanie 10",
+     "committeeCode": "ASW",
+     "stageType": "Referral",
+     "type": "NORMAL",
+     "children": [
+      {
+       "date": "2024-02-10",
+       "stageName": "Sprawozdanie komisji 10",
+       "printNumber": "910",
+       "stageType": "CommitteeReport"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "date": "2024-02-11",
+   "stageName": "Praca w komisjach 11",
+   "stageType": "CommitteeWork",
+   "children": [
+    {
+     "date": "2024-02-11",
+     "stageName": "Skierowanie 11",
+     "committeeCode": "ASW",
+     "stageType": "Referral",
+     "type": "NORMAL",
+     "children": [
+      {
+       "date": "2024-02-11",
+       "stageName": "Sprawozdanie komisji 11",
+       "printNumber": "911",
+       "stageType": "CommitteeReport"
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "stageName": "Odrzucono",
+   "stageType": "End"
+  }
+ ]
+}

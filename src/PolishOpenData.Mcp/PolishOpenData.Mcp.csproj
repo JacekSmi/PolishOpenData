@@ -9,12 +9,20 @@
     <!-- CI AOT gate: -p:AotGate=true. Passing -p:PublishAot=true instead would leak into the netstandard2.0
          builds of the referenced libraries (NETSDK1207). The NuGet package stays framework-dependent. -->
     <PublishAot Condition="'$(AotGate)' == 'true'">true</PublishAot>
-    <Description>Unofficial MCP server for Polish public registers: company lookup (KRS + VAT whitelist), the optional GUS REGON register (needs your own GUS key), bank-account whitelist checks, cadastral parcel lookup and address geocoding (GUGiK ULDK and UUG), real-estate transaction prices (RCN, GUGiK), local statistics (GUS Bank Danych Lokalnych, no key), Polish legal acts (Sejm ELI, no key), and offline validation of NIP, REGON, KRS, NRB and KW numbers. Not affiliated with the Polish government. Run: dotnet dnx PolishOpenData.Mcp --yes</Description>
+    <Description>Unofficial MCP server for Polish public registers: company lookup (KRS + VAT whitelist), the optional GUS REGON register (needs your own GUS key), bank-account whitelist checks, cadastral parcel lookup and address geocoding (GUGiK ULDK and UUG), real-estate transaction prices (RCN, GUGiK), local statistics (GUS Bank Danych Lokalnych, no key), Polish legal acts (Sejm ELI, no key), Sejm processes, votings by club, clubs and committees (no key), and offline validation of NIP, REGON, KRS, NRB and KW numbers. Not affiliated with the Polish government. Run: dotnet dnx PolishOpenData.Mcp --yes</Description>
     <PackageTags>$(PackageTags);mcp-server;model-context-protocol;ai-tools</PackageTags>
     <!-- The SDK turns package validation off for PackAsTool packages (a tool ships no lib/ API to compare), so the
          baseline in src/Directory.Build.props applies to the library packages only. -->
     <PackageValidationBaselineVersion />
   </PropertyGroup>
+  <!-- The SDK (10.0.302) restores its bundled Native AOT toolchain, Microsoft.DotNet.ILCompiler 10.0.10, which carries GHSA-p3jp-9v83-76w9
+       (Brotli decoder, fixed in 10.0.14) and fails the AOT gate with NU1903. An explicit PackageReference breaks the publish targets, so the
+       version the SDK would pick is overridden instead, and only for an SDK that bundles an older one (a newer SDK, as on CI, has the fix and a matching runtime pack: pinning 10.0.14 there fails with 'Overriding System.Private.CoreLib.dll'). Drop once every SDK in use bundles >= 10.0.14. -->
+  <Target Name="UsePatchedILCompiler" BeforeTargets="ProcessFrameworkReferences" Condition="'$(AotGate)' == 'true' And $([MSBuild]::VersionLessThan('$(BundledNETCoreAppPackageVersion)', '10.0.14'))">
+    <ItemGroup>
+      <KnownILCompilerPack Update="Microsoft.DotNet.ILCompiler" ILCompilerPackVersion="10.0.14" />
+    </ItemGroup>
+  </Target>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
@@ -28,6 +36,7 @@
   <ItemGroup>
     <ProjectReference Include="..\PolishOpenData.Bdl\PolishOpenData.Bdl.csproj" />
     <ProjectReference Include="..\PolishOpenData.Eli\PolishOpenData.Eli.csproj" />
+    <ProjectReference Include="..\PolishOpenData.Sejm\PolishOpenData.Sejm.csproj" />
     <ProjectReference Include="..\PolishOpenData.Ceidg\PolishOpenData.Ceidg.csproj" />
     <ProjectReference Include="..\PolishOpenData.Krs\PolishOpenData.Krs.csproj" />
     <ProjectReference Include="..\PolishOpenData.BialaLista\PolishOpenData.BialaLista.csproj" />

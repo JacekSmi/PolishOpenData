@@ -1,0 +1,128 @@
+[
+ {
+  "ELI": "MP/2023/1261",
+  "UE": "NO",
+  "address": "WMP20230001261",
+  "changeDate": "2023-11-14T11:44:49",
+  "closureDate": "2023-11-13",
+  "displayAddress": "M.P. 2023 poz. 1261",
+  "documentDate": "2023-11-13",
+  "documentType": "projekt uchwały",
+  "documentTypeEnum": "DRAFT_RESOLUTION",
+  "links": [
+   {
+    "href": "https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WMP20230001261",
+    "rel": "isap"
+   },
+   {
+    "href": "https://eli.gov.pl/eli/MP/2023/1261/ogl",
+    "rel": "eli"
+   },
+   {
+    "href": "https://api.sejm.gov.pl/eli/acts/MP/2023/1261",
+    "rel": "eli-api"
+   }
+  ],
+  "number": "1",
+  "passed": true,
+  "printsConsideredJointly": [
+   "2"
+  ],
+  "processStartDate": "2023-11-13",
+  "shortenProcedure": false,
+  "term": 10,
+  "title": "Poselski projekt uchwały w sprawie ustalenia liczby wicemarszałków Sejmu Rzeczypospolitej Polskiej",
+  "titleFinal": "w sprawie ustalenia liczby wicemarszałków Sejmu",
+  "urgencyStatus": "NORMAL",
+  "webGeneratedDate": "2023-11-21T14:58:49"
+ },
+ {
+  "ELI": "MP/2023/1261",
+  "UE": "NO",
+  "address": "WMP20230001261",
+  "changeDate": "2023-11-14T11:44:49",
+  "closureDate": "2023-11-13",
+  "displayAddress": "M.P. 2023 poz. 1261",
+  "documentDate": "2023-11-13",
+  "documentType": "projekt uchwały",
+  "documentTypeEnum": "DRAFT_RESOLUTION",
+  "links": [
+   {
+    "href": "https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WMP20230001261",
+    "rel": "isap"
+   },
+   {
+    "href": "https://eli.gov.pl/eli/MP/2023/1261/ogl",
+    "rel": "eli"
+   },
+   {
+    "href": "https://api.sejm.gov.pl/eli/acts/MP/2023/1261",
+    "rel": "eli-api"
+   }
+  ],
+  "number": "2",
+  "passed": true,
+  "printsConsideredJointly": [
+   "1"
+  ],
+  "processStartDate": "2023-11-13",
+  "shortenProcedure": false,
+  "term": 10,
+  "title": "Poselski projekt uchwały w sprawie ustalenia liczby wicemarszałków Sejmu Rzeczypospolitej Polskiej",
+  "titleFinal": "w sprawie ustalenia liczby wicemarszałków Sejmu",
+  "urgencyStatus": "NORMAL",
+  "webGeneratedDate": "2023-11-21T14:59:01"
+ },
+ {
+  "UE": "NO",
+  "changeDate": "2023-12-08T10:54:12",
+  "closureDate": "2023-11-14",
+  "documentDate": "2023-11-14",
+  "documentType": "wniosek",
+  "links": [],
+  "number": "9",
+  "passed": true,
+  "processStartDate": "2023-11-14",
+  "shortenProcedure": false,
+  "term": 10,
+  "title": "Przedstawiony przez Prezydium Sejmu wniosek w sprawie wyboru sekretarzy Sejmu",
+  "titleFinal": "w sprawie wyboru sekretarzy Sejmu",
+  "urgencyStatus": "NORMAL",
+  "webGeneratedDate": "2023-12-08T10:54:18"
+ },
+ {
+  "UE": "NO",
+  "changeDate": "2024-01-08T11:20:12",
+  "closureDate": "2023-11-14",
+  "documentDate": "2023-11-13",
+  "documentType": "projekt uchwały",
+  "documentTypeEnum": "DRAFT_RESOLUTION",
+  "links": [],
+  "number": "10",
+  "passed": true,
+  "processStartDate": "2023-11-13",
+  "shortenProcedure": false,
+  "term": 10,
+  "title": "Przedstawiony przez Prezydium Sejmu projekt uchwały w sprawie ustalenia liczby członków Komisji do Spraw Służb Specjalnych",
+  "titleFinal": "w sprawie ustalenia liczby członków Komisji do Spraw Służb Specjalnych",
+  "urgencyStatus": "NORMAL",
+  "webGeneratedDate": "2024-01-08T11:20:57"
+ },
+ {
+  "UE": "NO",
+  "changeDate": "2023-12-08T10:54:20",
+  "closureDate": "2023-11-14",
+  "documentDate": "2023-11-14",
+  "documentType": "wniosek",
+  "links": [],
+  "number": "11",
+  "passed": true,
+  "processStartDate": "2023-11-14",
+  "shortenProcedure": false,
+  "term": 10,
+  "title": "Przedstawiony przez Prezydium Sejmu wniosek w sprawie wyboru składu osobowego Komisji Regulaminowej, Spraw Poselskich i Immunitetowych",
+  "titleFinal": "w sprawie wyboru składu osobowego Komisji Regulaminowej, Spraw Poselskich i Immunitetowych",
+  "urgencyStatus": "NORMAL",
+  "webGeneratedDate": "2023-12-08T13:10:04"
+ }
+]

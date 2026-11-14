@@ -22,6 +22,7 @@
 | [`PolishOpenData.Ceidg`](https://www.nuget.org/packages/PolishOpenData.Ceidg) | CEIDG v3 (register of sole traders): entries by NIP, REGON or id with status, dates, address and PKD; needs your own free API token | net10.0, netstandard2.0 |
 | [`PolishOpenData.Bdl`](https://www.nuget.org/packages/PolishOpenData.Bdl) | GUS Bank Danych Lokalnych: find voivodeships, powiats and gminas, search indicators, read values by year (population, unemployment, budgets...); no key needed | net10.0, netstandard2.0 |
 | [`PolishOpenData.Eli`](https://www.nuget.org/packages/PolishOpenData.Eli) | Polish legal acts (Sejm ELI API): find acts in Dziennik Ustaw and Monitor Polski, status, consolidated texts and amendments, one article as plain text with provenance; no key needed | net10.0, netstandard2.0 |
+| [`PolishOpenData.Sejm`](https://www.nuget.org/packages/PolishOpenData.Sejm) | Sejm parliament API: legislative processes and prints with the resulting act (ELI id), votings with the result per club, clubs and committees; individual votes and members only on request; no key needed | net10.0, netstandard2.0 |
 | [`PolishOpenData.Geo.Core`](https://www.nuget.org/packages/PolishOpenData.Geo.Core) | Typed Polish coordinates: `Pl1992Point` (EPSG:2180) and `Wgs84Point` with a built-in conversion, `Pl1992Bbox`, `ParcelId` (TERYT parcel identifier) | net10.0, netstandard2.0 |
 | [`PolishOpenData.Uldk`](https://www.nuget.org/packages/PolishOpenData.Uldk) | GUGiK ULDK: cadastral parcel by ID, by point or by region name and number, with its boundary as WKT | net10.0, netstandard2.0 |
 | [`PolishOpenData.Geo.Nts`](https://www.nuget.org/packages/PolishOpenData.Geo.Nts) | Optional NetTopologySuite adapter: `ParcelGeometry.ToNtsGeometry()` and `ToNtsPoint()` for area, intersection, buffer and distance on parcels | net10.0, netstandard2.0 |
@@ -187,6 +188,28 @@ Console.WriteLine($"{article?.Text}\n(from {current.NewestWithHtml.DisplayAddres
 **The text may be older than the law in force.** The API serves HTML and a structure only for acts up to 2024: every act from 2025 on, consolidated texts included, is a PDF only (in November 2026 the newest consolidated Kodeks cywilny is Dz.U. 2026 poz. 795, PDF-only, while the newest one with text is from 2024). So `GetArticleAsync` reads exactly the act you give it and does not claim to be current: use `GetCurrentTextAsync` and read `IsHtmlTextCurrent`, `NewestConsolidated` and the amendments since before you rely on a quote. The base act's own HTML is its original text (for the civil code, 1964) and is offered only when the act has no consolidated text. An act without HTML gets metadata and a PDF link only; the library does not read PDFs. A repealed act, or a text that is no longer in force, is never reported as current (`BaseActInForce`, `BaseActStatus`). Regulations are read by paragraph: `GetArticleAsync(id, "§ 2")`.
 
 The API publishes no rate limit; the client does not retry. An article costs two requests (the structure, cached per client instance for its last 16 acts, and the text), the current-text check one plus up to five. Acts are public law (not protected by copyright); cite the source: Sejm RP, ELI API.
+
+## Parliament: Sejm
+
+`PolishOpenData.Sejm` reads the Sejm's API (`api.sejm.gov.pl/sejm`): legislative processes and prints (with the act each process produced), votings with the result per club, clubs and committees. No key is needed.
+
+```bash
+dotnet add package PolishOpenData.Sejm
+```
+
+```csharp
+services.AddSejmClient();
+var sejm = provider.GetRequiredService<ISejmClient>();
+var term = await sejm.GetCurrentTermAsync();
+var voting = await sejm.GetVotingAsync(term.Number, sitting: 67, number: 1);       // club tallies, no names
+foreach (var club in voting!.Clubs) Console.WriteLine($"{club.Club}: {club.Yes} yes, {club.No} no, {club.Abstain} abstained");
+var process = await sejm.GetProcessAsync(term.Number, "318");                      // stages and the resulting act
+Console.WriteLine(process?.Summary.Eli);                                           // DU/2024/878: give it to the ELI client
+```
+
+**Club level by default.** The API lists every deputy's vote by name. The client sums them into club tallies and returns individual votes only when you pass `includeMpVotes: true` (one voting per call); club and committee members come only with `includeMembers: true`. Keep individual votes to the question you were asked: do not compile a person's voting record. **Passed is not law.** A process the Sejm passed has an `Eli` only when it became an act; motions, appointments and candidate lists do not. A voting's pass or fail is not an official field: compare `Yes` with `MajorityVotes` and call it an inference.
+
+The API publishes no rate limit and the client does not retry. A voting answer is 45 to 90 KB. The API ignores sort options: processes come ascending by number and votings oldest first, and a votings search has no total (`HasMore` is exact because one extra item is requested). Cite the source: Sejm RP, API Sejmu.
 
 ## Offline VAT whitelist check
 
@@ -360,6 +383,8 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 
 **Legal-act tools (no key).** `search_legal_acts`, `get_legal_act` and `get_legal_article` read the Sejm ELI API. Read `isCurrent` and `warning` on every article: the API serves the text of acts as HTML only up to 2024, so for the Kodeks cywilny the tool quotes the 2024 consolidated text and says that a newer one (PDF-only) exists and which amendments came after it. A repealed act is never reported as current. Acts are public law; cite "Sejm RP, ELI API".
 
+**Parliament tools (no key).** `search_sejm_processes`, `get_sejm_process`, `search_sejm_votings`, `get_sejm_voting` and `get_sejm_body` read the Sejm API. Votes come per club; a deputy's own vote and the names of club or committee members appear only with `includeMpVotes` or `includeMembers`, one voting or body per call, and the answer says they are personal data. A process the Sejm passed is not necessarily a law: `get_sejm_process` gives the ELI id of the resulting act (for `get_legal_act`) only when there is one. A voting's pass or fail is an inference (yes against the required majority), not a field the API has. The API cannot sort, so the tools use extra requests for newest-first lists. Cite the source: Sejm RP, API Sejmu.
+
 Claude Code (`claude mcp add --env`) and VS Code (`env` in `.vscode/mcp.json`) take the same variable.
 
 | Tool | What it answers |
@@ -379,6 +404,11 @@ Claude Code (`claude mcp add --env`) and VS Code (`env` in `.vscode/mcp.json`) t
 | `search_legal_acts` | "Which act is this?": Polish legal acts (Dziennik Ustaw, Monitor Polski) by words in the title, type and year, with ELI id, status, in force or not, and whether a text is available. No key. |
 | `get_legal_act` | "Is this law in force, and how current is its text?": status, dates and, for a base act, the newest consolidated text, the newest one available as HTML, the amendments since and those that take effect later; a warning when the act is repealed. No key. |
 | `get_legal_article` | "What does art. 415 of the civil code say?": one article (or a § of a regulation) as plain text with its provenance: which text it was read from, `isCurrent`, newer consolidated texts, amendments since, and a warning whenever the quote may be out of date. The API serves HTML only up to 2024, so quotes are often older than the law in force. No key. |
+| `search_sejm_processes` | "What is the status of this bill?": legislative processes of the Sejm by title fragment, type, print number or recent change, with status (passed and published as an act, passed but not an act, rejected, in progress) and the ELI id of the act. Newest first on request. No key. |
+| `get_sejm_process` | "What happened to bill 318?": one process by the number of any of its prints: who submitted it, a timeline of readings, committee work, votings, Senate and President, and the resulting act for `get_legal_act`. No key. |
+| `search_sejm_votings` | "Which votings were there?": votings by sitting, date range or title text with the official totals and whether it looks like the final passage; oldest first, no total. No key. |
+| `get_sejm_voting` | "How did the clubs vote?": one voting with yes, no, abstain, absent per club (summed from the individual votes and checked against the official totals) and an inferred outcome; individual deputies' votes only with `includeMpVotes`. No key. |
+| `get_sejm_body` | "Which clubs and committees are there?": clubs or committees with member counts, one with its scope and, for a committee, the seats per club; member names only with `includeMembers`. No key. |
 | `validate_identifier` | Offline checksum validation of NIP, REGON, KRS, NRB and KW numbers, with typo suggestions |
 
 ## Land-registry (KW) numbers

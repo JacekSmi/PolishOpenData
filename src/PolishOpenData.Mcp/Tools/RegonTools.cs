@@ -186,7 +186,10 @@ internal sealed class RegonTools(IRegonClient client)
     };
 
     /// <summary>GUS free text for the model: control characters become spaces, trimmed, capped at 200 characters; null when nothing is left.</summary>
-    internal static string? Clean(string? text)
+    internal static string? Clean(string? text) => Clean(text, MaxTextLength);
+
+    /// <summary>Like <see cref="Clean(string?)"/> with a different cap (the Sejm tools allow 300 characters for titles).</summary>
+    internal static string? Clean(string? text, int maxLength)
     {
         if (text is null)
         {
@@ -212,7 +215,7 @@ internal sealed class RegonTools(IRegonClient client)
             return null;
         }
 
-        return cleaned.Length <= MaxTextLength ? cleaned : cleaned[..(MaxTextLength - 1)] + "…";
+        return cleaned.Length <= maxLength ? cleaned : cleaned[..(maxLength - 1)] + "…";
     }
 
     /// <summary>"street number[/apartment], postal code town"; empty parts are skipped, null when there is nothing.</summary>

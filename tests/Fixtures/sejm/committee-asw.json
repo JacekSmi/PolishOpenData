@@ -1,0 +1,307 @@
+{
+ "appointmentDate": "2023-11-21",
+ "code": "ASW",
+ "compositionDate": "2023-11-21",
+ "members": [
+  {
+   "id": 2000,
+   "firstName": "Jan",
+   "lastName": "Kowalski0",
+   "club": "PiS",
+   "joinDate": "2023-12-19"
+  },
+  {
+   "id": 2001,
+   "firstName": "Jan",
+   "lastName": "Kowalski1",
+   "club": "PiS",
+   "function": "zastępca przewodniczącego",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2002,
+   "firstName": "Jan",
+   "lastName": "Kowalski2",
+   "club": "PiS",
+   "joinDate": "2024-06-26"
+  },
+  {
+   "id": 2003,
+   "firstName": "Jan",
+   "lastName": "Kowalski3",
+   "club": "PiS",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2004,
+   "firstName": "Jan",
+   "lastName": "Kowalski4",
+   "club": "PiS",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2005,
+   "firstName": "Jan",
+   "lastName": "Kowalski5",
+   "club": "PiS",
+   "joinDate": "2023-12-19"
+  },
+  {
+   "id": 2006,
+   "firstName": "Jan",
+   "lastName": "Kowalski6",
+   "club": "PiS",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2007,
+   "firstName": "Jan",
+   "lastName": "Kowalski7",
+   "club": "PiS",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2008,
+   "firstName": "Jan",
+   "lastName": "Kowalski8",
+   "club": "PiS",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2009,
+   "firstName": "Jan",
+   "lastName": "Kowalski9",
+   "club": "PiS",
+   "joinDate": "2025-09-09"
+  },
+  {
+   "id": 2010,
+   "firstName": "Jan",
+   "lastName": "Kowalski10",
+   "club": "PiS",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2011,
+   "firstName": "Jan",
+   "lastName": "Kowalski11",
+   "club": "PiS",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2012,
+   "firstName": "Jan",
+   "lastName": "Kowalski12",
+   "club": "PiS",
+   "joinDate": "2024-04-12"
+  },
+  {
+   "id": 2013,
+   "firstName": "Jan",
+   "lastName": "Kowalski13",
+   "club": "Konfederacja",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2014,
+   "firstName": "Jan",
+   "lastName": "Kowalski14",
+   "club": "KO",
+   "function": "zastępca przewodniczącego",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2015,
+   "firstName": "Jan",
+   "lastName": "Kowalski15",
+   "club": "KO",
+   "joinDate": "2025-09-12"
+  },
+  {
+   "id": 2016,
+   "firstName": "Jan",
+   "lastName": "Kowalski16",
+   "club": "KO",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2017,
+   "firstName": "Jan",
+   "lastName": "Kowalski17",
+   "club": "KO",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2018,
+   "firstName": "Jan",
+   "lastName": "Kowalski18",
+   "club": "KO",
+   "joinDate": "2025-11-05"
+  },
+  {
+   "id": 2019,
+   "firstName": "Jan",
+   "lastName": "Kowalski19",
+   "club": "KO",
+   "function": "zastępca przewodniczącego",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2020,
+   "firstName": "Jan",
+   "lastName": "Kowalski20",
+   "club": "KO",
+   "function": "przewodniczący",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2021,
+   "firstName": "Jan",
+   "lastName": "Kowalski21",
+   "club": "KO",
+   "joinDate": "2023-12-20"
+  },
+  {
+   "id": 2022,
+   "firstName": "Jan",
+   "lastName": "Kowalski22",
+   "club": "KO",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2023,
+   "firstName": "Jan",
+   "lastName": "Kowalski23",
+   "club": "KO",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2024,
+   "firstName": "Jan",
+   "lastName": "Kowalski24",
+   "club": "KO",
+   "joinDate": "2023-12-20"
+  },
+  {
+   "id": 2025,
+   "firstName": "Jan",
+   "lastName": "Kowalski25",
+   "club": "KO",
+   "joinDate": "2026-09-18"
+  },
+  {
+   "id": 2026,
+   "firstName": "Jan",
+   "lastName": "Kowalski26",
+   "club": "KO",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2027,
+   "firstName": "Jan",
+   "lastName": "Kowalski27",
+   "club": "Lewica",
+   "joinDate": "2023-12-19"
+  },
+  {
+   "id": 2028,
+   "firstName": "Jan",
+   "lastName": "Kowalski28",
+   "club": "Lewica",
+   "joinDate": "2025-01-24"
+  },
+  {
+   "id": 2029,
+   "firstName": "Jan",
+   "lastName": "Kowalski29",
+   "club": "Polska2050",
+   "function": "zastępca przewodniczącego",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2030,
+   "firstName": "Jan",
+   "lastName": "Kowalski30",
+   "club": "PSL-TD",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2031,
+   "firstName": "Jan",
+   "lastName": "Kowalski31",
+   "club": "PSL-TD",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2032,
+   "firstName": "Jan",
+   "lastName": "Kowalski32",
+   "club": "PSL-TD",
+   "function": "zastępca przewodniczącego",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2033,
+   "firstName": "Jan",
+   "lastName": "Kowalski33",
+   "club": "niez.",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2034,
+   "firstName": "Jan",
+   "lastName": "Kowalski34",
+   "club": "Konfederacja_KP",
+   "joinDate": "2023-11-21"
+  },
+  {
+   "id": 2035,
+   "firstName": "Jan",
+   "lastName": "Kowalski35",
+   "club": "Centrum",
+   "joinDate": "2026-05-27"
+  },
+  {
+   "id": 2036,
+   "firstName": "Jan",
+   "lastName": "Kowalski36",
+   "club": "RozwojPlus",
+   "joinDate": "2026-09-18"
+  },
+  {
+   "id": 2037,
+   "firstName": "Jan",
+   "lastName": "Kowalski37",
+   "club": "RozwojPlus",
+   "joinDate": "2024-04-12"
+  },
+  {
+   "id": 2038,
+   "firstName": "Jan",
+   "lastName": "Kowalski38",
+   "club": "RozwojPlus",
+   "joinDate": "2026-10-22"
+  },
+  {
+   "id": 2039,
+   "firstName": "Jan",
+   "lastName": "Kowalski39",
+   "club": "RozwojPlus",
+   "joinDate": "2025-09-09"
+  }
+ ],
+ "name": "Komisja Administracji i Spraw Wewnętrznych",
+ "nameGenitive": "Komisji Administracji i Spraw Wewnętrznych",
+ "scope": "Do zakresu działania Komisji należą sprawy administracji państwowej oraz bezpieczeństwa, ładu i porządku publicznego.",
+ "subCommittees": [
+  "ASW01N",
+  "ASW01S",
+  "ASW02N",
+  "ASW02S",
+  "ASW03N",
+  "ASW03S",
+  "ASW04N",
+  "ASW04S"
+ ],
+ "type": "STANDING"
+}

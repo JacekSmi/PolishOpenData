@@ -1,0 +1,32 @@
+[
+ {
+  "date": "2026-10-08",
+  "proceeding": 66,
+  "votingsNum": 157
+ },
+ {
+  "date": "2026-10-20",
+  "proceeding": 67,
+  "votingsNum": 11
+ },
+ {
+  "date": "2026-10-21",
+  "proceeding": 67,
+  "votingsNum": 12
+ },
+ {
+  "date": "2026-10-22",
+  "proceeding": 67,
+  "votingsNum": 237
+ },
+ {
+  "date": "2026-11-05",
+  "proceeding": 68,
+  "votingsNum": 35
+ },
+ {
+  "date": "2026-11-06",
+  "proceeding": 68,
+  "votingsNum": 62
+ }
+]
