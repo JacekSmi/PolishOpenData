@@ -3,8 +3,6 @@
     <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>
     <RootNamespace>PolishOpenData.Eli</RootNamespace>
     <Description>Typed .NET client for the Polish legal-acts API of the Sejm (ELI, api.sejm.gov.pl): find acts in Dziennik Ustaw and Monitor Polski, read their status, consolidated texts and amendments, and read one article with its provenance. No key needed. Unofficial; not affiliated with the Sejm.</Description>
-    <!-- New package: no release to compare with yet. Delete this override (and its line) once the first Eli version is on nuget.org, or the package is never baseline-validated. -->
-    <PackageValidationBaselineVersion></PackageValidationBaselineVersion>
     <PackageTags>$(PackageTags);eli;legal-acts;law;sejm;dziennik-ustaw</PackageTags>
   </PropertyGroup>
   <ItemGroup>
