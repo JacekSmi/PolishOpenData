@@ -18,14 +18,16 @@ public class EliCurrentTextTests
 
     private static readonly TimeProvider Today = new FixedTime(new DateTimeOffset(2026, 11, 14, 9, 0, 0, TimeSpan.Zero));
 
-    private static EliClient Client(StubHttpMessageHandler handler) => new(new HttpClient(handler), null, Today);
+    private static EliClient Client(StubHttpMessageHandler handler, TimeProvider? time = null) => new(new HttpClient(handler), null, time ?? Today);
 
-    private static string ActJson(string id, bool html, string? announced, string? refs = null)
+    private static string ActJson(string id, bool html, string? announced, string? refs = null, string? inForce = null, string? status = null)
     {
         var parts = id.Split('/');
         return "{\"publisher\":\"" + parts[0] + "\",\"year\":" + parts[1] + ",\"pos\":" + parts[2] + ",\"displayAddress\":\"Dz.U. " + parts[1] + " poz. " + parts[2] + "\",\"title\":\"t\","
             + "\"textHTML\":" + (html ? "true" : "false") + ",\"textPDF\":true"
             + (announced is null ? string.Empty : ",\"announcementDate\":\"" + announced + "\"")
+            + (inForce is null ? string.Empty : ",\"inForce\":\"" + inForce + "\"")
+            + (status is null ? string.Empty : ",\"status\":\"" + status + "\"")
             + (refs is null ? string.Empty : ",\"references\":{" + refs + "}") + "}";
     }
 
@@ -242,5 +244,71 @@ public class EliCurrentTextTests
     public async Task EmptyId_Throws()
     {
         await Assert.ThrowsAsync<ArgumentException>(() => Client(KcRouter()).GetCurrentTextAsync(default(EliActId), TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
+    public async Task ARepealedAct_IsNeverCurrent_EvenWithHtmlAndNothingElse()
+    {
+        var handler = Router(p => p == "/eli/acts/DU/2022/9" ? Json(ActJson("DU/2022/9", html: true, "2022-01-02", inForce: "NOT_IN_FORCE", status: "uchylony")) : null);
+
+        var current = await Client(handler).GetCurrentTextAsync(EliActId.Parse("DU/2022/9"), TestContext.Current.CancellationToken);
+
+        Assert.False(current.IsHtmlTextCurrent);
+        Assert.False(current.BaseActInForce);
+        Assert.Equal("uchylony", current.BaseActStatus);
+        Assert.Equal("DU/2022/9", current.NewestWithHtml!.Id.ToString());
+    }
+
+    [Fact]
+    public async Task AnActInForce_WithNothingElse_StaysCurrent()
+    {
+        var handler = Router(p => p == "/eli/acts/DU/2022/9" ? Json(ActJson("DU/2022/9", html: true, "2022-01-02", inForce: "IN_FORCE", status: "obowi\u0105zuj\u0105cy")) : null);
+
+        var current = await Client(handler).GetCurrentTextAsync(EliActId.Parse("DU/2022/9"), TestContext.Current.CancellationToken);
+
+        Assert.True(current.IsHtmlTextCurrent);
+        Assert.True(current.BaseActInForce);
+    }
+
+    [Fact]
+    public async Task ANewestConsolidatedTextThatIsNotInForce_IsNotCurrent()
+    {
+        var handler = Router(p => p switch
+        {
+            "/eli/acts/DU/2000/1" => Json(ActJson("DU/2000/1", html: true, "2000-01-02", Consolidated("DU/2024/1061"), inForce: "IN_FORCE")),
+            _ => null,   // DU/2024/1061 is the fixture: NOT_IN_FORCE (wyga\u015bni\u0119cie aktu)
+        });
+
+        var current = await Client(handler).GetCurrentTextAsync(EliActId.Parse("DU/2000/1"), TestContext.Current.CancellationToken);
+
+        Assert.Equal("DU/2024/1061", current.NewestWithHtml!.Id.ToString());
+        Assert.False(current.IsHtmlTextCurrent);
+    }
+
+    [Fact]
+    public async Task AStatusThatPromisesAConsolidatedText_ButNoneListed_IsUnconfirmed()
+    {
+        var handler = Router(p => p == "/eli/acts/DU/2000/1"
+            ? Json(ActJson("DU/2000/1", html: true, "2000-01-02", inForce: "IN_FORCE", status: "akt posiada tekst jednolity"))
+            : null);
+
+        var current = await Client(handler).GetCurrentTextAsync(EliActId.Parse("DU/2000/1"), TestContext.Current.CancellationToken);
+
+        Assert.False(current.IsHtmlTextCurrent);
+    }
+
+    [Fact]
+    public async Task TodayIsTheWarsawDate_NotTheUtcDate()
+    {
+        // 23:30 UTC on 13 November is 00:30 on 14 November in Warsaw: an amendment effective on the 14th is already in force
+        var lateEvening = new FixedTime(new DateTimeOffset(2026, 11, 13, 23, 30, 0, TimeSpan.Zero));
+        var handler = Router(p => p == "/eli/acts/DU/2020/7"
+            ? Json(ActJson("DU/2020/7", html: true, "2020-01-02", Amending(("DU/2026/20", "2026-11-14"))))
+            : null);
+
+        var current = await Client(handler, lateEvening).GetCurrentTextAsync(EliActId.Parse("DU/2020/7"), TestContext.Current.CancellationToken);
+
+        Assert.Equal("DU/2026/20", Assert.Single(current.InForceSince).Id.ToString());
+        Assert.Empty(current.FutureSince);
     }
 }

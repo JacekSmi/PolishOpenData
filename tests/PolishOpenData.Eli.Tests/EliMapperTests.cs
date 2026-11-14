@@ -96,7 +96,7 @@ public class EliMapperTests
         var arti = Flatten(units).Where(u => u.Type == "arti").ToList();
         var sup = arti.Single(u => u.Name == "446_1");
         Assert.Equal("book_TRZECIA-titl_VI-arti_446_1", sup.Id);
-        Assert.Equal(6, arti.Count);
+        Assert.Equal(8, arti.Count);
         Assert.NotEmpty(arti.Single(u => u.Name == "417").Children);
     }
 
@@ -142,5 +142,26 @@ public class EliMapperTests
         var summary = EliMapper.ToSummary(JsonSerializer.Deserialize(json, EliJson.Act)!);
 
         Assert.Null(summary.InForce);
+    }
+
+    [Fact]
+    public void NullMembersInTheJson_AreSkipped_NotNullReferenceExceptions()
+    {
+        var act = """{"publisher":"DU","year":2024,"pos":1,"displayAddress":"x","title":"t","keywords":[null,"a"],"references":{"X":null,"Orzeczenie TK":[null,{"id":"DU/2020/5"}],"Inf. o tek\u015bcie jednolitym":[null,{"id":"DU/2026/9"}],"Akty zmieniaj\u0105ce":[null,{"id":"DU/2025/5","date":"2025-01-02"}]}}""";
+
+        var mapped = EliMapper.ToAct(JsonSerializer.Deserialize(act, EliJson.Act)!);
+
+        Assert.Equal("DU/2026/9", Assert.Single(mapped.ConsolidatedTexts).ToString());
+        Assert.Equal("DU/2025/5", Assert.Single(mapped.Amendments).Id.ToString());
+        Assert.Equal("DU/2020/5", Assert.Single(mapped.References["Orzeczenie TK"]).ToString());
+        Assert.Equal(["a"], mapped.Keywords);
+        Assert.True(mapped.References.TryGetValue("X", out var empty) && empty.Count == 0);
+
+        var units = EliMapper.ToUnits(JsonSerializer.Deserialize("""[null,{"id":"part_1","type":"part","children":[null,{"id":"para_1","type":"para","name":"1"}]}]""", EliJson.Struct)!);
+        Assert.Equal("part_1", Assert.Single(units).Id);
+        Assert.Equal("para_1", Assert.Single(units[0].Children).Id);
+
+        var search = JsonSerializer.Deserialize("""{"totalCount":2,"items":[null,{"publisher":"DU","year":2024,"pos":1,"displayAddress":"x","title":"t"}]}""", EliJson.Search)!;
+        Assert.Single(search.Items!.Where(i => i is not null).Select(EliMapper.ToSummary));
     }
 }

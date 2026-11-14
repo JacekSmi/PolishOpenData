@@ -45,7 +45,7 @@ public sealed record EliAct(
     IReadOnlyDictionary<string, IReadOnlyList<EliActId>> References)
 {
     /// <summary>For a consolidated text (tekst jednolity): the base act it consolidates, as the API links it; empty otherwise.</summary>
-    public IReadOnlyList<EliActId> BaseActs => References.TryGetValue("Tekst jednolity dla aktu", out var ids) ? ids : [];
+    public IReadOnlyList<EliActId> BaseActs => References.TryGetValue(EliMapper.BaseActKey, out var ids) ? ids : [];
 }
 
 /// <summary>A unit (part, book, title, chapter, article, paragraph...) in an act's structure.</summary>
@@ -58,11 +58,12 @@ public sealed record EliUnit(string Id, string Type, string? Name, string? Title
 
 /// <summary>The text of one article.</summary>
 /// <param name="Act">The act the text was read from (not necessarily the law in force).</param>
-/// <param name="Article">The normalised article name, for example <c>415</c> or <c>446_1</c>.</param>
+/// <param name="Article">The normalised unit name, for example <c>415</c>, <c>446_1</c> or, for a paragraph of a regulation, <c>2</c>.</param>
+/// <param name="UnitType"><c>arti</c> for an article, <c>para</c> for a paragraph (§) of a regulation.</param>
 /// <param name="UnitId">The unit id in the act's structure.</param>
 /// <param name="Text">Plain text, paragraphs separated by line breaks.</param>
 /// <param name="Truncated">True when the text was cut at the length cap.</param>
-public sealed record EliArticleText(EliActId Act, string Article, string UnitId, string Text, bool Truncated);
+public sealed record EliArticleText(EliActId Act, string Article, string UnitType, string UnitId, string Text, bool Truncated);
 
 /// <summary>
 /// What is known about the text of a base act: the newest consolidated text, the newest one the API serves as HTML, and what
@@ -75,6 +76,8 @@ public sealed record EliArticleText(EliActId Act, string Article, string UnitId,
 /// <param name="FutureSince">Amendments that take effect later than today.</param>
 /// <param name="IsHtmlTextCurrent">True only when the HTML text is the newest consolidated text and nothing has taken effect since.</param>
 /// <param name="ConsolidatedTextsChecked">How many consolidated texts were looked at (at most 5).</param>
+/// <param name="BaseActInForce">Whether the base act itself is in force (a repealed act is never current), or null when unknown.</param>
+/// <param name="BaseActStatus">The base act's status text, for example "uchylony" (repealed).</param>
 public sealed record EliCurrentText(
     EliActId BaseAct,
     EliActSummary? NewestConsolidated,
@@ -82,7 +85,9 @@ public sealed record EliCurrentText(
     IReadOnlyList<EliAmendment> InForceSince,
     IReadOnlyList<EliAmendment> FutureSince,
     bool IsHtmlTextCurrent,
-    int ConsolidatedTextsChecked);
+    int ConsolidatedTextsChecked,
+    bool? BaseActInForce = null,
+    string? BaseActStatus = null);
 
 /// <summary>A list result with the total the API knows about.</summary>
 public sealed record EliPage<T>(IReadOnlyList<T> Items, int TotalRecords);

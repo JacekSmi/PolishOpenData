@@ -20,7 +20,7 @@ internal sealed record EliSearchResult
 }
 
 /// <summary>A text (consolidated or original) of an act.</summary>
-internal sealed record EliTextView(string Eli, string DisplayAddress, DateOnly? AnnouncementDate, bool? HasHtml);
+internal sealed record EliTextView(string Eli, string DisplayAddress, DateOnly? AnnouncementDate, bool? HasHtml, bool? InForce = null);
 
 internal sealed record EliAmendmentView(string Eli, DateOnly? EffectiveDate);
 
@@ -91,6 +91,12 @@ internal sealed record EliArticleResult
     public required string Eli { get; init; }
 
     public required string Article { get; init; }
+
+    /// <summary>Whether the act named by the caller is in force (false for a repealed act or a superseded consolidated text), or null when unknown.</summary>
+    public bool? ActInForce { get; init; }
+
+    /// <summary>Status of the act named by the caller, for example "uchylony" (repealed).</summary>
+    public string? ActStatus { get; init; }
 
     /// <summary>The article as plain text; untrusted text from the register.</summary>
     public required string Text { get; init; }

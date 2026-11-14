@@ -94,4 +94,46 @@ public class EliActIdTests
     {
         Assert.Null(EliArticle.Normalize(input));
     }
+
+    [Theory]
+    [InlineData("DU/\u0662\u0660\u0662\u0664/1")]
+    [InlineData("DU/2024/\u0661")]
+    [InlineData("WDU\u0662\u0660\u0662\u0664\u0660\u0660\u0660\u0661\u0660\u0666\u0661")]
+    public void TryParse_NeverThrows_OnNonAsciiDigits(string text)
+    {
+        Assert.False(EliActId.TryParse(text, out _));
+    }
+
+    [Fact]
+    public void DefaultId_HasAnEmptyPublisher()
+    {
+        Assert.Equal(string.Empty, default(EliActId).Publisher);
+        Assert.True(default(EliActId).IsEmpty);
+    }
+
+    [Theory]
+    [InlineData("415", "arti", "415")]
+    [InlineData("art. 415", "arti", "415")]
+    [InlineData("446\u00b9", "arti", "446_1")]
+    [InlineData("\u00a7 2", "para", "2")]
+    [InlineData("\u00a72", "para", "2")]
+    [InlineData("par. 3a", "para", "3a")]
+    [InlineData("\u00a7 10^1", "para", "10_1")]
+    public void ParseUnit_TellsArticlesFromParagraphs(string input, string type, string name)
+    {
+        var unit = EliArticle.ParseUnit(input);
+
+        Assert.Equal((type, name), unit);
+    }
+
+    [Theory]
+    [InlineData("x")]
+    [InlineData("\u00a7")]
+    [InlineData("")]
+    [InlineData(null)]
+    [InlineData("\u00a7 2/3")]
+    public void ParseUnit_RejectsWhatIsNeither(string? input)
+    {
+        Assert.Null(EliArticle.ParseUnit(input));
+    }
 }

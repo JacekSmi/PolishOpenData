@@ -28,7 +28,8 @@ public sealed class EliClient : IEliClient
     private const int MaxConsolidatedChecked = 5;
 
     private static readonly Regex SegmentKey = new(@"^[A-Za-z]{1,12}$", RegexOptions.CultureInvariant);
-    private static readonly Regex SegmentValue = new(@"^[A-Za-z0-9_]{1,40}$", RegexOptions.CultureInvariant);
+    // unit ids contain Polish capitals in some codes (part_OGÓLNA, book_PIĄTA): letters and digits of any script are fine, the value is escaped for the URL
+    private static readonly Regex SegmentValue = new(@"^[\p{L}\p{N}_]{1,40}$", RegexOptions.CultureInvariant);
 
     private readonly HttpClient _httpClient;
     private readonly EliClientOptions _options;
@@ -95,7 +96,7 @@ public sealed class EliClient : IEliClient
         }
 
         var page = await RequestAsync("acts/search" + query, MaxJsonBytes, JsonAccept,
-            body => Map(Parse(body, EliJson.Search), static dto => new EliPage<EliActSummary>(dto.Items is null ? [] : dto.Items.ConvertAll(EliMapper.ToSummary), dto.TotalCount ?? dto.Items?.Count ?? 0)),
+            body => Map(Parse(body, EliJson.Search), static dto => new EliPage<EliActSummary>(dto.Items is null ? [] : dto.Items.Where(static i => i is not null).Select(EliMapper.ToSummary).ToList(), dto.TotalCount ?? dto.Items?.Count ?? 0)),
             cancellationToken).ConfigureAwait(false);
         return page ?? new EliPage<EliActSummary>([], 0);
     }
@@ -144,14 +145,13 @@ public sealed class EliClient : IEliClient
     public async Task<EliArticleText?> GetArticleAsync(EliActId id, string article, CancellationToken cancellationToken = default)
     {
         RequireId(id);
-        var name = EliArticle.Normalize(article);
-        if (name is null)
+        if (EliArticle.ParseUnit(article) is not { } want)
         {
             return null;
         }
 
         var units = await GetStructureAsync(id, cancellationToken).ConfigureAwait(false);
-        var unit = units is null ? null : FindArticle(units, name);
+        var unit = units is null ? null : FindUnit(units, want.Type, want.Name);
         if (unit is null || TreePath(unit.Id) is not { } tree)
         {
             return null;
@@ -163,8 +163,19 @@ public sealed class EliClient : IEliClient
             return null;
         }
 
-        var text = EliHtmlText.ToPlainText(html, MaxArticleChars, out var truncated);
-        return text.Length == 0 ? null : new EliArticleText(id, name, unit.Id, text, truncated);
+        string text;
+        bool truncated;
+        try
+        {
+            text = EliHtmlText.ToPlainText(html, MaxArticleChars, out truncated);
+        }
+        catch (RegexMatchTimeoutException ex)
+        {
+            // hostile or pathological markup: an error about the response, never a bare TimeoutException (which other layers read as something else)
+            throw new PolishOpenDataApiException(Service + " returned markup this library could not read in time.", HttpStatusCode.OK, null, null, ex);
+        }
+
+        return text.Length == 0 ? null : new EliArticleText(id, want.Name, want.Type, unit.Id, text, truncated);
     }
 
     /// <inheritdoc/>
@@ -220,7 +231,7 @@ public sealed class EliClient : IEliClient
         }
 
         var since = (withHtml ?? newest)?.AnnouncementDate ?? act.Summary.AnnouncementDate ?? DateOnly.MinValue;
-        var today = DateOnly.FromDateTime(_time.GetUtcNow().UtcDateTime);
+        var today = WarsawTime.Today(_time);   // the law changes at midnight in Warsaw, not in UTC
         var inForce = new List<EliAmendment>();
         var future = new List<EliAmendment>();
         foreach (var a in act.Amendments)
@@ -240,21 +251,26 @@ public sealed class EliClient : IEliClient
             }
         }
 
-        var isCurrent = withHtml is not null && !newestMissing && inForce.Count == 0
+        // Cross-checks that do not depend on the reference lists being complete: a repealed act, a text that is no longer in force, or a status
+        // that promises a consolidated text none of whose links we got, can never be called current.
+        var repealed = act.Summary.InForce == false || withHtml?.InForce == false;
+        var promisedTextNotListed = act.ConsolidatedTexts.Count == 0
+            && string.Equals(act.Summary.Status, "akt posiada tekst jednolity", StringComparison.Ordinal);
+        var isCurrent = withHtml is not null && !newestMissing && inForce.Count == 0 && !repealed && !promisedTextNotListed
             && (newest is null || newest.Id == withHtml.Id);
-        return new EliCurrentText(baseId, newest, withHtml, inForce, future, isCurrent, checkedCount);
+        return new EliCurrentText(baseId, newest, withHtml, inForce, future, isCurrent, checkedCount, act.Summary.InForce, act.Summary.Status);
     }
 
-    private static EliUnit? FindArticle(IReadOnlyList<EliUnit> units, string name)
+    private static EliUnit? FindUnit(IReadOnlyList<EliUnit> units, string type, string name)
     {
         foreach (var u in units)
         {
-            if (u.Type == "arti" && string.Equals(u.Name, name, StringComparison.Ordinal))
+            if (u.Type == type && string.Equals(u.Name, name, StringComparison.Ordinal))
             {
                 return u;
             }
 
-            if (FindArticle(u.Children, name) is { } inner)
+            if (FindUnit(u.Children, type, name) is { } inner)
             {
                 return inner;
             }
@@ -282,7 +298,7 @@ public sealed class EliClient : IEliClient
                 return null;
             }
 
-            parts.Add(key + "=" + value);
+            parts.Add(key + "=" + Uri.EscapeDataString(value));
         }
 
         return string.Join("/", parts);

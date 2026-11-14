@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace PolishOpenData.Eli;
 
@@ -36,17 +37,19 @@ internal static class EliMapper
         var others = new Dictionary<string, IReadOnlyList<EliActId>>(StringComparer.Ordinal);
         foreach (var group in dto.References ?? [])
         {
+            // a null group or a null element in the JSON is skipped, never a NullReferenceException
+            var refs = (group.Value ?? []).Where(static r => r is not null).ToList();
             switch (group.Key)
             {
                 case ConsolidatedKey:
-                    foreach (var r in group.Value)
+                    foreach (var r in refs)
                     {
                         consolidated.Add(RequiredId(r.Id));
                     }
 
                     break;
                 case AmendingKey:
-                    foreach (var r in group.Value)
+                    foreach (var r in refs)
                     {
                         amendments.Add(new EliAmendment(RequiredId(r.Id), Date(r.Date)));
                     }
@@ -54,7 +57,7 @@ internal static class EliMapper
                     break;
                 default:
                     var ids = new List<EliActId>();
-                    foreach (var r in group.Value)
+                    foreach (var r in refs)
                     {
                         if (EliActId.TryParse(r.Id, out var id))
                         {
@@ -67,7 +70,7 @@ internal static class EliMapper
             }
         }
 
-        return new EliAct(ToSummary(dto), dto.Keywords ?? [], dto.ReleasedBy ?? [], consolidated, amendments, others);
+        return new EliAct(ToSummary(dto), Texts(dto.Keywords), Texts(dto.ReleasedBy), consolidated, amendments, others);
     }
 
     public static IReadOnlyList<EliUnit> ToUnits(List<EliUnitDto>? dtos)
@@ -75,11 +78,18 @@ internal static class EliMapper
         var result = new List<EliUnit>();
         foreach (var d in dtos ?? [])
         {
+            if (d is null)
+            {
+                continue;
+            }
+
             result.Add(new EliUnit(d.Id ?? string.Empty, d.Type ?? string.Empty, d.Name, d.Title, ToUnits(d.Children)));
         }
 
         return result;
     }
+
+    private static List<string> Texts(List<string>? list) => list is null ? [] : list.Where(static t => t is not null).ToList();
 
     private static EliActId Id(EliActDto dto) =>
         dto.Publisher is not null && dto.Year is { } y && dto.Pos is { } p

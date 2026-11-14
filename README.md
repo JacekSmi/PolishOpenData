@@ -184,9 +184,9 @@ var article = await eli.GetArticleAsync(current.NewestWithHtml!.Id, "415");
 Console.WriteLine($"{article?.Text}\n(from {current.NewestWithHtml.DisplayAddress}; current: {current.IsHtmlTextCurrent})");
 ```
 
-**The text may be older than the law in force.** The API serves HTML and a structure only for acts up to 2024: every act from 2025 on, consolidated texts included, is a PDF only (in November 2026 the newest consolidated Kodeks cywilny is Dz.U. 2026 poz. 795, PDF-only, while the newest one with text is from 2024). So `GetArticleAsync` reads exactly the act you give it and does not claim to be current: use `GetCurrentTextAsync` and read `IsHtmlTextCurrent`, `NewestConsolidated` and the amendments since before you rely on a quote. The base act's own HTML is its original text (for the civil code, 1964) and is offered only when the act has no consolidated text. An act without HTML gets metadata and a PDF link only; the library does not read PDFs.
+**The text may be older than the law in force.** The API serves HTML and a structure only for acts up to 2024: every act from 2025 on, consolidated texts included, is a PDF only (in November 2026 the newest consolidated Kodeks cywilny is Dz.U. 2026 poz. 795, PDF-only, while the newest one with text is from 2024). So `GetArticleAsync` reads exactly the act you give it and does not claim to be current: use `GetCurrentTextAsync` and read `IsHtmlTextCurrent`, `NewestConsolidated` and the amendments since before you rely on a quote. The base act's own HTML is its original text (for the civil code, 1964) and is offered only when the act has no consolidated text. An act without HTML gets metadata and a PDF link only; the library does not read PDFs. A repealed act, or a text that is no longer in force, is never reported as current (`BaseActInForce`, `BaseActStatus`). Regulations are read by paragraph: `GetArticleAsync(id, "§ 2")`.
 
-The API publishes no rate limit; the client does not retry. An article costs two requests (the structure, cached for the last 16 acts, and the text), the current-text check one plus up to five. Acts are public law (not protected by copyright); cite the source: Sejm RP, ELI API.
+The API publishes no rate limit; the client does not retry. An article costs two requests (the structure, cached per client instance for its last 16 acts, and the text), the current-text check one plus up to five. Acts are public law (not protected by copyright); cite the source: Sejm RP, ELI API.
 
 ## Offline VAT whitelist check
 
@@ -358,6 +358,8 @@ claude mcp add --transport stdio --scope user polish-open-data -- dotnet dnx Pol
 
 **Statistics tools (no key).** `find_statistical_unit`, `search_statistics` and `get_statistics` read GUS Bank Danych Lokalnych. They work without a key under GUS's anonymous limits (5 per second, 100 per 15 minutes); a free personal key from the BDL registration, set in `POLISHOPENDATA_BDL_CLIENT_ID`, raises them (a wrong key is not rejected, you silently get the anonymous limits). The data is CC BY 4.0.
 
+**Legal-act tools (no key).** `search_legal_acts`, `get_legal_act` and `get_legal_article` read the Sejm ELI API. Read `isCurrent` and `warning` on every article: the API serves the text of acts as HTML only up to 2024, so for the Kodeks cywilny the tool quotes the 2024 consolidated text and says that a newer one (PDF-only) exists and which amendments came after it. A repealed act is never reported as current. Acts are public law; cite "Sejm RP, ELI API".
+
 Claude Code (`claude mcp add --env`) and VS Code (`env` in `.vscode/mcp.json`) take the same variable.
 
 | Tool | What it answers |
@@ -374,6 +376,9 @@ Claude Code (`claude mcp add --env`) and VS Code (`env` in `.vscode/mcp.json`) t
 | `find_statistical_unit` | "Which unit is this?": a voivodeship, powiat or gmina of the GUS local data bank by name, with level, TERYT code and parent (the same name can match several levels). No key. |
 | `search_statistics` | "Which indicator measures this?": GUS indicators by text with a readable label (topic and dimensions), unit and id; costs up to 6 requests against GUS's anonymous limit of 100 per 15 minutes. No key. |
 | `get_statistics` | "What is the population / unemployment here, by year?": up to 20 indicators for one unit in one request; a `null` value means GUS has no value (confidential, not applicable, not yet published), never zero. No key; cites "Główny Urząd Statystyczny (GUS), Bank Danych Lokalnych, CC BY 4.0". |
+| `search_legal_acts` | "Which act is this?": Polish legal acts (Dziennik Ustaw, Monitor Polski) by words in the title, type and year, with ELI id, status, in force or not, and whether a text is available. No key. |
+| `get_legal_act` | "Is this law in force, and how current is its text?": status, dates and, for a base act, the newest consolidated text, the newest one available as HTML, the amendments since and those that take effect later; a warning when the act is repealed. No key. |
+| `get_legal_article` | "What does art. 415 of the civil code say?": one article (or a § of a regulation) as plain text with its provenance: which text it was read from, `isCurrent`, newer consolidated texts, amendments since, and a warning whenever the quote may be out of date. The API serves HTML only up to 2024, so quotes are often older than the law in force. No key. |
 | `validate_identifier` | Offline checksum validation of NIP, REGON, KRS, NRB and KW numbers, with typo suggestions |
 
 ## Land-registry (KW) numbers

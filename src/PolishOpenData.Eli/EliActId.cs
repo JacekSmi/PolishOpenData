@@ -12,19 +12,21 @@ namespace PolishOpenData.Eli;
 /// </summary>
 public readonly struct EliActId : IEquatable<EliActId>
 {
-    private static readonly Regex Slashed = new(@"^([A-Za-z]{2,3})/(\d{4})/(\d{1,7})$", RegexOptions.CultureInvariant);
-    private static readonly Regex Address = new(@"^W([A-Za-z]{2,3})(\d{4})\d{3}(\d{4})$", RegexOptions.CultureInvariant);
-    private static readonly Regex Display = new(@"^(dz\.?\s?u\.?|m\.?\s?p\.?)\s+(\d{4})\s+(?:nr\s*\d{1,3}\s+)?poz\.?\s*(\d{1,7})$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+    private static readonly Regex Slashed = new(@"^([A-Za-z]{2,3})/([0-9]{4})/([0-9]{1,7})$", RegexOptions.CultureInvariant);
+    private static readonly Regex Address = new(@"^W([A-Za-z]{2,3})([0-9]{4})[0-9]{3}([0-9]{4})$", RegexOptions.CultureInvariant);
+    private static readonly Regex Display = new(@"^(dz\.?\s?u\.?|m\.?\s?p\.?)\s+([0-9]{4})\s+(?:nr\s*[0-9]{1,3}\s+)?poz\.?\s*([0-9]{1,7})$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+
+    private readonly string? _publisher;
 
     private EliActId(string publisher, int year, int position)
     {
-        Publisher = publisher;
+        _publisher = publisher;
         Year = year;
         Position = position;
     }
 
     /// <summary>Publisher code: <c>DU</c> (Dziennik Ustaw), <c>MP</c> (Monitor Polski) and so on; empty for a default value.</summary>
-    public string Publisher { get; } = string.Empty;
+    public string Publisher => _publisher ?? string.Empty;
 
     /// <summary>Year of publication.</summary>
     public int Year { get; }
@@ -110,7 +112,8 @@ public readonly struct EliActId : IEquatable<EliActId>
 /// <summary>Helpers for article numbers as people write them.</summary>
 public static class EliArticle
 {
-    private static readonly Regex Number = new(@"^(\d{1,4}[a-z]{0,3})(?:[\^_](\d{1,2})|([¹²³⁰-⁹]{1,2}))?$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+    private static readonly Regex Number = new(@"^([0-9]{1,4}[a-z]{0,3})(?:[\^_]([0-9]{1,2})|([¹²³⁰-⁹]{1,2}))?$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+    private static readonly Regex ParagraphPrefix = new(@"^(?:\u00a7|par(?:agraf)?\.?)\s*", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
     /// <summary>
     /// Turns "415", "art. 415", "446^1", "446¹" or "446_1" into the form the structure uses ("415", "446_1"); a superscript that
@@ -129,6 +132,44 @@ public static class EliArticle
             text = text.Substring(3).TrimStart('.', ' ');
         }
 
+        var m = Number.Match(text.Trim());
+        if (!m.Success)
+        {
+            return null;
+        }
+
+        var main = m.Groups[1].Value.ToLowerInvariant();
+        if (m.Groups[2].Success)
+        {
+            return main + "_" + m.Groups[2].Value;
+        }
+
+        return m.Groups[3].Success ? main + "_" + FromSuperscript(m.Groups[3].Value) : main;
+    }
+
+    /// <summary>
+    /// Tells what a caller means: an article ("415", "art. 415", "446^1": type <c>arti</c>) or a paragraph of a regulation ("§ 2", "par. 3a":
+    /// type <c>para</c>), with the name the structure uses. Returns null when it is neither.
+    /// </summary>
+    public static (string Type, string Name)? ParseUnit(string? text)
+    {
+        if (text is null || text.Trim().Length == 0)
+        {
+            return null;
+        }
+
+        var trimmed = text.Trim();
+        var prefix = ParagraphPrefix.Match(trimmed);
+        if (prefix.Success)
+        {
+            return NameOf(trimmed.Substring(prefix.Length)) is { } paragraph ? ("para", paragraph) : null;
+        }
+
+        return Normalize(trimmed) is { } article ? ("arti", article) : null;
+    }
+
+    private static string? NameOf(string text)
+    {
         var m = Number.Match(text.Trim());
         if (!m.Success)
         {

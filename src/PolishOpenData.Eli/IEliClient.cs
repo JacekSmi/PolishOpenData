@@ -46,7 +46,7 @@ public interface IEliClient
 
     /// <summary>
     /// Reads the structure of an act's text (parts, books, articles...); null when the API has none (a PDF-only act). Cached in memory
-    /// for the last 16 acts that had one.
+    /// per client instance for the last 16 acts that had one.
     /// </summary>
     Task<IReadOnlyList<EliUnit>?> GetStructureAsync(EliActId id, CancellationToken cancellationToken = default);
 

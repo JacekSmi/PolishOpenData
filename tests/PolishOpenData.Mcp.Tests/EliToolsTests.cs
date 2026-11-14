@@ -291,4 +291,66 @@ public sealed class EliToolsTests : IAsyncDisposable
             Assert.Equal(Source, Data(await CallAsync(handler, tool, args)).GetProperty("source").GetString());
         }
     }
+
+    private static StubHttpMessageHandler RepealedActRouter() => Router(p => p switch
+    {
+        "/eli/acts/DU/2022/9" => StubHttpMessageHandler.Json(HttpStatusCode.OK, "{\"publisher\":\"DU\",\"year\":2022,\"pos\":9,\"displayAddress\":\"Dz.U. 2022 poz. 9\",\"title\":\"t\",\"textHTML\":true,\"textPDF\":true,\"announcementDate\":\"2022-01-02\",\"inForce\":\"NOT_IN_FORCE\",\"status\":\"uchylony\"}"),
+        "/eli/acts/DU/2022/9/struct" => StubHttpMessageHandler.Json(HttpStatusCode.OK, "[{\"id\":\"part_1\",\"type\":\"part\",\"children\":[{\"id\":\"arti_1\",\"type\":\"arti\",\"name\":\"1\"},{\"id\":\"para_2\",\"type\":\"para\",\"name\":\"2\"}]}]"),
+        "/eli/acts/DU/2022/9/text.html/arti=1" => Html("<div><h3>Art.&nbsp;1.</h3><div>Przepis.</div></div>"),
+        "/eli/acts/DU/2022/9/text.html/para=2" => Html("<div><h3>\u00a7&nbsp;2.</h3><div>Paragraf.</div></div>"),
+        _ => null,
+    });
+
+    [Fact]
+    public async Task GetLegalArticle_ARepealedAct_IsNeverCurrent_AndSaysItIsRepealed()
+    {
+        var data = Data(await CallAsync(RepealedActRouter(), "get_legal_article", new() { ["eli"] = "DU/2022/9", ["article"] = "1" }));
+
+        Assert.False(data.GetProperty("isCurrent").GetBoolean());
+        Assert.False(data.GetProperty("actInForce").GetBoolean());
+        Assert.Equal("uchylony", data.GetProperty("actStatus").GetString());
+        Assert.Contains("NOT in force", data.GetProperty("warning").GetString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetLegalArticle_AConsolidatedTextThatIsNotInForce_IsNotCurrent_EvenWhenNothingNewerIsListed()
+    {
+        // DU/2024/1061 is NOT_IN_FORCE in the fixture; whatever else is true, it is never presented as current
+        var data = Data(await CallAsync(Router(), "get_legal_article", new() { ["eli"] = "DU/2024/1061", ["article"] = "415" }));
+
+        Assert.False(data.GetProperty("isCurrent").GetBoolean());
+        Assert.False(data.GetProperty("actInForce").GetBoolean());
+    }
+
+    [Fact]
+    public async Task GetLegalArticle_AParagraphOfARegulation_IsQuotedWithTheParagraphSign()
+    {
+        var data = Data(await CallAsync(RepealedActRouter(), "get_legal_article", new() { ["eli"] = "DU/2022/9", ["article"] = "\u00a7 2" }));
+
+        Assert.Equal("\u00a7 2", data.GetProperty("article").GetString());
+        Assert.Contains("Paragraf.", data.GetProperty("text").GetString(), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetLegalAct_ARepealedAct_WarnsThatItIsRepealed()
+    {
+        var data = Data(await CallAsync(RepealedActRouter(), "get_legal_act", new() { ["eli"] = "DU/2022/9" }));
+
+        Assert.False(data.GetProperty("inForce").GetBoolean());
+        Assert.Contains("NOT in force", data.GetProperty("warning").GetString(), StringComparison.Ordinal);
+        Assert.False(data.GetProperty("currency").GetProperty("isHtmlTextCurrent").GetBoolean());
+    }
+
+    [Fact]
+    public async Task GetLegalArticle_WhenNoneOfTheNewestTextsHasHtml_SaysSoAccurately()
+    {
+        var handler = Router(p => p == "/eli/acts/DU/1964/93"
+            ? StubHttpMessageHandler.Json(HttpStatusCode.OK, "{\"publisher\":\"DU\",\"year\":1964,\"pos\":93,\"displayAddress\":\"Dz.U. 1964 poz. 93\",\"title\":\"t\",\"textHTML\":false,\"textPDF\":true,\"references\":{\"Inf. o tek\u015bcie jednolitym\":[{\"id\":\"DU/2026/795\"}]}}")
+            : null);
+
+        var result = await CallAsync(handler, "get_legal_article", new() { ["eli"] = "DU/1964/93", ["article"] = "415" });
+
+        Assert.True(result.IsError);
+        Assert.Contains("newest consolidated texts", Text(result), StringComparison.Ordinal);
+    }
 }

@@ -40,6 +40,9 @@ public class EliClientTests
             "/eli/acts/DU/2024/1061/struct" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "eli/struct-DU-2024-1061.json"),
             "/eli/acts/DU/2024/1061/text.html/book=TRZECIA/titl=VI/arti=415" => Text(HttpStatusCode.OK, Fixture.Read("eli/fragment-arti-415.html")),
             "/eli/acts/DU/2024/1061/text.html/book=TRZECIA/titl=VI/arti=446_1" => Text(HttpStatusCode.OK, "<div><h3>Art.&nbsp;446<sup>1</sup>.</h3><div>Treść.</div></div>"),
+            "/eli/acts/DU/2024/1061/text.html/book=PIERWSZA/part=OG%C3%93LNA/titl=I/arti=1" => Text(HttpStatusCode.OK, Fixture.Read("eli/fragment-arti-1.html")),
+            "/eli/acts/DU/2022/5/struct" => StubHttpMessageHandler.Json(HttpStatusCode.OK, "[{\"id\":\"part_1\",\"type\":\"part\",\"children\":[{\"id\":\"para_1\",\"type\":\"para\",\"name\":\"1\",\"title\":\"\u00a7 1.\"},{\"id\":\"para_2\",\"type\":\"para\",\"name\":\"2\",\"title\":\"\u00a7 2.\"}]}]"),
+            "/eli/acts/DU/2022/5/text.html/para=2" => Text(HttpStatusCode.OK, "<div><h3>\u00a7&nbsp;2.</h3><div>Tre\u015b\u0107 paragrafu drugiego.</div></div>"),
             _ => StubHttpMessageHandler.Empty(HttpStatusCode.NotFound),
         };
     }
@@ -406,5 +409,52 @@ public class EliClientTests
         _ = await client.GetActAsync(KcBase, TestContext.Current.CancellationToken);
 
         Assert.Equal("https://example.test/eli/acts/DU/1964/93", handler.RequestUris.Single().AbsoluteUri);
+    }
+
+    [Fact]
+    public async Task GetArticle_NonAsciiUnitIds_AreReadAndEscapedInThePath()
+    {
+        var handler = Router();
+
+        var article = await Client(handler).GetArticleAsync(Kc2024, "1", TestContext.Current.CancellationToken);
+
+        Assert.Equal("book_PIERWSZA-part_OG\u00d3LNA-titl_I-arti_1", article!.UnitId);
+        Assert.Contains("Kodeks niniejszy reguluje", article.Text, StringComparison.Ordinal);
+        var path = handler.RequestUris[1].AbsolutePath;
+        Assert.Contains("part=OG%C3%93LNA", path, StringComparison.Ordinal);
+        Assert.EndsWith("/arti=1", path, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task GetArticle_AParagraphOfARegulation_IsReadByItsParagraphSign()
+    {
+        var article = await Client(Router()).GetArticleAsync(EliActId.Parse("DU/2022/5"), "\u00a7 2", TestContext.Current.CancellationToken);
+
+        Assert.Equal("para", article!.UnitType);
+        Assert.Equal("2", article.Article);
+        Assert.Equal("\u00a7 2.\nTre\u015b\u0107 paragrafu drugiego.", article.Text);
+    }
+
+    [Fact]
+    public async Task GetArticle_AnArticleNumberDoesNotMatchAParagraph()
+    {
+        var handler = Router();
+
+        Assert.Null(await Client(handler).GetArticleAsync(EliActId.Parse("DU/2022/5"), "2", TestContext.Current.CancellationToken));
+
+        Assert.Single(handler.RequestUris);   // the structure only: it has paragraphs, no articles
+    }
+
+    [Fact]
+    public async Task GetArticle_AFragmentThatTimesTheTextExtractionOut_IsNeverARawTimeoutException()
+    {
+        var hostile = "<!--" + string.Concat(Enumerable.Repeat("<!--", 240_000));
+        var handler = new StubHttpMessageHandler(r => r.RequestUri!.AbsolutePath.EndsWith("/struct", StringComparison.Ordinal)
+            ? StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "eli/struct-DU-2024-1061.json")
+            : Text(HttpStatusCode.OK, hostile));
+
+        var ex = await Record.ExceptionAsync(() => Client(handler).GetArticleAsync(Kc2024, "415", TestContext.Current.CancellationToken));
+
+        Assert.True(ex is null or PolishOpenDataApiException, ex?.GetType().Name);
     }
 }
