@@ -17,6 +17,7 @@
 | `PolishOpenData.Regon` | GUS REGON (BIR1.2): wyszukiwanie po NIP/REGON/KRS, zapytania zbiorcze po 20, pełne raporty, sesja i ogranicznik zapytań; wymaga własnego, bezpłatnego klucza GUS |
 | `PolishOpenData.Ceidg` | CEIDG v3 (rejestr jednoosobowych działalności): wpisy po NIP, REGON lub identyfikatorze ze statusem, datami, adresem i PKD; wymaga własnego bezpłatnego tokenu API |
 | `PolishOpenData.Bdl` | GUS Bank Danych Lokalnych: jednostki (województwa, powiaty, gminy), wyszukiwanie wskaźników, wartości po latach (ludność, bezrobocie, budżety...); bez klucza |
+| `PolishOpenData.Eli` | Akty prawne (API ELI Sejmu): wyszukiwanie w Dzienniku Ustaw i Monitorze Polskim, status, teksty jednolite i zmiany, pojedynczy artykuł jako zwykły tekst ze źródłem; bez klucza |
 | `PolishOpenData.Geo.Core` | Typowane współrzędne polskie: `Pl1992Point` (EPSG:2180) i `Wgs84Point` z wbudowaną konwersją, `Pl1992Bbox`, `ParcelId` (identyfikator działki TERYT) |
 | `PolishOpenData.Uldk` | ULDK GUGiK: działka ewidencyjna po identyfikatorze, po punkcie albo po nazwie obrębu i numerze, z granicą w WKT |
 | `PolishOpenData.Geo.Nts` | Opcjonalny adapter NetTopologySuite: `ParcelGeometry.ToNtsGeometry()` i `ToNtsPoint()` do liczenia pola, części wspólnej, bufora i odległości na działkach |
@@ -142,6 +143,23 @@ foreach (var value in data.Series[0].Values)
 ```
 
 Nazwy zmiennych same w sobie mówią niewiele („ogółem, ogółem”): `GetSubjectAsync` zwraca temat, który je wyjaśnia. Komórka może mieć zero-zapychacz, które GUS oznacza jako tajemnicę statystyczną, brak lub dane jeszcze niedostępne; biblioteka zamienia je na `Value == null` i zachowuje znacznik GUS w `Flag`. Nieistniejący identyfikator nie jest błędem: zapytania o dane zwracają pusty wynik. Limity anonimowe to 5 zapytań na sekundę, 100 na 15 minut, 1000 na 12 godzin i 10 000 na tydzień (błędny `ClientId` nie jest odrzucany, po cichu dostajesz limity anonimowe); klient sam się nie ogranicza i niczego nie ponawia, a `GetDataByVariableAsync` zużywa jedno zapytanie na 100 jednostek (wszystkie gminy w Polsce to około 25). Dane mają licencję CC BY 4.0: podawaj „Główny Urząd Statystyczny, Bank Danych Lokalnych”. Kod TERYT w `BdlUnit.Teryt` jest wyliczany z identyfikatora jednostki, czego GUS nie dokumentuje.
+
+## Akty prawne: ELI Sejmu
+
+`PolishOpenData.Eli` czyta API ELI Sejmu (`api.sejm.gov.pl/eli`): wyszukuje akty w Dzienniku Ustaw i Monitorze Polskim, podaje status aktu, jego teksty jednolite i akty zmieniające, a pojedynczy artykuł zwraca jako zwykły tekst. Klucz nie jest potrzebny.
+
+```csharp
+services.AddEliClient();
+var eli = provider.GetRequiredService<IEliClient>();
+var kc = EliActId.Parse("Dz.U. 1964 poz. 93");                      // także DU/1964/93 albo WDU19640160093
+var current = await eli.GetCurrentTextAsync(kc);                     // najnowszy tekst jednolity, najnowszy z HTML, co się zmieniło potem
+var article = await eli.GetArticleAsync(current.NewestWithHtml!.Id, "415");
+Console.WriteLine($"{article?.Text}\n(z {current.NewestWithHtml.DisplayAddress}; aktualny: {current.IsHtmlTextCurrent})");
+```
+
+**Tekst może być starszy niż obowiązujące prawo.** API udostępnia HTML i strukturę tylko dla aktów do 2024 roku: wszystkie akty od 2025, także teksty jednolite, mają tylko PDF (w listopadzie 2026 najnowszy tekst jednolity Kodeksu cywilnego to Dz.U. 2026 poz. 795, tylko PDF, a najnowszy z tekstem pochodzi z 2024). Dlatego `GetArticleAsync` czyta dokładnie ten akt, który podasz, i nie twierdzi, że jest aktualny: przed zacytowaniem sprawdź `GetCurrentTextAsync` i pola `IsHtmlTextCurrent`, `NewestConsolidated` oraz zmiany od tamtego tekstu. HTML aktu podstawowego to jego pierwotny tekst (dla Kodeksu cywilnego z 1964 roku) i jest oferowany tylko wtedy, gdy akt nie ma tekstu jednolitego. Dla aktu bez HTML dostajesz metadane i odnośnik do PDF; biblioteka nie czyta PDF-ów.
+
+API nie publikuje limitów; klient niczego nie ponawia. Artykuł kosztuje dwa zapytania (struktura, zapamiętywana dla ostatnich 16 aktów, i tekst), sprawdzenie aktualności jedno plus do pięciu. Akty prawne są jawne (nie podlegają prawu autorskiemu); podawaj źródło: Sejm RP, API ELI.
 
 ## Sprawdzanie Białej Listy offline
 

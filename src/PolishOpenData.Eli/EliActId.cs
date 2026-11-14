@@ -13,8 +13,8 @@ namespace PolishOpenData.Eli;
 public readonly struct EliActId : IEquatable<EliActId>
 {
     private static readonly Regex Slashed = new(@"^([A-Za-z]{2,3})/(\d{4})/(\d{1,7})$", RegexOptions.CultureInvariant);
-    private static readonly Regex Address = new(@"^W([A-Za-z]{2,3})(\d{4})(\d{7})$", RegexOptions.CultureInvariant);
-    private static readonly Regex Display = new(@"^(dz\.?\s?u\.?|m\.?\s?p\.?)\s+(\d{4})\s+poz\.?\s*(\d{1,7})$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+    private static readonly Regex Address = new(@"^W([A-Za-z]{2,3})(\d{4})\d{3}(\d{4})$", RegexOptions.CultureInvariant);
+    private static readonly Regex Display = new(@"^(dz\.?\s?u\.?|m\.?\s?p\.?)\s+(\d{4})\s+(?:nr\s*\d{1,3}\s+)?poz\.?\s*(\d{1,7})$", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
 
     private EliActId(string publisher, int year, int position)
     {
@@ -38,7 +38,10 @@ public readonly struct EliActId : IEquatable<EliActId>
     /// <summary>The id as the API writes it in paths: <c>DU/2024/1061</c>.</summary>
     internal string Path => Publisher + "/" + Year.ToString(CultureInfo.InvariantCulture) + "/" + Position.ToString(CultureInfo.InvariantCulture);
 
-    /// <summary>Parses <c>DU/2024/1061</c>, the API address <c>WDU20240001061</c> or "Dz.U. 2024 poz. 1061" (also "M.P.").</summary>
+    /// <summary>
+    /// Parses <c>DU/2024/1061</c>, the API address <c>WDU20240001061</c> (year, 3-digit volume, 4-digit position: older acts have a volume
+    /// that is not part of the path) or "Dz.U. 2024 poz. 1061" (also "M.P.", and "Dz.U. 1964 nr 16 poz. 93").
+    /// </summary>
     /// <exception cref="FormatException">The text is none of these.</exception>
     public static EliActId Parse(string text) =>
         TryParse(text, out var id) ? id : throw new FormatException("Not a legal act id (use DU/2024/1061, WDU20240001061 or 'Dz.U. 2024 poz. 1061').");

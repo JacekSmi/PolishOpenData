@@ -45,6 +45,16 @@ public class EliActIdTests
         Assert.Throws<FormatException>(() => EliActId.Parse(text));
     }
 
+    [Theory]
+    [InlineData("WDU19640160093", "DU/1964/93")]
+    [InlineData("Dz.U. 1964 nr 16 poz. 93", "DU/1964/93")]
+    [InlineData("Dz.U. 1950 nr 53 poz. 489", "DU/1950/489")]
+    [InlineData("WMP20260000368", "MP/2026/368")]
+    public void Parse_OlderActsCarryAVolumeThatIsNotPartOfThePath(string text, string expected)
+    {
+        Assert.Equal(expected, EliActId.Parse(text).ToString());
+    }
+
     [Fact]
     public void TryParse_RejectsNull()
     {

@@ -21,6 +21,7 @@
 | [`PolishOpenData.Regon`](https://www.nuget.org/packages/PolishOpenData.Regon) | GUS REGON (BIR1.2): search by NIP/REGON/KRS, batches of 20, full reports, session and request limiter; needs your own free GUS key | net10.0, netstandard2.0 |
 | [`PolishOpenData.Ceidg`](https://www.nuget.org/packages/PolishOpenData.Ceidg) | CEIDG v3 (register of sole traders): entries by NIP, REGON or id with status, dates, address and PKD; needs your own free API token | net10.0, netstandard2.0 |
 | [`PolishOpenData.Bdl`](https://www.nuget.org/packages/PolishOpenData.Bdl) | GUS Bank Danych Lokalnych: find voivodeships, powiats and gminas, search indicators, read values by year (population, unemployment, budgets...); no key needed | net10.0, netstandard2.0 |
+| [`PolishOpenData.Eli`](https://www.nuget.org/packages/PolishOpenData.Eli) | Polish legal acts (Sejm ELI API): find acts in Dziennik Ustaw and Monitor Polski, status, consolidated texts and amendments, one article as plain text with provenance; no key needed | net10.0, netstandard2.0 |
 | [`PolishOpenData.Geo.Core`](https://www.nuget.org/packages/PolishOpenData.Geo.Core) | Typed Polish coordinates: `Pl1992Point` (EPSG:2180) and `Wgs84Point` with a built-in conversion, `Pl1992Bbox`, `ParcelId` (TERYT parcel identifier) | net10.0, netstandard2.0 |
 | [`PolishOpenData.Uldk`](https://www.nuget.org/packages/PolishOpenData.Uldk) | GUGiK ULDK: cadastral parcel by ID, by point or by region name and number, with its boundary as WKT | net10.0, netstandard2.0 |
 | [`PolishOpenData.Geo.Nts`](https://www.nuget.org/packages/PolishOpenData.Geo.Nts) | Optional NetTopologySuite adapter: `ParcelGeometry.ToNtsGeometry()` and `ToNtsPoint()` for area, intersection, buffer and distance on parcels | net10.0, netstandard2.0 |
@@ -165,6 +166,27 @@ foreach (var value in data.Series[0].Values)
 ```
 
 Variable names mean little alone ("ogółem, ogółem"): `GetSubjectAsync` gives the topic that makes them readable. A cell can be a placeholder zero that GUS marks as confidential, not applicable or not yet published; the library turns those into `Value == null` and keeps GUS's flag in `Flag`. An id that does not exist is not an error: the data calls return an empty result. Anonymous limits are 5 requests per second, 100 per 15 minutes, 1,000 per 12 hours and 10,000 per week (a wrong `ClientId` is not rejected, you silently get the anonymous limits); the client neither limits itself nor retries, and `GetDataByVariableAsync` spends one request per 100 units (all gminas of Poland are about 25). The data is licensed CC BY 4.0: cite "Główny Urząd Statystyczny, Bank Danych Lokalnych". The TERYT code in `BdlUnit.Teryt` is derived from the unit id, which GUS does not document.
+
+## Legal acts: Sejm ELI
+
+`PolishOpenData.Eli` reads the Sejm's ELI API (`api.sejm.gov.pl/eli`): find acts in Dziennik Ustaw and Monitor Polski, read an act's status, its consolidated texts (teksty jednolite) and its amendments, and read one article as plain text. No key is needed.
+
+```bash
+dotnet add package PolishOpenData.Eli
+```
+
+```csharp
+services.AddEliClient();
+var eli = provider.GetRequiredService<IEliClient>();
+var civilCode = EliActId.Parse("Dz.U. 1964 poz. 93");               // also DU/1964/93 or WDU19640160093
+var current = await eli.GetCurrentTextAsync(civilCode);              // newest consolidated text, newest one with HTML, what changed since
+var article = await eli.GetArticleAsync(current.NewestWithHtml!.Id, "415");
+Console.WriteLine($"{article?.Text}\n(from {current.NewestWithHtml.DisplayAddress}; current: {current.IsHtmlTextCurrent})");
+```
+
+**The text may be older than the law in force.** The API serves HTML and a structure only for acts up to 2024: every act from 2025 on, consolidated texts included, is a PDF only (in November 2026 the newest consolidated Kodeks cywilny is Dz.U. 2026 poz. 795, PDF-only, while the newest one with text is from 2024). So `GetArticleAsync` reads exactly the act you give it and does not claim to be current: use `GetCurrentTextAsync` and read `IsHtmlTextCurrent`, `NewestConsolidated` and the amendments since before you rely on a quote. The base act's own HTML is its original text (for the civil code, 1964) and is offered only when the act has no consolidated text. An act without HTML gets metadata and a PDF link only; the library does not read PDFs.
+
+The API publishes no rate limit; the client does not retry. An article costs two requests (the structure, cached for the last 16 acts, and the text), the current-text check one plus up to five. Acts are public law (not protected by copyright); cite the source: Sejm RP, ELI API.
 
 ## Offline VAT whitelist check
 

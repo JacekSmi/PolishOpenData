@@ -7,7 +7,7 @@ dotnet build -c Release
 dotnet test -c Release
 ```
 
-Requirements: .NET 10 SDK (see `global.json`). On Windows the Core, Shared, Krs, BialaLista, BialaLista.Offline, Regon, Ceidg, Bdl, Geo.Core, Uldk, Uug and Rcn tests also run on .NET Framework 4.7.2. Tests use xUnit v3 on Microsoft Testing Platform (`dotnet test --project tests/<Project>` runs one project).
+Requirements: .NET 10 SDK (see `global.json`). On Windows the Core, Shared, Krs, BialaLista, BialaLista.Offline, Regon, Ceidg, Bdl, Eli, Geo.Core, Uldk, Uug and Rcn tests also run on .NET Framework 4.7.2. Tests use xUnit v3 on Microsoft Testing Platform (`dotnet test --project tests/<Project>` runs one project).
 
 ## Live tests
 
@@ -45,6 +45,7 @@ One run costs, per IP address:
 | GUS BIR test environment requests (published test key, no secret) | 5 | 0 | 0 | **5** |
 | GUS BIR production requests (needs `POLISHOPENDATA_REGON_KEY`, owner-run, skipped otherwise) | 4 | 4 | 0 | **8** |
 | GUS BDL requests (`BdlLiveTests`, anonymous, no key) | 3 | 0 | 0 | **3** |
+| Sejm ELI requests (`EliLiveTests`, no key) | 8 | 0 | 0 | **8** |
 | CEIDG production requests (needs `POLISHOPENDATA_CEIDG_TOKEN`, owner-run, skipped otherwise; a second one with `POLISHOPENDATA_CEIDG_NIP`) | 1 (2) | 0 | 0 | **1** (**2**) |
 | GUGiK ULDK requests (no key) | 5 | 0 | 0 | **5**, **6** with the demo test (1) |
 | GUGiK UUG requests (no key) | 3 | 1 | 0 | **4**, **5** with the demo test (1) (the MCP one geocodes the address of the `property_prices` test) |
