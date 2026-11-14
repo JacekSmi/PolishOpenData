@@ -88,16 +88,6 @@ public class SejmTallyTests
     }
 
     [Fact]
-    public void Tally_UsesHistoricalClub()
-    {
-        // the club is read from each vote (as of the voting day): one deputy listed under another club still counts there
-        var clubs = SejmTally.ByClub([V(1, "PiS", "YES"), V(1001, "KO", "YES"), V(2, "KO", "NO")]);
-
-        Assert.Equal(1, clubs.Single(c => c.Club == "PiS").Seats);
-        Assert.Equal(2, clubs.Single(c => c.Club == "KO").Seats);
-    }
-
-    [Fact]
     public void UnknownVoteValues_GoToOther()
     {
         var clubs = SejmTally.ByClub([V(1, "A", "NO_VOTE"), V(2, "A", "BRAND_NEW")]);

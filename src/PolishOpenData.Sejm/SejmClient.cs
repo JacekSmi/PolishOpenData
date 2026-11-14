@@ -194,7 +194,7 @@ public sealed class SejmClient : ISejmClient
     public async Task<IReadOnlyList<SejmClub>> GetClubsAsync(int term, bool includeMembers = false, CancellationToken cancellationToken = default)
     {
         RequireTerm(term);
-        var clubs = await RequestAsync("term" + Number(term) + "/clubs", (body, _) => Parse(body, SejmJson.Clubs).Where(static c => c is not null).Select(c => SejmMapper.ToClub(c, includeMembers)).ToList(), cancellationToken).ConfigureAwait(false);
+        var clubs = await RequestAsync("term" + Number(term) + "/clubs", (body, _) => Parse(body, SejmJson.Clubs).Where(static c => c is not null).Select(c => SejmMapper.ToClub(c, includeMembers)).ToList(), cancellationToken, sensitive: true).ConfigureAwait(false);
         return clubs ?? [];
     }
 
@@ -203,14 +203,14 @@ public sealed class SejmClient : ISejmClient
     {
         RequireTerm(term);
         var club = SejmIds.Club(id);
-        return RequestAsync("term" + Number(term) + "/clubs/" + Uri.EscapeDataString(club), (body, _) => SejmMapper.ToClub(Parse(body, SejmJson.Club), includeMembers), cancellationToken);
+        return RequestAsync("term" + Number(term) + "/clubs/" + Uri.EscapeDataString(club), (body, _) => SejmMapper.ToClub(Parse(body, SejmJson.Club), includeMembers), cancellationToken, sensitive: true);
     }
 
     /// <inheritdoc/>
     public async Task<IReadOnlyList<SejmCommittee>> GetCommitteesAsync(int term, bool includeMembers = false, CancellationToken cancellationToken = default)
     {
         RequireTerm(term);
-        var committees = await RequestAsync("term" + Number(term) + "/committees", (body, _) => Parse(body, SejmJson.Committees).Where(static c => c is not null).Select(c => SejmMapper.ToCommittee(c, includeMembers)).ToList(), cancellationToken).ConfigureAwait(false);
+        var committees = await RequestAsync("term" + Number(term) + "/committees", (body, _) => Parse(body, SejmJson.Committees).Where(static c => c is not null).Select(c => SejmMapper.ToCommittee(c, includeMembers)).ToList(), cancellationToken, sensitive: true).ConfigureAwait(false);
         return committees ?? [];
     }
 
@@ -219,7 +219,7 @@ public sealed class SejmClient : ISejmClient
     {
         RequireTerm(term);
         var committee = SejmIds.Committee(code);
-        return RequestAsync("term" + Number(term) + "/committees/" + Uri.EscapeDataString(committee), (body, _) => SejmMapper.ToCommittee(Parse(body, SejmJson.Committee), includeMembers), cancellationToken);
+        return RequestAsync("term" + Number(term) + "/committees/" + Uri.EscapeDataString(committee), (body, _) => SejmMapper.ToCommittee(Parse(body, SejmJson.Committee), includeMembers), cancellationToken, sensitive: true);
     }
 
     private static void RequireTerm(int term) => ArgumentOutOfRangeException.ThrowIfLessThan(term, 1);
@@ -246,8 +246,8 @@ public sealed class SejmClient : ISejmClient
     }
 
     // One GET. 404, 204 and an empty 2xx body are all "nothing here" (null): the API is inconsistent about which it sends. A mapper or JSON
-    // failure becomes an unreadable-response error; the WAF's 403 HTML page is a non-success status, so it never reaches the JSON parser.
-    private async Task<T?> RequestAsync<T>(string relative, Func<byte[], HttpResponseHeaders, T?> handle, CancellationToken cancellationToken)
+    // failure becomes an unreadable-response error (without the body when it can hold member names); the WAF's 403 HTML page is a non-success status, so it never reaches the JSON parser.
+    private async Task<T?> RequestAsync<T>(string relative, Func<byte[], HttpResponseHeaders, T?> handle, CancellationToken cancellationToken, bool sensitive = false)
         where T : class
     {
         _options.Validate();   // the options are mutable: BaseAddress may have changed since construction
@@ -284,7 +284,8 @@ public sealed class SejmClient : ISejmClient
         }
         catch (Exception ex) when (ex is JsonException or FormatException)
         {
-            throw HttpHelpers.UnreadableResponse(Service + " returned a response this library cannot read: " + ex.Message, response, body, ex);
+            // the club and committee bodies embed member names: keep them out of the exception's snippet
+            throw HttpHelpers.UnreadableResponse(Service + " returned a response this library cannot read: " + ex.Message, response, sensitive ? [] : body, ex);
         }
     }
 

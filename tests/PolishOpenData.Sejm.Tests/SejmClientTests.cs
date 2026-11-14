@@ -35,11 +35,11 @@ public class SejmClientTests
             "/sejm/term10/processes" or "/sejm/term10/processes/passed" => WithTotal(StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "sejm/processes-page.json"), 1794),
             "/sejm/term10/processes/318" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "sejm/process-318.json"),
             "/sejm/term10/prints/401" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "sejm/print-401.json"),
-            "/sejm/term10/prints/1153-A" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "sejm/print-1153-A.json"),
+            "/sejm/term10/prints/1153-A" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "sejm/synthetic-print-1153-A.json"),
             "/sejm/term10/bills" => r.RequestUri.Query.Contains("print=318", StringComparison.Ordinal)
                 ? StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "sejm/bills-print-318.json")
                 : StubHttpMessageHandler.Json(HttpStatusCode.OK, "[]"),
-            var p when p.StartsWith("/sejm/term99/", StringComparison.Ordinal) => StubHttpMessageHandler.Json(HttpStatusCode.OK, "[]"),
+            var p when p.StartsWith("/sejm/term99/", StringComparison.Ordinal) => WithTotal(StubHttpMessageHandler.Json(HttpStatusCode.OK, "[]"), 0),
             _ => StubHttpMessageHandler.Empty(HttpStatusCode.NotFound),
         };
     }

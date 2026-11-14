@@ -25,11 +25,24 @@ internal static class SejmIds
     private static string Check(string? value, Regex pattern, string what, string shape)
     {
         var trimmed = value?.Trim();
-        if (trimmed is null || trimmed.Length == 0 || !pattern.IsMatch(trimmed))
+        // a pattern that cannot finish in time is a bad value too (the patterns are linear, so this is a guard, not a path)
+        if (trimmed is null || trimmed.Length == 0 || !Matches(pattern, trimmed))
         {
             throw new ArgumentException("Not a valid " + what + " (expected " + shape + ").", nameof(value));
         }
 
         return trimmed;
+    }
+
+    private static bool Matches(Regex pattern, string text)
+    {
+        try
+        {
+            return pattern.IsMatch(text);
+        }
+        catch (RegexMatchTimeoutException)
+        {
+            return false;
+        }
     }
 }

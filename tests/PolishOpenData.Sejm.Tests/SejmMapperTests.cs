@@ -91,7 +91,7 @@ public class SejmMapperTests
     [Fact]
     public void Process_UnknownStageTypeKept_AndUrgentRead()
     {
-        var p = SejmMapper.ToProcess(Read("process-unknown-stage.json", SejmJson.Process));
+        var p = SejmMapper.ToProcess(Read("synthetic-process-unknown-stage.json", SejmJson.Process));
 
         Assert.Equal("BrandNewStageType", Assert.Single(p.Stages).Type);
         Assert.True(p.Summary.Urgent);
@@ -120,7 +120,7 @@ public class SejmMapperTests
     [Fact]
     public void Print1153A_EmptyProcessPrint_IsNullProcess()
     {
-        var p = SejmMapper.ToPrint(Read("print-1153-A.json", SejmJson.Print));
+        var p = SejmMapper.ToPrint(Read("synthetic-print-1153-A.json", SejmJson.Print));
 
         Assert.Equal("1153-A", p.Number);
         Assert.Null(p.ProcessNumber);

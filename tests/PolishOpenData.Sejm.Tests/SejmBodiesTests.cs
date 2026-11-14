@@ -117,6 +117,19 @@ public class SejmBodiesTests
         Assert.Null(await Client(new StubHttpMessageHandler(Route)).GetCommitteeAsync(10, "XX", cancellationToken: Ct));
     }
 
+    [Fact]
+    public async Task UnreadableCommittee_DoesNotLeakMemberNamesInTheSnippet()
+    {
+        var bad = Fixture.Read("sejm/committee-asw.json").Replace("\"appointmentDate\": \"2023-11-21\"", "\"appointmentDate\": \"21.11.2023\"");
+        Assert.Contains("Kowalski", bad, StringComparison.Ordinal);
+        var handler = new StubHttpMessageHandler(_ => StubHttpMessageHandler.Json(HttpStatusCode.OK, bad));
+
+        var ex = await Assert.ThrowsAsync<PolishOpenDataApiException>(() => Client(handler).GetCommitteeAsync(10, "ASW", cancellationToken: Ct));
+
+        Assert.DoesNotContain("Kowalski", ex.ResponseSnippet ?? string.Empty, StringComparison.Ordinal);
+        Assert.DoesNotContain("Kowalski", ex.ToString(), StringComparison.Ordinal);
+    }
+
     [Theory]
     [InlineData("asw")]
     [InlineData("A/B")]

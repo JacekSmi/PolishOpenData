@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,7 @@ internal sealed class SejmTools(ISejmClient client, TimeProvider time)
     private const int DefaultLimit = 10;
     private const int MaxLimit = 20;
     private const int MaxTimeline = 30;
+    private const int TimelineTail = 10;
     private const int MaxVotingLines = 40;
     private const int MaxVotingSearches = 6;
     private const int VotingSearchPage = 100;
@@ -142,13 +144,15 @@ internal sealed class SejmTools(ISejmClient client, TimeProvider time)
 
         if (items.Count == 0)
         {
-            // an unknown term answers 200 [] with no total; an empty page past the end of a real list has one
+            // an unknown term answers 200 [] with X-Total-Count 0, exactly like a real term with no hits: one /term request tells them apart.
+            // An empty page past the end of a real list has a positive total and needs no check.
             if (term is not null && (total ?? 0) == 0 && await UnknownTermAsync(t, cancellationToken).ConfigureAwait(false) is { } unknown)
             {
                 return unknown;
             }
 
-            hint ??= !string.IsNullOrWhiteSpace(title) && title.Trim().Contains(' ', StringComparison.Ordinal)
+            hint ??= (total ?? 0) > 0 ? "Offset " + skip.ToString(CultureInfo.InvariantCulture) + " is past the last of " + total!.Value.ToString(CultureInfo.InvariantCulture) + " matches."
+                : !string.IsNullOrWhiteSpace(title) && title.Trim().Contains(' ', StringComparison.Ordinal)
                 ? "No process title contains all of '" + RegonTools.Clean(title.Trim(), 100) + "' as one contiguous text. Retry with a shorter fragment (one or two words)."
                 : "No processes match.";
         }
@@ -205,7 +209,7 @@ internal sealed class SejmTools(ISejmClient client, TimeProvider time)
                 process = await SafeProcessAsync(t, print.ProcessNumber, cancellationToken).ConfigureAwait(false);
                 if (process is null)
                 {
-                    return ToolResults.Error("Print " + wanted + " points at process " + RegonTools.Clean(print.ProcessNumber, 40) + ", which the API does not serve.");
+                    return ToolResults.Error("Print " + wanted + " points at process " + RegonTools.Clean(print.ProcessNumber, 40) + ", which this server cannot look up.");
                 }
             }
         }
@@ -216,6 +220,7 @@ internal sealed class SejmTools(ISejmClient client, TimeProvider time)
 
         var summary = process.Summary;
         SejmBill? bill = null;
+        var billFailed = false;
         try
         {
             bill = await client.GetBillForPrintAsync(t, summary.Number, cancellationToken).ConfigureAwait(false);
@@ -224,10 +229,15 @@ internal sealed class SejmTools(ISejmClient client, TimeProvider time)
         {
             // an initiating print the whitelist does not accept (the API's own odd numbers): no bill record, not an error
         }
+        catch (Exception ex) when (ex is PolishOpenDataApiException or HttpRequestException)
+        {
+            billFailed = true;   // the process was read: answer without the submitter rather than fail
+        }
 
         var flat = new List<SejmStage>();
         Flatten(process.Stages, flat);
-        var timeline = flat.Take(MaxTimeline).Select(s => new SejmTimelineItem(
+        var shown = flat.Count <= MaxTimeline ? flat : flat.Take(MaxTimeline - TimelineTail).Concat(flat.Skip(flat.Count - TimelineTail)).ToList();
+        var timeline = shown.Select(s => new SejmTimelineItem(
             s.Date,
             RegonTools.Clean(s.Name, TitleLength) ?? s.Type,
             RegonTools.Clean(s.Decision, TitleLength),
@@ -237,7 +247,7 @@ internal sealed class SejmTools(ISejmClient client, TimeProvider time)
             s.Voting is { } v ? new SejmVotingBrief(v.Sitting, v.Number, v.Yes, v.No, v.Abstain) : null)).ToList();
 
         var prints = new List<string> { summary.Number };
-        prints.AddRange(flat.Select(static s => s.PrintNumber).Concat(summary.PrintsConsideredJointly).Where(static p => !string.IsNullOrWhiteSpace(p)).Select(static p => p!.Trim()));
+        prints.AddRange(flat.Select(static s => s.PrintNumber).Concat(summary.PrintsConsideredJointly).Select(static p => RegonTools.Clean(p, 40)).Where(static p => p is not null).Select(static p => p!));
 
         SejmActLink? act = null;
         if (summary.Eli is not null && EliActId.TryParse(summary.Eli, out var actId))
@@ -256,6 +266,8 @@ internal sealed class SejmTools(ISejmClient client, TimeProvider time)
         }
 
         var note = "Only some votings are embedded in the timeline (typically the first-reading rejection and the final passage); includeAllVotings searches the rest by title and is best effort."
+            + (flat.Count > MaxTimeline ? " The timeline omits the middle stages: the first " + (MaxTimeline - TimelineTail).ToString(CultureInfo.InvariantCulture) + " and the last " + TimelineTail.ToString(CultureInfo.InvariantCulture) + " are shown." : string.Empty)
+            + (billFailed ? " The bill record could not be read, so the submitter is unknown." : string.Empty)
             + (allVotingsTruncated == true ? " The list of all votings is partial: more than 6 prints, a full search page or more than 40 votes cut it." : string.Empty)
             + (RegonTools.Clean(summary.Comments, TitleLength) is { } comment ? " Register comment: " + comment : string.Empty);
         return ToolResults.Ok(new SejmProcessResult
@@ -378,7 +390,7 @@ internal sealed class SejmTools(ISejmClient client, TimeProvider time)
         var v = details.Voting;
         var isList = string.Equals(v.Kind, "ON_LIST", StringComparison.OrdinalIgnoreCase);
         var isQuorum = !isList && v.Yes + v.No + v.Abstain == 0 && v.Present > 0;
-        string? outcome = isList || isQuorum ? null
+        string? outcome = isList || isQuorum || v.MajorityVotes <= 0 ? null
             : v.Yes >= v.MajorityVotes ? "passed (inferred: yes >= required)"
             : "failed (inferred: yes < required)";
         var prints = SejmPrintRefs.FromTitle(v.Title + " " + v.Topic);
@@ -403,7 +415,7 @@ internal sealed class SejmTools(ISejmClient client, TimeProvider time)
             Clubs = details.Clubs.Select(static c => new SejmClubRow(RegonTools.Clean(c.Club, 60) ?? string.Empty, c.Seats, c.Yes, c.No, c.Abstain, c.Absent, c.Present, c.Other)).ToList(),
             SumsMatchTotals = details.SumsMatchTotals,
             Options = isList
-                ? v.Options.Select(o => new SejmOptionRow(o.Index, RegonTools.Clean(o.Option, 200) ?? string.Empty, o.Votes, o.Votes >= v.MajorityVotes ? "reached the required votes (inferred)" : "did not reach the required votes (inferred)")).ToList()
+                ? v.Options.Select(o => new SejmOptionRow(o.Index, RegonTools.Clean(o.Option, 200) ?? string.Empty, o.Votes, v.MajorityVotes <= 0 ? "unknown (the API gives no required majority)" : o.Votes >= v.MajorityVotes ? "reached the required votes (inferred)" : "did not reach the required votes (inferred)")).ToList()
                 : null,
             Prints = prints,
             Hint = prints.Count > 0 ? "get_sejm_process(number) shows the process of a print named in the title, with its status and resulting act." : null,
@@ -485,8 +497,9 @@ internal sealed class SejmTools(ISejmClient client, TimeProvider time)
 
     internal static string ProcessStatus(SejmProcessSummary p)
     {
-        var linked = p.Eli is null ? string.Empty : "; linked act " + (RegonTools.Clean(p.DisplayAddress, 100) ?? p.Eli);
-        return p.Passed && p.Eli is not null ? "passed; published as " + (RegonTools.Clean(p.DisplayAddress, 100) ?? p.Eli)
+        var act = ActId(p.Eli);
+        var linked = act is null ? string.Empty : "; linked act " + (RegonTools.Clean(p.DisplayAddress, 100) ?? act);
+        return p.Passed && act is not null ? "passed; published as " + (RegonTools.Clean(p.DisplayAddress, 100) ?? act)
             : p.Passed ? "passed; not published as an act (motion, appointment or similar)"
             : p.ClosureDate is { } closed ? "not passed; closed on " + closed.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + linked
             : "in progress" + linked;
@@ -524,14 +537,16 @@ internal sealed class SejmTools(ISejmClient client, TimeProvider time)
 
     private static string? Labelled(string name, string? value) => string.IsNullOrWhiteSpace(value) ? null : name + ": " + RegonTools.Clean(value.Trim(), 100);
 
+    private static string? ActId(string? eli) => EliActId.TryParse(eli, out var id) ? id.ToString() : null;
+
     private static SejmProcessItem Item(SejmProcessSummary p) => new(
-        p.Number,
+        RegonTools.Clean(p.Number, 40) ?? p.Number,
         RegonTools.Clean(p.Title, TitleLength) ?? string.Empty,
         RegonTools.Clean(p.DocumentType, 100) ?? string.Empty,
         ProcessStatus(p),
         p.StartDate,
         DateOnly.FromDateTime(p.ChangeDate),
-        p.Eli);
+        ActId(p.Eli));
 
     private static void Flatten(IReadOnlyList<SejmStage> stages, List<SejmStage> into)
     {
@@ -574,7 +589,7 @@ internal sealed class SejmTools(ISejmClient client, TimeProvider time)
         SejmProcess? process = print.ProcessNumber is null ? null : await SafeProcessAsync(term, print.ProcessNumber, cancellationToken).ConfigureAwait(false);
         var hint = print.ProcessNumber is null
             ? "Print " + RegonTools.Clean(printNumber, 40) + " belongs to no process (an additional print or a report that is not tied to one)."
-            : process is null ? "Print " + RegonTools.Clean(printNumber, 40) + " points at process " + RegonTools.Clean(print.ProcessNumber, 40) + ", which the API does not serve." : null;
+            : process is null ? "Print " + RegonTools.Clean(printNumber, 40) + " points at process " + RegonTools.Clean(print.ProcessNumber, 40) + ", which this server cannot look up." : null;
         return ToolResults.Ok(new SejmProcessSearchResult
         {
             Term = term,
