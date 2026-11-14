@@ -34,6 +34,10 @@ jobs:
           global-json-file: global.json
       - run: dotnet build -c Release
       - run: dotnet test -c Release --no-build --report-xunit-trx --results-directory artifacts/test-results
+      - name: Check the MCP Registry limits in server.json
+        if: matrix.os == 'ubuntu-latest'
+        # The registry rejects a description over 100 characters (422), which only shows at release time.
+        run: jq -e '.description | length <= 100' src/PolishOpenData.Mcp/.mcp/server.json
       - name: Pack
         if: matrix.os == 'ubuntu-latest'
         run: dotnet pack -c Release -o artifacts/packages
