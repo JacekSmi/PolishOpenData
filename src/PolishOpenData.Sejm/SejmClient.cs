@@ -190,6 +190,38 @@ public sealed class SejmClient : ISejmClient
         }, cancellationToken);
     }
 
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<SejmClub>> GetClubsAsync(int term, bool includeMembers = false, CancellationToken cancellationToken = default)
+    {
+        RequireTerm(term);
+        var clubs = await RequestAsync("term" + Number(term) + "/clubs", (body, _) => Parse(body, SejmJson.Clubs).Where(static c => c is not null).Select(c => SejmMapper.ToClub(c, includeMembers)).ToList(), cancellationToken).ConfigureAwait(false);
+        return clubs ?? [];
+    }
+
+    /// <inheritdoc/>
+    public Task<SejmClub?> GetClubAsync(int term, string id, bool includeMembers = false, CancellationToken cancellationToken = default)
+    {
+        RequireTerm(term);
+        var club = SejmIds.Club(id);
+        return RequestAsync("term" + Number(term) + "/clubs/" + Uri.EscapeDataString(club), (body, _) => SejmMapper.ToClub(Parse(body, SejmJson.Club), includeMembers), cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<SejmCommittee>> GetCommitteesAsync(int term, bool includeMembers = false, CancellationToken cancellationToken = default)
+    {
+        RequireTerm(term);
+        var committees = await RequestAsync("term" + Number(term) + "/committees", (body, _) => Parse(body, SejmJson.Committees).Where(static c => c is not null).Select(c => SejmMapper.ToCommittee(c, includeMembers)).ToList(), cancellationToken).ConfigureAwait(false);
+        return committees ?? [];
+    }
+
+    /// <inheritdoc/>
+    public Task<SejmCommittee?> GetCommitteeAsync(int term, string code, bool includeMembers = false, CancellationToken cancellationToken = default)
+    {
+        RequireTerm(term);
+        var committee = SejmIds.Committee(code);
+        return RequestAsync("term" + Number(term) + "/committees/" + Uri.EscapeDataString(committee), (body, _) => SejmMapper.ToCommittee(Parse(body, SejmJson.Committee), includeMembers), cancellationToken);
+    }
+
     private static void RequireTerm(int term) => ArgumentOutOfRangeException.ThrowIfLessThan(term, 1);
 
     private static void RequirePaging(int limit, int offset)

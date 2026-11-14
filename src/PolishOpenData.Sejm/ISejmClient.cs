@@ -59,4 +59,24 @@ public interface ISejmClient
     /// personal data: <see cref="SejmVotingDetails.MpVotes"/> is null unless <paramref name="includeMpVotes"/> is true. Null when the voting does not exist.
     /// </summary>
     Task<SejmVotingDetails?> GetVotingAsync(int term, int sitting, int number, bool includeMpVotes = false, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists the clubs of a term (one request, about 25 KB with members). The API embeds the current members; they are returned only when
+    /// <paramref name="includeMembers"/> is true, otherwise <see cref="SejmClub.Members"/> is empty and <see cref="SejmClub.MembersCount"/> is filled.
+    /// </summary>
+    Task<IReadOnlyList<SejmClub>> GetClubsAsync(int term, bool includeMembers = false, CancellationToken cancellationToken = default);
+
+    /// <summary>Reads one club by id (for example <c>KO</c>, <c>niez.</c>); null when it does not exist. Dissolved clubs are not served by the API.</summary>
+    /// <exception cref="System.ArgumentException">The id is not a club id.</exception>
+    Task<SejmClub?> GetClubAsync(int term, string id, bool includeMembers = false, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists the committees of a term (one request, about 170 KB with members). Members only when <paramref name="includeMembers"/> is true;
+    /// the seats per club are summed from the embedded members either way.
+    /// </summary>
+    Task<IReadOnlyList<SejmCommittee>> GetCommitteesAsync(int term, bool includeMembers = false, CancellationToken cancellationToken = default);
+
+    /// <summary>Reads one committee by code (for example <c>ASW</c>); null when it does not exist (the API answers 204 for an unknown code).</summary>
+    /// <exception cref="System.ArgumentException">The code is not a committee code.</exception>
+    Task<SejmCommittee?> GetCommitteeAsync(int term, string code, bool includeMembers = false, CancellationToken cancellationToken = default);
 }

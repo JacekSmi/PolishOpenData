@@ -1,0 +1,23 @@
+{
+ "id": "Centrum",
+ "members": [
+  {
+   "id": 1000,
+   "firstName": "Jan",
+   "lastName": "Kowalski0",
+   "function": "przewodniczący"
+  },
+  {
+   "id": 1001,
+   "firstName": "Jan",
+   "lastName": "Kowalski1"
+  },
+  {
+   "id": 1002,
+   "firstName": "Jan",
+   "lastName": "Kowalski2"
+  }
+ ],
+ "membersCount": 15,
+ "name": "Klub Parlamentarny Centrum"
+}

@@ -18,6 +18,7 @@
 | `PolishOpenData.Ceidg` | CEIDG v3 (rejestr jednoosobowych działalności): wpisy po NIP, REGON lub identyfikatorze ze statusem, datami, adresem i PKD; wymaga własnego bezpłatnego tokenu API |
 | `PolishOpenData.Bdl` | GUS Bank Danych Lokalnych: jednostki (województwa, powiaty, gminy), wyszukiwanie wskaźników, wartości po latach (ludność, bezrobocie, budżety...); bez klucza |
 | `PolishOpenData.Eli` | Akty prawne (API ELI Sejmu): wyszukiwanie w Dzienniku Ustaw i Monitorze Polskim, status, teksty jednolite i zmiany, pojedynczy artykuł jako zwykły tekst ze źródłem; bez klucza |
+| `PolishOpenData.Sejm` | API Sejmu: procesy legislacyjne i druki z powstałym aktem (id ELI), głosowania z wynikiem klubów, kluby i komisje; głosy posłów i składy tylko na żądanie; bez klucza |
 | `PolishOpenData.Geo.Core` | Typowane współrzędne polskie: `Pl1992Point` (EPSG:2180) i `Wgs84Point` z wbudowaną konwersją, `Pl1992Bbox`, `ParcelId` (identyfikator działki TERYT) |
 | `PolishOpenData.Uldk` | ULDK GUGiK: działka ewidencyjna po identyfikatorze, po punkcie albo po nazwie obrębu i numerze, z granicą w WKT |
 | `PolishOpenData.Geo.Nts` | Opcjonalny adapter NetTopologySuite: `ParcelGeometry.ToNtsGeometry()` i `ToNtsPoint()` do liczenia pola, części wspólnej, bufora i odległości na działkach |
@@ -160,6 +161,24 @@ Console.WriteLine($"{article?.Text}\n(z {current.NewestWithHtml.DisplayAddress};
 **Tekst może być starszy niż obowiązujące prawo.** API udostępnia HTML i strukturę tylko dla aktów do 2024 roku: wszystkie akty od 2025, także teksty jednolite, mają tylko PDF (w listopadzie 2026 najnowszy tekst jednolity Kodeksu cywilnego to Dz.U. 2026 poz. 795, tylko PDF, a najnowszy z tekstem pochodzi z 2024). Dlatego `GetArticleAsync` czyta dokładnie ten akt, który podasz, i nie twierdzi, że jest aktualny: przed zacytowaniem sprawdź `GetCurrentTextAsync` i pola `IsHtmlTextCurrent`, `NewestConsolidated` oraz zmiany od tamtego tekstu. HTML aktu podstawowego to jego pierwotny tekst (dla Kodeksu cywilnego z 1964 roku) i jest oferowany tylko wtedy, gdy akt nie ma tekstu jednolitego. Dla aktu bez HTML dostajesz metadane i odnośnik do PDF; biblioteka nie czyta PDF-ów. Uchylony akt albo tekst, który nie obowiązuje, nigdy nie jest uznawany za aktualny (`BaseActInForce`, `BaseActStatus`). Rozporządzenia czytasz po paragrafach: `GetArticleAsync(id, "§ 2")`.
 
 API nie publikuje limitów; klient niczego nie ponawia. Artykuł kosztuje dwa zapytania (struktura, zapamiętywana w obrębie jednej instancji klienta dla ostatnich 16 aktów, i tekst), sprawdzenie aktualności jedno plus do pięciu. Akty prawne są jawne (nie podlegają prawu autorskiemu); podawaj źródło: Sejm RP, API ELI.
+
+## Parlament: API Sejmu
+
+`PolishOpenData.Sejm` czyta API Sejmu (`api.sejm.gov.pl/sejm`): procesy legislacyjne i druki (z aktem, który z nich powstał), głosowania z wynikiem klubów, kluby i komisje. Klucz nie jest potrzebny.
+
+```csharp
+services.AddSejmClient();
+var sejm = provider.GetRequiredService<ISejmClient>();
+var term = await sejm.GetCurrentTermAsync();
+var voting = await sejm.GetVotingAsync(term.Number, sitting: 67, number: 1);       // wyniki klubów, bez nazwisk
+foreach (var club in voting!.Clubs) Console.WriteLine($"{club.Club}: za {club.Yes}, przeciw {club.No}, wstrzymało się {club.Abstain}");
+var process = await sejm.GetProcessAsync(term.Number, "318");                      // etapy i powstały akt
+Console.WriteLine(process?.Summary.Eli);                                           // DU/2024/878: przekaż klientowi ELI
+```
+
+**Domyślnie poziom klubów.** API podaje głos każdego posła z nazwiska. Klient sumuje je do wyników klubów, a głosy indywidualne zwraca tylko po `includeMpVotes: true` (jedno głosowanie na wywołanie); składy klubów i komisji tylko po `includeMembers: true`. Używaj głosów indywidualnych tylko do zadanego pytania: nie składaj rejestru głosowań konkretnej osoby. **Uchwalenie to jeszcze nie ustawa.** Proces uchwalony przez Sejm ma `Eli` tylko wtedy, gdy stał się aktem; wnioski, powołania i listy kandydatów go nie mają. Przyjęcie lub odrzucenie głosowania nie jest polem urzędowym: porównaj `Yes` z `MajorityVotes` i traktuj to jako wniosek.
+
+API nie publikuje limitów, a klient niczego nie ponawia. Odpowiedź o głosowaniu ma 45 do 90 KB. API ignoruje sortowanie: procesy idą rosnąco po numerze, głosowania od najstarszego, a wyszukiwanie głosowań nie podaje sumy (`HasMore` jest dokładne, bo prosimy o jeden element więcej). Podawaj źródło: Sejm RP, API Sejmu.
 
 ## Sprawdzanie Białej Listy offline
 
