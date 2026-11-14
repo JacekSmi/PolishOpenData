@@ -42,7 +42,11 @@ public sealed record EliAct(
     IReadOnlyList<string> ReleasedBy,
     IReadOnlyList<EliActId> ConsolidatedTexts,
     IReadOnlyList<EliAmendment> Amendments,
-    IReadOnlyDictionary<string, IReadOnlyList<EliActId>> References);
+    IReadOnlyDictionary<string, IReadOnlyList<EliActId>> References)
+{
+    /// <summary>For a consolidated text (tekst jednolity): the base act it consolidates, as the API links it; empty otherwise.</summary>
+    public IReadOnlyList<EliActId> BaseActs => References.TryGetValue("Tekst jednolity dla aktu", out var ids) ? ids : [];
+}
 
 /// <summary>A unit (part, book, title, chapter, article, paragraph...) in an act's structure.</summary>
 /// <param name="Id">Structure id, for example <c>book_TRZECIA-titl_VI-arti_415</c>.</param>
