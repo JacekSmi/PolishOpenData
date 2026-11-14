@@ -66,4 +66,7 @@ public interface IEliClient
     /// </summary>
     /// <exception cref="System.ArgumentException">The act does not exist.</exception>
     Task<EliCurrentText> GetCurrentTextAsync(EliActId baseId, CancellationToken cancellationToken = default);
+
+    /// <summary>Like <see cref="GetCurrentTextAsync(EliActId, CancellationToken)"/> for an act you have already read: saves the request for the base act (at most five requests).</summary>
+    Task<EliCurrentText> GetCurrentTextAsync(EliAct baseAct, CancellationToken cancellationToken = default);
 }

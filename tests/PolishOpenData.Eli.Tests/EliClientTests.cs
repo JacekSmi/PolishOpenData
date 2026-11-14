@@ -24,6 +24,13 @@ public class EliClientTests
     private static HttpResponseMessage Route(HttpRequestMessage r)
     {
         var path = r.RequestUri!.AbsolutePath;
+        var accepts = string.Join(",", r.Headers.Accept.Select(a => a.MediaType));
+        // like the live API: text.html answers 406 unless HTML is accepted, and the JSON endpoints answer 406 unless JSON is
+        if (path.Contains("/text.html/", StringComparison.Ordinal) ? !accepts.Contains("text/html", StringComparison.Ordinal) : !accepts.Contains("application/json", StringComparison.Ordinal))
+        {
+            return StubHttpMessageHandler.Empty(HttpStatusCode.NotAcceptable);
+        }
+
         return path switch
         {
             "/eli/acts/DU/1964/93" => StubHttpMessageHandler.FromFixture(HttpStatusCode.OK, "eli/act-DU-1964-93.json"),
@@ -230,6 +237,17 @@ public class EliClientTests
     }
 
     // ---- article
+
+    [Fact]
+    public async Task Requests_AskForTheMediaTypeEachEndpointServes()
+    {
+        var handler = Router();
+
+        _ = await Client(handler).GetArticleAsync(Kc2024, "415", TestContext.Current.CancellationToken);
+
+        Assert.Equal("application/json", handler.Requests[0].Accept);   // the structure
+        Assert.Equal("text/html", handler.Requests[1].Accept);          // the fragment
+    }
 
     [Fact]
     public async Task GetArticle_ResolvesThroughTheStructure_AndReturnsCleanText()

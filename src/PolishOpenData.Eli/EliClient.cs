@@ -19,6 +19,8 @@ namespace PolishOpenData.Eli;
 public sealed class EliClient : IEliClient
 {
     private const string Service = "ELI";
+    private const string JsonAccept = "application/json";
+    private const string HtmlAccept = "text/html";
     private const int MaxJsonBytes = 8_000_000;
     private const int MaxFragmentBytes = 1_000_000;
     private const int MaxArticleChars = 20_000;
@@ -92,7 +94,7 @@ public sealed class EliClient : IEliClient
             query.Add("offset", Number(search.Offset));
         }
 
-        var page = await RequestAsync("acts/search" + query, MaxJsonBytes,
+        var page = await RequestAsync("acts/search" + query, MaxJsonBytes, JsonAccept,
             body => Map(Parse(body, EliJson.Search), static dto => new EliPage<EliActSummary>(dto.Items is null ? [] : dto.Items.ConvertAll(EliMapper.ToSummary), dto.TotalCount ?? dto.Items?.Count ?? 0)),
             cancellationToken).ConfigureAwait(false);
         return page ?? new EliPage<EliActSummary>([], 0);
@@ -102,7 +104,7 @@ public sealed class EliClient : IEliClient
     public Task<EliAct?> GetActAsync(EliActId id, CancellationToken cancellationToken = default)
     {
         RequireId(id);
-        return RequestAsync("acts/" + id.Path, MaxJsonBytes, body => Map(Parse(body, EliJson.Act), EliMapper.ToAct), cancellationToken);
+        return RequestAsync("acts/" + id.Path, MaxJsonBytes, JsonAccept, body => Map(Parse(body, EliJson.Act), EliMapper.ToAct), cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -117,7 +119,7 @@ public sealed class EliClient : IEliClient
             }
         }
 
-        var units = await RequestAsync("acts/" + id.Path + "/struct", MaxJsonBytes, body => Map(Parse(body, EliJson.Struct), EliMapper.ToUnits), cancellationToken).ConfigureAwait(false);
+        var units = await RequestAsync("acts/" + id.Path + "/struct", MaxJsonBytes, JsonAccept, body => Map(Parse(body, EliJson.Struct), EliMapper.ToUnits), cancellationToken).ConfigureAwait(false);
         if (units is null)
         {
             return null;   // not cached: a structure that appears later must be seen
@@ -155,7 +157,7 @@ public sealed class EliClient : IEliClient
             return null;
         }
 
-        var html = await RequestAsync("acts/" + id.Path + "/text.html/" + tree, MaxFragmentBytes, static body => Encoding.UTF8.GetString(body), cancellationToken).ConfigureAwait(false);
+        var html = await RequestAsync("acts/" + id.Path + "/text.html/" + tree, MaxFragmentBytes, HtmlAccept, static body => Encoding.UTF8.GetString(body), cancellationToken).ConfigureAwait(false);
         if (html is null)
         {
             return null;
@@ -171,6 +173,15 @@ public sealed class EliClient : IEliClient
         RequireId(baseId);
         var act = await GetActAsync(baseId, cancellationToken).ConfigureAwait(false)
             ?? throw new ArgumentException("No legal act " + baseId + " in the ELI API.", nameof(baseId));
+        return await GetCurrentTextAsync(act, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    public async Task<EliCurrentText> GetCurrentTextAsync(EliAct baseAct, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(baseAct);
+        var act = baseAct;
+        var baseId = act.Summary.Id;
 
         // Newest first by publication order (year, then position), not by the order the API lists them in.
         var candidates = act.ConsolidatedTexts
@@ -297,11 +308,14 @@ public sealed class EliClient : IEliClient
 
     // One GET. 404 and an empty 200 body are both "nothing here" (null): for text.html the API answers an empty 200 for an act without
     // HTML. A mapper or JSON failure becomes an unreadable-response error.
-    private async Task<T?> RequestAsync<T>(string relative, int maxBytes, Func<byte[], T> handle, CancellationToken cancellationToken)
+    private async Task<T?> RequestAsync<T>(string relative, int maxBytes, string accept, Func<byte[], T> handle, CancellationToken cancellationToken)
         where T : class
     {
         _options.Validate();   // the options are mutable: BaseAddress may have changed since construction
         using var request = HttpHelpers.CreateGet(new Uri(_options.ResolveBaseAddress(), relative));
+        // each endpoint serves one media type and answers 406 for any other: the JSON endpoints want JSON, the text endpoint wants HTML
+        request.Headers.Remove("Accept");
+        request.Headers.TryAddWithoutValidation("Accept", accept);
         using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
 
         if (response.StatusCode == HttpStatusCode.NotFound)

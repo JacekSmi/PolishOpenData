@@ -224,8 +224,23 @@ public class EliCurrentTextTests
     }
 
     [Fact]
+    public async Task FromAnActAlreadyRead_DoesNotRequestTheBaseActAgain()
+    {
+        var handler = KcRouter();
+        var client = Client(handler);
+        var act = await client.GetActAsync(KcBase, TestContext.Current.CancellationToken);
+        handler.RequestUris.Clear();
+
+        var current = await client.GetCurrentTextAsync(act!, TestContext.Current.CancellationToken);
+
+        Assert.Equal("DU/2024/1061", current.NewestWithHtml!.Id.ToString());
+        Assert.Equal(3, handler.RequestUris.Count);
+        Assert.DoesNotContain(handler.RequestUris, u => u.AbsolutePath == "/eli/acts/DU/1964/93");
+    }
+
+    [Fact]
     public async Task EmptyId_Throws()
     {
-        await Assert.ThrowsAsync<ArgumentException>(() => Client(KcRouter()).GetCurrentTextAsync(default, TestContext.Current.CancellationToken));
+        await Assert.ThrowsAsync<ArgumentException>(() => Client(KcRouter()).GetCurrentTextAsync(default(EliActId), TestContext.Current.CancellationToken));
     }
 }

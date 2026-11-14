@@ -22,6 +22,7 @@ internal sealed class RecordedRequest
         UserAgent = HeaderText(request.Headers, "User-Agent");
         Authorization = HeaderText(request.Headers, "Authorization");
         ClientId = HeaderText(request.Headers, "X-ClientId");
+        Accept = HeaderText(request.Headers, "Accept");
         ExpectContinue = request.Headers.ExpectContinue == true;
         Body = body;
     }
@@ -43,6 +44,9 @@ internal sealed class RecordedRequest
 
     /// <summary>The value of the <c>X-ClientId</c> request header (BDL), or null.</summary>
     public string? ClientId { get; }
+
+    /// <summary>The value of the <c>Accept</c> request header, or null.</summary>
+    public string? Accept { get; }
 
     public bool ExpectContinue { get; }
 
