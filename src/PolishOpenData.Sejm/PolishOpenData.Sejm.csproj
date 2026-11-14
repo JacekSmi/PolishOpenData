@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>
+    <RootNamespace>PolishOpenData.Sejm</RootNamespace>
+    <Description>Typed .NET client for the Sejm API (api.sejm.gov.pl/sejm): legislative processes and prints with the resulting act, votings with club-level results, clubs and committees. No key needed. Unofficial; not affiliated with the Sejm.</Description>
+    <!-- New package: no release to compare with yet. Delete this override (and its line) once the first Sejm version is on nuget.org, or the package is never baseline-validated. -->
+    <PackageValidationBaselineVersion></PackageValidationBaselineVersion>
+    <PackageTags>$(PackageTags);sejm;parliament;legislation;votings;poland</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
+    <PackageReference Include="Microsoft.Bcl.TimeProvider" />
+    <PackageReference Include="Portable.System.DateTimeOnly" />
+    <PackageReference Include="Polyfill" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PolishOpenData.Core\PolishOpenData.Core.csproj" />
+    <Compile Include="..\Shared\**\*.cs" LinkBase="Shared" />
+    <InternalsVisibleTo Include="PolishOpenData.Sejm.Tests" />
+  </ItemGroup>
+</Project>
