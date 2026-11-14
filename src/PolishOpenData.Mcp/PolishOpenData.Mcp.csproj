@@ -17,8 +17,8 @@
   </PropertyGroup>
   <!-- The SDK (10.0.302) restores its bundled Native AOT toolchain, Microsoft.DotNet.ILCompiler 10.0.10, which carries GHSA-p3jp-9v83-76w9
        (Brotli decoder, fixed in 10.0.14) and fails the AOT gate with NU1903. An explicit PackageReference breaks the publish targets, so the
-       version the SDK would pick is overridden instead. Drop once the SDK bundles >= 10.0.14. -->
-  <Target Name="UsePatchedILCompiler" BeforeTargets="ProcessFrameworkReferences" Condition="'$(AotGate)' == 'true'">
+       version the SDK would pick is overridden instead, and only for an SDK that bundles an older one (a newer SDK, as on CI, has the fix and a matching runtime pack: pinning 10.0.14 there fails with 'Overriding System.Private.CoreLib.dll'). Drop once every SDK in use bundles >= 10.0.14. -->
+  <Target Name="UsePatchedILCompiler" BeforeTargets="ProcessFrameworkReferences" Condition="'$(AotGate)' == 'true' And $([MSBuild]::VersionLessThan('$(BundledNETCoreAppPackageVersion)', '10.0.14'))">
     <ItemGroup>
       <KnownILCompilerPack Update="Microsoft.DotNet.ILCompiler" ILCompilerPackVersion="10.0.14" />
     </ItemGroup>
