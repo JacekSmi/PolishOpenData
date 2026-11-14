@@ -42,4 +42,21 @@ public interface ISejmClient
     /// </summary>
     /// <exception cref="System.ArgumentException">The number is not a print number.</exception>
     Task<SejmBill?> GetBillForPrintAsync(int term, string print, CancellationToken cancellationToken = default);
+
+    /// <summary>Lists the days with votings in a term (one request, about 9 KB for a term).</summary>
+    Task<IReadOnlyList<SejmVotingDay>> GetVotingDaysAsync(int term, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Finds votings (one request). The API has no total and no cap and lists oldest first; the client asks for one extra item so
+    /// <see cref="SejmPage{T}.HasMore"/> is exact. <see cref="SejmVotingSearch.Title"/> matches a substring of title and topic, so "1344" also finds "13440".
+    /// </summary>
+    /// <exception cref="System.ArgumentException">No sitting, title or date was given.</exception>
+    /// <exception cref="System.ArgumentOutOfRangeException">Term, limit or offset is out of range.</exception>
+    Task<SejmPage<SejmVoting>> SearchVotingsAsync(SejmVotingSearch search, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reads one voting (one request, 45 to 90 KB) and sums the individual votes into club tallies. Individual votes with names are
+    /// personal data: <see cref="SejmVotingDetails.MpVotes"/> is null unless <paramref name="includeMpVotes"/> is true. Null when the voting does not exist.
+    /// </summary>
+    Task<SejmVotingDetails?> GetVotingAsync(int term, int sitting, int number, bool includeMpVotes = false, CancellationToken cancellationToken = default);
 }

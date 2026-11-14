@@ -117,6 +117,79 @@ public sealed class SejmClient : ISejmClient
         return bill;
     }
 
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<SejmVotingDay>> GetVotingDaysAsync(int term, CancellationToken cancellationToken = default)
+    {
+        RequireTerm(term);
+        var days = await RequestAsync("term" + Number(term) + "/votings", (body, _) => Parse(body, SejmJson.VotingDays).Where(static d => d is not null).Select(SejmMapper.ToVotingDay).ToList(), cancellationToken).ConfigureAwait(false);
+        return days ?? [];
+    }
+
+    /// <inheritdoc/>
+    public async Task<SejmPage<SejmVoting>> SearchVotingsAsync(SejmVotingSearch search, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(search);
+        RequireTerm(search.Term);
+        RequirePaging(search.Limit, search.Offset);
+        if (search.Sitting is null && string.IsNullOrWhiteSpace(search.Title) && search.DateFrom is null && search.DateTo is null)
+        {
+            throw new ArgumentException("Give a sitting, a title or a date to search for: the API has no cap and would return a whole term.", nameof(search));
+        }
+
+        if (search.Sitting is < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(search), "The sitting number must be 1 or more.");
+        }
+
+        var query = new Query();
+        if (search.Sitting is { } sitting)
+        {
+            query.Add("proceeding", Number(sitting));
+        }
+
+        if (!string.IsNullOrWhiteSpace(search.Title))
+        {
+            query.Add("title", search.Title!.Trim());
+        }
+
+        if (search.DateFrom is { } from)
+        {
+            query.Add("dateFrom", from.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+        }
+
+        if (search.DateTo is { } to)
+        {
+            query.Add("dateTo", to.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
+        }
+
+        // one extra item tells whether another page exists, since the API sends no total
+        query.Add("limit", Number(search.Limit + 1));
+        query.Add("offset", Number(search.Offset));
+
+        var page = await RequestAsync("term" + Number(search.Term) + "/votings/search" + query, (body, _) =>
+        {
+            var all = Parse(body, SejmJson.Votings).Where(static v => v is not null).Select(SejmMapper.ToVoting).ToList();
+            return new SejmPage<SejmVoting>(all.Take(search.Limit).ToList(), null, all.Count > search.Limit);
+        }, cancellationToken).ConfigureAwait(false);
+        return page ?? new SejmPage<SejmVoting>([], null, false);
+    }
+
+    /// <inheritdoc/>
+    public Task<SejmVotingDetails?> GetVotingAsync(int term, int sitting, int number, bool includeMpVotes = false, CancellationToken cancellationToken = default)
+    {
+        RequireTerm(term);
+        ArgumentOutOfRangeException.ThrowIfLessThan(sitting, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(number, 1);
+        return RequestAsync("term" + Number(term) + "/votings/" + Number(sitting) + "/" + Number(number), (body, _) =>
+        {
+            var dto = Parse(body, SejmJson.Voting);
+            var voting = SejmMapper.ToVoting(dto);
+            var votes = SejmMapper.ToMpVotes(dto.Votes);
+            var clubs = SejmTally.ByClub(votes);
+            return new SejmVotingDetails(voting, clubs, SejmTally.SumsMatch(voting, clubs), includeMpVotes ? votes : null);
+        }, cancellationToken);
+    }
+
     private static void RequireTerm(int term) => ArgumentOutOfRangeException.ThrowIfLessThan(term, 1);
 
     private static void RequirePaging(int limit, int offset)
