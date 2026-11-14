@@ -56,4 +56,14 @@ public interface IEliClient
     /// One request for the structure (cached afterwards) and one for the text.
     /// </summary>
     Task<EliArticleText?> GetArticleAsync(EliActId id, string article, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Works out how current the text of a base act is: its newest consolidated text (tekst jednolity), the newest one the API serves
+    /// as HTML, and the amendments that took effect after that text was announced (or take effect in the future). Looks at the five
+    /// newest consolidated texts, so costs one request for the act plus at most five. The base act's own HTML is its original text and
+    /// is offered only when the act has no consolidated text at all. Use the result to say, next to any quoted article, whether
+    /// newer law exists.
+    /// </summary>
+    /// <exception cref="System.ArgumentException">The act does not exist.</exception>
+    Task<EliCurrentText> GetCurrentTextAsync(EliActId baseId, CancellationToken cancellationToken = default);
 }

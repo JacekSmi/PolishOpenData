@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -22,23 +23,26 @@ public sealed class EliClient : IEliClient
     private const int MaxFragmentBytes = 1_000_000;
     private const int MaxArticleChars = 20_000;
     private const int StructureCacheSize = 16;
+    private const int MaxConsolidatedChecked = 5;
 
     private static readonly Regex SegmentKey = new(@"^[A-Za-z]{1,12}$", RegexOptions.CultureInvariant);
     private static readonly Regex SegmentValue = new(@"^[A-Za-z0-9_]{1,40}$", RegexOptions.CultureInvariant);
 
     private readonly HttpClient _httpClient;
     private readonly EliClientOptions _options;
+    private readonly TimeProvider _time;
     private readonly object _cacheLock = new();
     private readonly Dictionary<EliActId, IReadOnlyList<EliUnit>> _structures = new();
     private readonly Queue<EliActId> _structureOrder = new();
 
     /// <summary>Creates a client. The <paramref name="httpClient"/> is not disposed by this class.</summary>
     /// <exception cref="ArgumentException"><see cref="EliClientOptions.BaseAddress"/> is not an absolute https URI.</exception>
-    public EliClient(HttpClient httpClient, EliClientOptions? options = null)
+    public EliClient(HttpClient httpClient, EliClientOptions? options = null, TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(httpClient);
         _httpClient = httpClient;
         _options = options ?? new EliClientOptions();
+        _time = timeProvider ?? TimeProvider.System;
         _options.Validate();
     }
 
@@ -159,6 +163,75 @@ public sealed class EliClient : IEliClient
 
         var text = EliHtmlText.ToPlainText(html, MaxArticleChars, out var truncated);
         return text.Length == 0 ? null : new EliArticleText(id, name, unit.Id, text, truncated);
+    }
+
+    /// <inheritdoc/>
+    public async Task<EliCurrentText> GetCurrentTextAsync(EliActId baseId, CancellationToken cancellationToken = default)
+    {
+        RequireId(baseId);
+        var act = await GetActAsync(baseId, cancellationToken).ConfigureAwait(false)
+            ?? throw new ArgumentException("No legal act " + baseId + " in the ELI API.", nameof(baseId));
+
+        // Newest first by publication order (year, then position), not by the order the API lists them in.
+        var candidates = act.ConsolidatedTexts
+            .OrderByDescending(static c => c.Year)
+            .ThenByDescending(static c => c.Position)
+            .Take(MaxConsolidatedChecked)
+            .ToList();
+
+        EliActSummary? newest = null;
+        EliActSummary? withHtml = null;
+        var newestMissing = false;
+        var checkedCount = 0;
+        foreach (var id in candidates)
+        {
+            checkedCount++;
+            var text = await GetActAsync(id, cancellationToken).ConfigureAwait(false);
+            if (text is null)
+            {
+                // listed but not served: skip it, but then the newest text cannot be confirmed, so the answer is never "current"
+                newestMissing |= newest is null;
+                continue;
+            }
+
+            newest ??= text.Summary;
+            if (text.Summary.HasHtml)
+            {
+                withHtml = text.Summary;
+                break;
+            }
+        }
+
+        // The base act's own HTML is the ORIGINAL text. It is offered only when no consolidated text exists at all.
+        if (act.ConsolidatedTexts.Count == 0 && act.Summary.HasHtml)
+        {
+            withHtml = act.Summary;
+        }
+
+        var since = (withHtml ?? newest)?.AnnouncementDate ?? act.Summary.AnnouncementDate ?? DateOnly.MinValue;
+        var today = DateOnly.FromDateTime(_time.GetUtcNow().UtcDateTime);
+        var inForce = new List<EliAmendment>();
+        var future = new List<EliAmendment>();
+        foreach (var a in act.Amendments)
+        {
+            if (a.EffectiveDate is { } date)
+            {
+                if (date <= since)
+                {
+                    continue;   // already part of the text
+                }
+
+                (date > today ? future : inForce).Add(a);
+            }
+            else
+            {
+                inForce.Add(a);   // no date: assume it may already apply rather than call the text current
+            }
+        }
+
+        var isCurrent = withHtml is not null && !newestMissing && inForce.Count == 0
+            && (newest is null || newest.Id == withHtml.Id);
+        return new EliCurrentText(baseId, newest, withHtml, inForce, future, isCurrent, checkedCount);
     }
 
     private static EliUnit? FindArticle(IReadOnlyList<EliUnit> units, string name)
