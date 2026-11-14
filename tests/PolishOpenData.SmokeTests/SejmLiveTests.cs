@@ -35,8 +35,9 @@ public sealed class SejmLiveTests
             var report = await client.GetPrintAsync(10, "401", ct);
             Assert.Equal("318", report?.ProcessNumber);
 
-            // drift pin: the API ignores sort options today; if it starts honouring them, newestFirst in the MCP tool can drop its count call
-            using var raw = await http.GetAsync("https://api.sejm.gov.pl/sejm/term10/processes?sort_by=-number&limit=2", ct);
+            // drift pin: the default order is ascending by number, which newestFirst in the MCP tool relies on (count request, then the last page,
+            // reversed). The API's sort_by was ignored on 2026-11-14 and honoured on 2026-11-15 as the reverse of this order; the tool does not use it.
+            using var raw = await http.GetAsync("https://api.sejm.gov.pl/sejm/term10/processes?limit=2", ct);
             using var json = JsonDocument.Parse(await raw.Content.ReadAsStringAsync(ct));
             Assert.Equal("1", json.RootElement.EnumerateArray().First().GetProperty("number").GetString());
         }

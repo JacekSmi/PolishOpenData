@@ -260,7 +260,7 @@ public sealed class SejmProcessSearch
     /// <summary>Page size, 1 to 500. Default 20.</summary>
     public int Limit { get; set; } = 20;
 
-    /// <summary>Index of the first result, 0 or more. Results come in ascending number order; the API ignores sort options.</summary>
+    /// <summary>Index of the first result, 0 or more. Results come in ascending number order; the client does not use the API's sort parameter.</summary>
     public int Offset { get; set; }
 }
 

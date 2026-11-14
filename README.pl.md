@@ -178,7 +178,7 @@ Console.WriteLine(process?.Summary.Eli);                                        
 
 **Domyślnie poziom klubów.** API podaje głos każdego posła z nazwiska. Klient sumuje je do wyników klubów, a głosy indywidualne zwraca tylko po `includeMpVotes: true` (jedno głosowanie na wywołanie); składy klubów i komisji tylko po `includeMembers: true`. Używaj głosów indywidualnych tylko do zadanego pytania: nie składaj rejestru głosowań konkretnej osoby. **Uchwalenie to jeszcze nie ustawa.** Proces uchwalony przez Sejm ma `Eli` tylko wtedy, gdy stał się aktem; wnioski, powołania i listy kandydatów go nie mają. Przyjęcie lub odrzucenie głosowania nie jest polem urzędowym: porównaj `Yes` z `MajorityVotes` i traktuj to jako wniosek.
 
-API nie publikuje limitów, a klient niczego nie ponawia. Odpowiedź o głosowaniu ma 45 do 90 KB. API ignoruje sortowanie: procesy idą rosnąco po numerze, głosowania od najstarszego, a wyszukiwanie głosowań nie podaje sumy (`HasMore` jest dokładne, bo prosimy o jeden element więcej). Podawaj źródło: Sejm RP, API Sejmu.
+API nie publikuje limitów, a klient niczego nie ponawia. Odpowiedź o głosowaniu ma 45 do 90 KB. Klient nie polega na sortowaniu API (14 listopada 2026 ignorowało `sort_by`, dzień później je respektowało): procesy idą rosnąco po numerze, głosowania od najstarszego, a wyszukiwanie głosowań nie podaje sumy (`HasMore` jest dokładne, bo prosimy o jeden element więcej). Podawaj źródło: Sejm RP, API Sejmu.
 
 ## Sprawdzanie Białej Listy offline
 
