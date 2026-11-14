@@ -1,0 +1,164 @@
+{
+ "ELI": "DU/2024/878",
+ "UE": "ENFORCEMENT",
+ "address": "WDU20240000878",
+ "changeDate": "2024-06-27T19:35:17",
+ "closureDate": "2024-05-23",
+ "description": "projekt dotyczy dostosowania polskiego prawa do przepisów UE w sprawie ochrony pracowników przed zagrożeniem czynnikami rakotwórczymi lub mutagenami podczas pracy w celu ochrony przed substancjami reprotoksycznymi, które wpływają negatywnie na rozrodczość kobiet i mężczyzn.",
+ "displayAddress": "Dz.U. 2024 poz. 878",
+ "documentDate": "2024-04-18",
+ "documentType": "projekt ustawy",
+ "documentTypeEnum": "BILL",
+ "legislativeCommittee": false,
+ "links": [
+  {
+   "href": "https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU20240000878",
+   "rel": "isap"
+  },
+  {
+   "href": "https://eli.gov.pl/eli/DU/2024/878/ogl",
+   "rel": "eli"
+  },
+  {
+   "href": "https://api.sejm.gov.pl/eli/acts/DU/2024/878",
+   "rel": "eli-api"
+  }
+ ],
+ "number": "318",
+ "passed": true,
+ "principleOfSubsidiarity": false,
+ "processStartDate": "2024-04-18",
+ "rclLink": "https://legislacja.rcl.gov.pl/getIdFromLegislacja?number=RM-0610-29-24",
+ "rclNum": "RM-0610-29-24",
+ "shortenProcedure": false,
+ "stages": [
+  {
+   "date": "2024-04-18",
+   "stageName": "Projekt wpłynął do Sejmu",
+   "printNumber": "318",
+   "stageType": "Start"
+  },
+  {
+   "children": [
+    {
+     "date": "2024-04-24",
+     "stageName": "Skierowanie",
+     "committeeCode": "Sejm",
+     "stageType": "Referral",
+     "type": "NORMAL"
+    }
+   ],
+   "date": "2024-04-24",
+   "stageName": "Skierowano do I czytania na posiedzeniu Sejmu",
+   "stageType": "ReadingReferral"
+  },
+  {
+   "children": [
+    {
+     "date": "2024-05-09",
+     "stageName": "Skierowanie",
+     "committeeCode": "PSR",
+     "stageType": "Referral",
+     "type": "NORMAL"
+    }
+   ],
+   "date": "2024-05-09",
+   "stageName": "I czytanie na posiedzeniu Sejmu",
+   "sittingNum": 11,
+   "stageType": "SejmReading"
+  },
+  {
+   "children": [
+    {
+     "date": "2024-05-21",
+     "stageName": "Sprawozdanie komisji",
+     "minorityMotions": 0,
+     "printNumber": "401",
+     "proposal": "załączony projekt ustawy",
+     "rapporteurID": "0",
+     "rapporteurName": "JAN KOWALSKI",
+     "reportFile": "https://api.sejm.gov.pl/sejm/term10/prints/401/401.pdf",
+     "stageType": "CommitteeReport",
+     "subCommittee": false
+    }
+   ],
+   "date": "2024-05-21",
+   "stageName": "Praca w komisjach po I czytaniu",
+   "stageType": "CommitteeWork"
+  },
+  {
+   "date": "2024-05-23",
+   "stageName": "II czytanie na posiedzeniu Sejmu",
+   "decision": "niezwłocznie przystąpiono do III czytania",
+   "sittingNum": 12,
+   "stageType": "SejmReading"
+  },
+  {
+   "children": [
+    {
+     "date": "2024-05-23",
+     "stageName": "Głosowanie",
+     "stageType": "Voting",
+     "voting": {
+      "abstain": 0,
+      "date": "2024-05-23T14:00:54",
+      "description": "całość projektu ustawy",
+      "kind": "ELECTRONIC",
+      "links": [
+       {
+        "href": "https://api.sejm.gov.pl/sejm/term10/votings/12/28/pdf",
+        "rel": "pdf"
+       }
+      ],
+      "majorityType": "SIMPLE_MAJORITY",
+      "majorityVotes": 22,
+      "no": 21,
+      "notParticipating": 30,
+      "present": 0,
+      "sitting": 12,
+      "sittingDay": 2,
+      "term": 10,
+      "title": "Pkt. 6 Sprawozdanie Komisji o rządowym projekcie ustawy o zmianie ustawy - Kodeks pracy (druki nr 318 i 401)",
+      "topic": "głosowanie nad całością projektu",
+      "totalVoted": 429,
+      "votingNumber": 28,
+      "yes": 408
+     }
+    }
+   ],
+   "date": "2024-05-23",
+   "stageName": "III czytanie na posiedzeniu Sejmu",
+   "comment": "wniosek o odrzucenie",
+   "decision": "uchwalono",
+   "sittingNum": 12,
+   "stageType": "SejmReading",
+   "textAfter3": "https://api.sejm.gov.pl/sejm/term10/processes/318/attachment/318_u3.pdf"
+  },
+  {
+   "date": "2024-06-05",
+   "stageName": "Stanowisko Senatu",
+   "position": "nie wniósł poprawek",
+   "stageType": "SenatePosition"
+  },
+  {
+   "date": "2024-06-06",
+   "stageName": "Ustawę przekazano Prezydentowi do podpisu",
+   "stageType": "ToPresident"
+  },
+  {
+   "date": "2024-06-11",
+   "stageName": "Prezydent podpisał ustawę",
+   "omittedInconsistent": false,
+   "stageType": "PresidentSignature"
+  },
+  {
+   "stageName": "Uchwalono",
+   "stageType": "End"
+  }
+ ],
+ "term": 10,
+ "title": "Rządowy projekt ustawy o zmianie ustawy -  Kodeks pracy",
+ "titleFinal": "o zmianie ustawy -  Kodeks pracy",
+ "urgencyStatus": "NORMAL",
+ "webGeneratedDate": "2024-07-01T07:52:19"
+}

@@ -1,0 +1,278 @@
+[
+ {
+  "id": "Centrum",
+  "members": [
+   {
+    "id": 1000,
+    "firstName": "Jan",
+    "lastName": "Kowalski0",
+    "function": "przewodniczący"
+   },
+   {
+    "id": 1001,
+    "firstName": "Jan",
+    "lastName": "Kowalski1"
+   },
+   {
+    "id": 1002,
+    "firstName": "Jan",
+    "lastName": "Kowalski2"
+   }
+  ],
+  "membersCount": 15,
+  "name": "Klub Parlamentarny Centrum"
+ },
+ {
+  "id": "Demokracja",
+  "members": [
+   {
+    "id": 1000,
+    "firstName": "Jan",
+    "lastName": "Kowalski0",
+    "function": "przewodniczący"
+   },
+   {
+    "id": 1001,
+    "firstName": "Jan",
+    "lastName": "Kowalski1"
+   },
+   {
+    "id": 1002,
+    "firstName": "Jan",
+    "lastName": "Kowalski2"
+   }
+  ],
+  "membersCount": 3,
+  "name": "Koło Poselskie Demokracja Bezpośrednia"
+ },
+ {
+  "id": "KO",
+  "members": [
+   {
+    "id": 1000,
+    "firstName": "Jan",
+    "lastName": "Kowalski0",
+    "function": "przewodniczący"
+   },
+   {
+    "id": 1001,
+    "firstName": "Jan",
+    "lastName": "Kowalski1"
+   },
+   {
+    "id": 1002,
+    "firstName": "Jan",
+    "lastName": "Kowalski2"
+   }
+  ],
+  "membersCount": 155,
+  "name": "Klub Parlamentarny Koalicja Obywatelska - Platforma Obywatelska, Nowoczesna, Inicjatywa Polska, Zieloni"
+ },
+ {
+  "id": "Konfederacja",
+  "members": [
+   {
+    "id": 1000,
+    "firstName": "Jan",
+    "lastName": "Kowalski0",
+    "function": "przewodniczący"
+   },
+   {
+    "id": 1001,
+    "firstName": "Jan",
+    "lastName": "Kowalski1"
+   },
+   {
+    "id": 1002,
+    "firstName": "Jan",
+    "lastName": "Kowalski2"
+   }
+  ],
+  "membersCount": 17,
+  "name": "Klub Poselski Konfederacja"
+ },
+ {
+  "id": "Konfederacja_KP",
+  "members": [
+   {
+    "id": 1000,
+    "firstName": "Jan",
+    "lastName": "Kowalski0",
+    "function": "przewodniczący"
+   },
+   {
+    "id": 1001,
+    "firstName": "Jan",
+    "lastName": "Kowalski1"
+   },
+   {
+    "id": 1002,
+    "firstName": "Jan",
+    "lastName": "Kowalski2"
+   }
+  ],
+  "membersCount": 3,
+  "name": "Koło Poselskie Konfederacja Korony Polskiej"
+ },
+ {
+  "id": "Lewica",
+  "members": [
+   {
+    "id": 1000,
+    "firstName": "Jan",
+    "lastName": "Kowalski0",
+    "function": "przewodniczący"
+   },
+   {
+    "id": 1001,
+    "firstName": "Jan",
+    "lastName": "Kowalski1"
+   },
+   {
+    "id": 1002,
+    "firstName": "Jan",
+    "lastName": "Kowalski2"
+   }
+  ],
+  "membersCount": 21,
+  "name": "Koalicyjny Klub Parlamentarny Lewicy (Nowa Lewica, PPS, Unia Pracy)"
+ },
+ {
+  "id": "niez.",
+  "members": [
+   {
+    "id": 1000,
+    "firstName": "Jan",
+    "lastName": "Kowalski0",
+    "function": "przewodniczący"
+   },
+   {
+    "id": 1001,
+    "firstName": "Jan",
+    "lastName": "Kowalski1"
+   },
+   {
+    "id": 1002,
+    "firstName": "Jan",
+    "lastName": "Kowalski2"
+   }
+  ],
+  "membersCount": 8,
+  "name": "Posłowie niezrzeszeni"
+ },
+ {
+  "id": "PiS",
+  "members": [
+   {
+    "id": 1000,
+    "firstName": "Jan",
+    "lastName": "Kowalski0",
+    "function": "przewodniczący"
+   },
+   {
+    "id": 1001,
+    "firstName": "Jan",
+    "lastName": "Kowalski1"
+   },
+   {
+    "id": 1002,
+    "firstName": "Jan",
+    "lastName": "Kowalski2"
+   }
+  ],
+  "membersCount": 147,
+  "name": "Klub Parlamentarny Prawo i Sprawiedliwość"
+ },
+ {
+  "id": "Polska2050",
+  "members": [
+   {
+    "id": 1000,
+    "firstName": "Jan",
+    "lastName": "Kowalski0",
+    "function": "przewodniczący"
+   },
+   {
+    "id": 1001,
+    "firstName": "Jan",
+    "lastName": "Kowalski1"
+   },
+   {
+    "id": 1002,
+    "firstName": "Jan",
+    "lastName": "Kowalski2"
+   }
+  ],
+  "membersCount": 15,
+  "name": "Klub Parlamentarny Polska 2050"
+ },
+ {
+  "id": "PSL-TD",
+  "members": [
+   {
+    "id": 1000,
+    "firstName": "Jan",
+    "lastName": "Kowalski0",
+    "function": "przewodniczący"
+   },
+   {
+    "id": 1001,
+    "firstName": "Jan",
+    "lastName": "Kowalski1"
+   },
+   {
+    "id": 1002,
+    "firstName": "Jan",
+    "lastName": "Kowalski2"
+   }
+  ],
+  "membersCount": 32,
+  "name": "Klub Parlamentarny Polskie Stronnictwo Ludowe - Trzecia Droga"
+ },
+ {
+  "id": "Razem",
+  "members": [
+   {
+    "id": 1000,
+    "firstName": "Jan",
+    "lastName": "Kowalski0",
+    "function": "przewodniczący"
+   },
+   {
+    "id": 1001,
+    "firstName": "Jan",
+    "lastName": "Kowalski1"
+   },
+   {
+    "id": 1002,
+    "firstName": "Jan",
+    "lastName": "Kowalski2"
+   }
+  ],
+  "membersCount": 4,
+  "name": "Koło Poselskie Razem"
+ },
+ {
+  "id": "RozwojPlus",
+  "members": [
+   {
+    "id": 1000,
+    "firstName": "Jan",
+    "lastName": "Kowalski0",
+    "function": "przewodniczący"
+   },
+   {
+    "id": 1001,
+    "firstName": "Jan",
+    "lastName": "Kowalski1"
+   },
+   {
+    "id": 1002,
+    "firstName": "Jan",
+    "lastName": "Kowalski2"
+   }
+  ],
+  "membersCount": 40,
+  "name": "Klub Parlamentarny Rozwój Plus"
+ }
+]
