@@ -19,6 +19,10 @@ namespace PolishOpenData.Mcp;
 [JsonSerializable(typeof(BdlUnitSearchResult))]
 [JsonSerializable(typeof(BdlVariableSearchResult))]
 [JsonSerializable(typeof(BdlStatisticsResult))]
+[JsonSerializable(typeof(EliSearchResult))]
+[JsonSerializable(typeof(EliActDetails))]
+[JsonSerializable(typeof(EliArticleResult))]
+[JsonSerializable(typeof(bool?))]
 [JsonSerializable(typeof(PropertyPricesResult))]
 internal sealed partial class McpJsonContext : JsonSerializerContext;
 

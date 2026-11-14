@@ -1,0 +1,139 @@
+using System;
+using PolishOpenData.Eli;
+
+namespace PolishOpenData.Eli.Tests;
+
+public class EliActIdTests
+{
+    [Theory]
+    [InlineData("DU/2024/1061")]
+    [InlineData("WDU20240001061")]
+    [InlineData("Dz.U. 2024 poz. 1061")]
+    [InlineData("dz.u. 2024 poz 1061")]
+    [InlineData(" DU/2024/1061 ")]
+    public void Parse_AcceptsThreeFormatsOfDziennikUstaw(string text)
+    {
+        var id = EliActId.Parse(text);
+
+        Assert.Equal("DU", id.Publisher);
+        Assert.Equal(2024, id.Year);
+        Assert.Equal(1061, id.Position);
+        Assert.Equal("DU/2024/1061", id.ToString());
+    }
+
+    [Theory]
+    [InlineData("MP/2023/1261")]
+    [InlineData("WMP20230001261")]
+    [InlineData("M.P. 2023 poz. 1261")]
+    public void Parse_AcceptsMonitorPolski(string text)
+    {
+        Assert.Equal("MP/2023/1261", EliActId.Parse(text).ToString());
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData("DU/2024")]
+    [InlineData("XX/abc/1")]
+    [InlineData("DU/2024/0")]
+    [InlineData("DU/1700/5")]
+    [InlineData("D/2024/5")]
+    [InlineData("DU/2024/5/6")]
+    public void TryParse_RejectsGarbage(string text)
+    {
+        Assert.False(EliActId.TryParse(text, out _));
+        Assert.Throws<FormatException>(() => EliActId.Parse(text));
+    }
+
+    [Theory]
+    [InlineData("WDU19640160093", "DU/1964/93")]
+    [InlineData("Dz.U. 1964 nr 16 poz. 93", "DU/1964/93")]
+    [InlineData("Dz.U. 1950 nr 53 poz. 489", "DU/1950/489")]
+    [InlineData("WMP20260000368", "MP/2026/368")]
+    public void Parse_OlderActsCarryAVolumeThatIsNotPartOfThePath(string text, string expected)
+    {
+        Assert.Equal(expected, EliActId.Parse(text).ToString());
+    }
+
+    [Fact]
+    public void TryParse_RejectsNull()
+    {
+        Assert.False(EliActId.TryParse(null, out var id));
+        Assert.Equal(default, id);
+    }
+
+    [Fact]
+    public void Equality_IsByValue()
+    {
+        Assert.Equal(EliActId.Parse("DU/2024/1061"), EliActId.Parse("WDU20240001061"));
+        Assert.NotEqual(EliActId.Parse("DU/2024/1061"), EliActId.Parse("DU/2024/1062"));
+    }
+
+    [Theory]
+    [InlineData("415", "415")]
+    [InlineData("446^1", "446_1")]
+    [InlineData("446¹", "446_1")]
+    [InlineData("446_1", "446_1")]
+    [InlineData("art. 415", "415")]
+    [InlineData("Art. 21a", "21a")]
+    [InlineData(" 415 ", "415")]
+    [InlineData("3²", "3_2")]
+    public void Normalize_ArticleNames(string input, string expected)
+    {
+        Assert.Equal(expected, EliArticle.Normalize(input));
+    }
+
+    [Theory]
+    [InlineData("4l5")]
+    [InlineData("")]
+    [InlineData(null)]
+    [InlineData("art.")]
+    [InlineData("415/416")]
+    [InlineData("-1")]
+    public void Normalize_RejectsWhatIsNotAnArticleNumber(string? input)
+    {
+        Assert.Null(EliArticle.Normalize(input));
+    }
+
+    [Theory]
+    [InlineData("DU/\u0662\u0660\u0662\u0664/1")]
+    [InlineData("DU/2024/\u0661")]
+    [InlineData("WDU\u0662\u0660\u0662\u0664\u0660\u0660\u0660\u0661\u0660\u0666\u0661")]
+    public void TryParse_NeverThrows_OnNonAsciiDigits(string text)
+    {
+        Assert.False(EliActId.TryParse(text, out _));
+    }
+
+    [Fact]
+    public void DefaultId_HasAnEmptyPublisher()
+    {
+        Assert.Equal(string.Empty, default(EliActId).Publisher);
+        Assert.True(default(EliActId).IsEmpty);
+    }
+
+    [Theory]
+    [InlineData("415", "arti", "415")]
+    [InlineData("art. 415", "arti", "415")]
+    [InlineData("446\u00b9", "arti", "446_1")]
+    [InlineData("\u00a7 2", "para", "2")]
+    [InlineData("\u00a72", "para", "2")]
+    [InlineData("par. 3a", "para", "3a")]
+    [InlineData("\u00a7 10^1", "para", "10_1")]
+    public void ParseUnit_TellsArticlesFromParagraphs(string input, string type, string name)
+    {
+        var unit = EliArticle.ParseUnit(input);
+
+        Assert.Equal((type, name), unit);
+    }
+
+    [Theory]
+    [InlineData("x")]
+    [InlineData("\u00a7")]
+    [InlineData("")]
+    [InlineData(null)]
+    [InlineData("\u00a7 2/3")]
+    public void ParseUnit_RejectsWhatIsNeither(string? input)
+    {
+        Assert.Null(EliArticle.ParseUnit(input));
+    }
+}
