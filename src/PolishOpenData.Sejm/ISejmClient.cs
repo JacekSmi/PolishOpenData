@@ -20,7 +20,7 @@ public interface ISejmClient
 
     /// <summary>
     /// Finds legislative processes (one request). A passed process is not the same as a law: read <see cref="SejmProcessSummary.Eli"/>.
-    /// The API ignores sort options and returns ascending by number; the total comes from <c>X-Total-Count</c>.
+    /// The client does not use the API's sort parameter (its behaviour changed between probes) and relies on the default ascending order by number; the total comes from <c>X-Total-Count</c>.
     /// </summary>
     /// <exception cref="System.ArgumentOutOfRangeException">Term, limit or offset is out of range.</exception>
     Task<SejmPage<SejmProcessSummary>> SearchProcessesAsync(SejmProcessSearch search, CancellationToken cancellationToken = default);

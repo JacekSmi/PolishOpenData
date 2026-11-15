@@ -209,7 +209,7 @@ Console.WriteLine(process?.Summary.Eli);                                        
 
 **Club level by default.** The API lists every deputy's vote by name. The client sums them into club tallies and returns individual votes only when you pass `includeMpVotes: true` (one voting per call); club and committee members come only with `includeMembers: true`. Keep individual votes to the question you were asked: do not compile a person's voting record. **Passed is not law.** A process the Sejm passed has an `Eli` only when it became an act; motions, appointments and candidate lists do not. A voting's pass or fail is not an official field: compare `Yes` with `MajorityVotes` and call it an inference.
 
-The API publishes no rate limit and the client does not retry. A voting answer is 45 to 90 KB. The API ignores sort options: processes come ascending by number and votings oldest first, and a votings search has no total (`HasMore` is exact because one extra item is requested). Cite the source: Sejm RP, API Sejmu.
+The API publishes no rate limit and the client does not retry. A voting answer is 45 to 90 KB. The client does not rely on the API's own sorting (it ignored `sort_by` on 2026-11-14 and honoured it a day later): processes come ascending by number and votings oldest first, and a votings search has no total (`HasMore` is exact because one extra item is requested). Cite the source: Sejm RP, API Sejmu.
 
 ## Offline VAT whitelist check
 
