@@ -3,8 +3,6 @@
     <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>
     <RootNamespace>PolishOpenData.Sejm</RootNamespace>
     <Description>Typed .NET client for the Sejm API (api.sejm.gov.pl/sejm): legislative processes and prints with the resulting act, votings with club-level results, clubs and committees. No key needed. Unofficial; not affiliated with the Sejm.</Description>
-    <!-- New package: no release to compare with yet. Delete this override (and its line) once the first Sejm version is on nuget.org, or the package is never baseline-validated. -->
-    <PackageValidationBaselineVersion></PackageValidationBaselineVersion>
     <PackageTags>$(PackageTags);sejm;parliament;legislation;votings;poland</PackageTags>
   </PropertyGroup>
   <ItemGroup>
