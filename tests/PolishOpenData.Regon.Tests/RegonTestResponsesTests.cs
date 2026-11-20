@@ -95,9 +95,17 @@ public class RegonTestResponsesTests
     }
 
     [Fact]
+    public void Mtom_AcceptsTheSummaryOperation()
+    {
+        var text = Text(RegonTestResponses.Mtom("DanePobierzRaportZbiorczy", "<root/>"));
+        Assert.Contains("<DanePobierzRaportZbiorczyResult>&lt;root/&gt;</DanePobierzRaportZbiorczyResult>", text, StringComparison.Ordinal);
+        Assert.Contains("/IUslugaBIRzewnPubl/DanePobierzRaportZbiorczyResponse", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Unknown_operation_is_rejected()
     {
-        var exception = Assert.Throws<ArgumentException>(() => RegonTestResponses.Mtom("DanePobierzRaportZbiorczy", null));
+        var exception = Assert.Throws<ArgumentException>(() => RegonTestResponses.Mtom("DanePobierzRaportKtoregoNieMa", null));
         Assert.Equal("operation", exception.ParamName);
     }
 

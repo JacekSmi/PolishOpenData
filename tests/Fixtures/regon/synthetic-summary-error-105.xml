@@ -1,0 +1,8 @@
+<root>
+  <dane>
+    <ErrorCode>105</ErrorCode>
+    <ErrorMessagePl>Nieprawidłowa nazwa raportu: </ErrorMessagePl>
+    <ErrorMessageEn>Invalid report name: </ErrorMessageEn>
+    <pNazwaRaportu>BIR11NieMaTakiegoRaportu</pNazwaRaportu>
+  </dane>
+</root>

@@ -65,6 +65,15 @@ public class FakeBirServerTests
             "<ns:pRegon>" + regon + "</ns:pRegon><ns:pNazwaRaportu>" + report + "</ns:pNazwaRaportu>",
             sid);
 
+    private static Task<HttpResponseMessage> SummaryAsync(HttpClient client, string sid, string date, string report) =>
+        PostAsync(
+            client,
+            PublNamespace,
+            PublAction + "DanePobierzRaportZbiorczy",
+            "DanePobierzRaportZbiorczy",
+            "<ns:pDataRaportu>" + date + "</ns:pDataRaportu><ns:pNazwaRaportu>" + report + "</ns:pNazwaRaportu>",
+            sid);
+
     private static Task<HttpResponseMessage> GetValueAsync(HttpClient client, string sid, string name) =>
         PostAsync(client, BirNamespace, BirAction + "GetValue", "GetValue", "<ns:pNazwaParametru>" + name + "</ns:pNazwaParametru>", sid);
 
@@ -300,5 +309,50 @@ public class FakeBirServerTests
         Assert.Equal("GetValue", getValueCall.Operation);
         Assert.Equal(BirAction + "GetValue", getValueCall.Action);
         Assert.Equal("KomunikatKod", getValueCall.Arg("pNazwaParametru"));
+    }
+
+    [Fact]
+    public async Task FakeBirServer_AnswersARoutedSummary()
+    {
+        var server = new FakeBirServer().Summary("2026-10-02", "BIR11NowePodmiotyPrawneOrazDzialalnosciOsFizycznych", "synthetic-summary-entities");
+        using var client = new HttpClient(server.Handler);
+        using var login = await LoginAsync(client);
+        var sid = await ResultAsync(login);
+
+        using var summary = await SummaryAsync(client, sid, "2026-10-02", "BIR11NowePodmiotyPrawneOrazDzialalnosciOsFizycznych");
+
+        Assert.Equal(HttpStatusCode.OK, summary.StatusCode);
+        var rows = XDocument.Parse(await ResultAsync(summary)).Descendants("regon").Select(static e => e.Value).ToArray();
+        Assert.Equal(["000331501", "123456785", "876543216", "112233447", "556677887"], rows);
+        var call = server.Calls.Single(static c => c.Operation == "DanePobierzRaportZbiorczy");
+        Assert.Equal("2026-10-02", call.Arg("pDataRaportu"));
+        Assert.Equal("BIR11NowePodmiotyPrawneOrazDzialalnosciOsFizycznych", call.Arg("pNazwaRaportu"));
+    }
+
+    [Fact]
+    public async Task FakeBirServer_UnroutedSummary_FailsLoudly()
+    {
+        var server = new FakeBirServer().Summary("2026-10-02", "BIR11NowePodmiotyPrawneOrazDzialalnosciOsFizycznych", "synthetic-summary-entities");
+        using var client = new HttpClient(server.Handler);
+        using var login = await LoginAsync(client);
+        var sid = await ResultAsync(login);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => SummaryAsync(client, sid, "2026-10-01", "BIR11NowePodmiotyPrawneOrazDzialalnosciOsFizycznych"));
+
+        Assert.StartsWith("FakeBirServer: no route for DanePobierzRaportZbiorczy", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("pDataRaportu=2026-10-01", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task FakeBirServer_DeadSidSummary_AnswersEmpty()
+    {
+        var server = new FakeBirServer().Summary("2026-10-02", "BIR11NowePodmiotyPrawneOrazDzialalnosciOsFizycznych", "synthetic-summary-entities");
+        using var client = new HttpClient(server.Handler);
+
+        using var dead = await SummaryAsync(client, "not-a-live-sid", "2026-10-02", "BIR11NowePodmiotyPrawneOrazDzialalnosciOsFizycznych");
+
+        var text = await TextAsync(dead);
+        Assert.Contains("<DanePobierzRaportZbiorczyResult/>", text, StringComparison.Ordinal);
+        Assert.Equal(string.Empty, ResultOf(text));
     }
 }
