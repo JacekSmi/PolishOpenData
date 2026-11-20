@@ -124,6 +124,16 @@ internal sealed class BirService
         var error = BirErrors.Find(rows);
         if (error is not null)
         {
+            // An error row next to other rows: returning [] would drop them and quoting the answer would quote their numbers.
+            if (rows.Count > 1)
+            {
+                throw new PolishOpenDataApiException(
+                    "GUS REGON returned a result that could not be read: " + reportWireName + " mixes an error row with other rows.",
+                    HttpStatusCode.OK,
+                    null,
+                    null);
+            }
+
             if (error.Code == BirErrors.NotFound)
             {
                 return [];

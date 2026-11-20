@@ -349,6 +349,22 @@ public class RegonClientSummaryTests
         }
     }
 
+    [Theory]
+    [InlineData("4")]
+    [InlineData("101")]
+    public async Task DataRowsMixedWithAnErrorRow_Throw_NullSnippet_NoNumbers(string code)
+    {
+        var inner = "<root><dane><regon>000331501</regon></dane><dane><regon>123456785</regon></dane>"
+            + "<dane><ErrorCode>" + code + "</ErrorCode><ErrorMessageEn>Error.</ErrorMessageEn></dane></root>";
+
+        var ex = await RowFailure(inner);
+
+        Assert.Null(ex.ResponseSnippet);
+        Assert.Contains("could not be read", ex.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("000331501", ex.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("123456785", ex.ToString(), StringComparison.Ordinal);
+    }
+
     private static async Task<PolishOpenDataApiException> RowFailure(string inner)
     {
         var server = AnswerSummary(inner);
