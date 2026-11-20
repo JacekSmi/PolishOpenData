@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
 using ModelContextProtocol.Protocol;
 using Xunit.Sdk;
 using Xunit.v3;
@@ -27,7 +29,7 @@ namespace PolishOpenData.SmokeTests;
 /// <item><term>GUGiK UUG requests (<c>GeoLiveTests</c>, <c>RcnLiveTests</c>, no key)</term><description>3 / 1 / 0 = 4 (geocode and reverse; geocode in the ULDK/UUG agreement test; geocode of the address in the <c>property_prices</c> test), plus 1 from <c>DemoSiteLiveTests</c> = 5</description></item>
 /// <item><term>GUGiK RCN requests (<c>RcnLiveTests</c>, no key)</term><description>4 / 1 / 0 = 5 (library: premises in a bbox, residential premises for the median, parcels, buildings; MCP: <c>property_prices</c> by address; each a single bounded query, at most 1,000 rows), plus 1 from <c>DemoSiteLiveTests</c> = 6</description></item>
 /// <item><term>GUGiK orthophoto tiles (<c>DemoSiteLiveTests</c>: Chrome loads the deployed page, searches "Warszawa, Krucza 50" once and zooms to the parcel; needs <c>CHROME_BIN</c>)</term><description>0 / 0 / 0, about 30 tile requests (29 on 2026-11-05; the count is logged in the test output)</description></item>
-/// <item><term>GUS BIR test environment requests (published test key, no secret)</term><description>5 / 0 / 0 = 5</description></item>
+/// <item><term>GUS BIR test environment requests (published test key, no secret)</term><description>6 / 0 / 0 = 6 (login, search, report, data date, one summary report, logout)</description></item>
 /// <item><term>GUS BIR production requests (needs <c>POLISHOPENDATA_REGON_KEY</c>, owner-run, skipped otherwise)</term><description>4 / 4 / 0 = 8 (the library test: login, search, report, logout; the lookup_regon test: login, search, core report, PKD report)</description></item>
 /// <item><term>GUS BDL requests (<c>BdlLiveTests</c>, anonymous, no key; anonymous limits are 5 per second and 100 per 15 minutes)</term><description>3 / 0 / 0 = 3 (find a gmina by name, read its population, check the attribute list)</description></item>
 /// <item><term>Sejm ELI requests (<c>EliLiveTests</c>, no key; no limit is published)</term><description>8 / 0 / 0 = 8 (find the civil code, read it, check how current its text is, read art. 415)</description></item>
@@ -112,6 +114,21 @@ internal static class Live
     {
         ArgumentNullException.ThrowIfNull(exception);
         Assert.Skip("Registry request limit reached for this IP address: " + exception.Message);
+    }
+
+    /// <summary>
+    /// A transient failure (<see cref="PolishOpenDataApiException.IsTransient"/>) or a timeout is not a regression: skip. A
+    /// <see cref="TaskCanceledException"/> counts as a timeout only while <paramref name="testToken"/> (the test's own
+    /// cancellation token) is not cancelled, so the test's own cancellation is never swallowed. For any other exception it does
+    /// nothing: the caller rethrows.
+    /// </summary>
+    public static void SkipOnTransient(Exception exception, CancellationToken testToken)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+        if (exception is PolishOpenDataApiException { IsTransient: true } || (exception is TaskCanceledException && !testToken.IsCancellationRequested))
+        {
+            Assert.Skip("A transient failure or a timeout from the registry: " + exception.GetType().Name);
+        }
     }
 
     /// <summary>The MCP server reports a registry limit as an isError result (see ToolErrors), not as an exception: skip.</summary>
