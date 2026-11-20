@@ -33,6 +33,7 @@ internal static class BirErrors
     public const int NotCivilPartnership = 21;
     public const int NoPartners = 22;
     public const int Throttled = 101;
+    public const int InvalidSummaryReportName = 105;
 
     /// <summary>
     /// The first row that has an <c>ErrorCode</c>. The messages are <c>ErrorMessagePl</c>/<c>ErrorMessageEn</c>; the civil-partnership
@@ -56,14 +57,14 @@ internal static class BirErrors
         return null;
     }
 
-    /// <summary>An error row other than "not found": the code, the English message (else the Polish one) and, for code 101, <c>IsTransient</c>.</summary>
-    public static PolishOpenDataApiException ToException(BirError error, BirOperation operation, string? snippet)
+    /// <summary>An error row other than "not found": the code, the English message (else the Polish one) and, for code 101, <c>IsTransient</c>. An optional <paramref name="hint"/> is appended to the message.</summary>
+    public static PolishOpenDataApiException ToException(BirError error, BirOperation operation, string? snippet, string? hint = null)
     {
         ArgumentNullException.ThrowIfNull(error);
         var code = error.Code.ToString(CultureInfo.InvariantCulture);
         var text = error.MessageEn ?? error.MessagePl;
         return new PolishOpenDataApiException(
-            "GUS REGON reported error " + code + (text is null ? string.Empty : ": " + text) + " (" + BirOperations.Name(operation) + ").",
+            "GUS REGON reported error " + code + (text is null ? string.Empty : ": " + text) + " (" + BirOperations.Name(operation) + ")." + (hint is null ? string.Empty : " " + hint),
             null,
             code,
             snippet,

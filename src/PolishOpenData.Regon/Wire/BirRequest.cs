@@ -57,6 +57,14 @@ internal sealed class BirRequest
         return new BirRequest(BirOperation.DanePobierzPelnyRaport, endpoint, body, action);
     }
 
+    public static BirRequest SummaryReport(Uri endpoint, DateOnly day, string reportWireName)
+    {
+        ArgumentNullException.ThrowIfNull(endpoint);
+        ArgumentNullException.ThrowIfNull(reportWireName);
+        var body = BirEnvelope.SummaryReport(endpoint, day, reportWireName, out var action);
+        return new BirRequest(BirOperation.DanePobierzRaportZbiorczy, endpoint, body, action);
+    }
+
     public static BirRequest GetValue(Uri endpoint, string parameterName)
     {
         ArgumentNullException.ThrowIfNull(endpoint);

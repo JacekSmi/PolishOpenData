@@ -207,4 +207,22 @@ public class RegonModelTests
         Assert.Null(address.Street);
         Assert.Null(address.CountryCode);
     }
+
+    [Theory]
+    [InlineData(RegonSummaryReport.NowePodmiotyPrawneOrazDzialalnosciOsFizycznych, "BIR11NowePodmiotyPrawneOrazDzialalnosciOsFizycznych")]
+    [InlineData(RegonSummaryReport.AktualizowanePodmiotyPrawneOrazDzialalnosciOsFizycznych, "BIR11AktualizowanePodmiotyPrawneOrazDzialalnosciOsFizycznych")]
+    [InlineData(RegonSummaryReport.SkreslonePodmiotyPrawneOrazDzialalnosciOsFizycznych, "BIR11SkreslonePodmiotyPrawneOrazDzialalnosciOsFizycznych")]
+    [InlineData(RegonSummaryReport.NoweJednostkiLokalne, "BIR11NoweJednostkiLokalne")]
+    [InlineData(RegonSummaryReport.AktualizowaneJednostkiLokalne, "BIR11AktualizowaneJednostkiLokalne")]
+    [InlineData(RegonSummaryReport.SkresloneJednostkiLokalne, "BIR11SkresloneJednostkiLokalne")]
+    public void SummaryReport_WireNames_AreExactlyTheSixStrings(RegonSummaryReport report, string wireName) =>
+        Assert.Equal(wireName, RegonReports.WireName(report));
+
+    [Fact]
+    public void SummaryReport_Enum_HasExactlySixMembers() =>
+        Assert.Equal(6, typeof(RegonSummaryReport).GetFields(BindingFlags.Public | BindingFlags.Static).Length);
+
+    [Fact]
+    public void SummaryReport_UndefinedValue_Throws() =>
+        Assert.Throws<ArgumentOutOfRangeException>("report", () => RegonReports.WireName((RegonSummaryReport)99));
 }

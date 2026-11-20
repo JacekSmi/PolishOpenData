@@ -124,3 +124,28 @@ public enum RegonReport
     /// <summary><c>BIR12TypPodmiotu</c>: only the kind of the entity (9 or 14 digits).</summary>
     TypPodmiotu,
 }
+
+/// <summary>
+/// The summary reports of the BIR1.2 service (<c>DanePobierzRaportZbiorczy</c>): the REGON numbers that were added, changed or removed on one day.
+/// The wire name is <c>BIR11</c> followed by the member name. The entity reports return 9-digit REGON numbers, the local-unit reports 14-digit ones.
+/// </summary>
+public enum RegonSummaryReport
+{
+    /// <summary><c>BIR11NowePodmiotyPrawneOrazDzialalnosciOsFizycznych</c>: legal persons and natural-person activities entered on the day (9-digit REGON numbers).</summary>
+    NowePodmiotyPrawneOrazDzialalnosciOsFizycznych,
+
+    /// <summary><c>BIR11AktualizowanePodmiotyPrawneOrazDzialalnosciOsFizycznych</c>: legal persons and natural-person activities changed on the day (9-digit REGON numbers).</summary>
+    AktualizowanePodmiotyPrawneOrazDzialalnosciOsFizycznych,
+
+    /// <summary><c>BIR11SkreslonePodmiotyPrawneOrazDzialalnosciOsFizycznych</c>: legal persons and natural-person activities removed on the day (9-digit REGON numbers).</summary>
+    SkreslonePodmiotyPrawneOrazDzialalnosciOsFizycznych,
+
+    /// <summary><c>BIR11NoweJednostkiLokalne</c>: local units entered on the day (14-digit REGON numbers).</summary>
+    NoweJednostkiLokalne,
+
+    /// <summary><c>BIR11AktualizowaneJednostkiLokalne</c>: local units changed on the day (14-digit REGON numbers).</summary>
+    AktualizowaneJednostkiLokalne,
+
+    /// <summary><c>BIR11SkresloneJednostkiLokalne</c>: local units removed on the day (14-digit REGON numbers).</summary>
+    SkresloneJednostkiLokalne,
+}

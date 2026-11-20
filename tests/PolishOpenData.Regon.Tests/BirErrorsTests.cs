@@ -198,4 +198,31 @@ public class BirErrorsTests
         Assert.Null(quota.ResetsAt);
         Assert.Contains("429", quota.Message, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Errors_ToException_AppendsTheHint()
+    {
+        var error = new BirError(BirErrors.InvalidSummaryReportName, null, "Invalid report name.");
+
+        var withHint = BirErrors.ToException(error, BirOperation.DanePobierzRaportZbiorczy, null, "Try a weekday.");
+
+        Assert.EndsWith(" (DanePobierzRaportZbiorczy). Try a weekday.", withHint.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Errors_ToException_WithoutHintIsUnchanged()
+    {
+        var error = new BirError(BirErrors.InvalidSummaryReportName, null, "Invalid report name.");
+
+        var message = BirErrors.ToException(error, BirOperation.DanePobierzRaportZbiorczy, null).Message;
+
+        Assert.Equal("GUS REGON reported error 105: Invalid report name. (DanePobierzRaportZbiorczy).", message);
+    }
+
+    [Fact]
+    public void Errors_105_IsNotTransient_101IsTransient()
+    {
+        Assert.False(BirErrors.ToException(new BirError(105, null, null), BirOperation.DanePobierzRaportZbiorczy, null).IsTransient);
+        Assert.True(BirErrors.ToException(new BirError(101, null, null), BirOperation.DanePobierzRaportZbiorczy, null).IsTransient);
+    }
 }
