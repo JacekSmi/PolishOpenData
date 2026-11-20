@@ -147,6 +147,16 @@ internal sealed class BirService
                 error.Code == BirErrors.InvalidSummaryReportName ? "GUS no longer accepts this report name; update the library." : null);
         }
 
+        // GUS says "no data" with code 4; no rows and no code is an unknown shape, not an empty change list.
+        if (rows.Count == 0)
+        {
+            throw new PolishOpenDataApiException(
+                "GUS REGON returned a result that could not be read: " + reportWireName + " has no rows and no error code.",
+                HttpStatusCode.OK,
+                null,
+                null);
+        }
+
         // shortcut: one BirRow per number under the 64 MB response cap, switch to a streaming XmlReader if production lists prove large
         var list = new List<Regon>(rows.Count);
         foreach (var row in rows)

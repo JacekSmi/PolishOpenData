@@ -58,7 +58,7 @@ public interface IRegonSummaryReports
     /// GUS reported an error (its code is in <see cref="PolishOpenDataApiException.ErrorCode"/>; 101 is
     /// <see cref="PolishOpenDataApiException.IsTransient"/>, and 105 means GUS no longer accepts the report name, so update
     /// the library), answered with an empty result (transient: the session was renewed), answered with something that is
-    /// not readable (a row without a valid REGON included), or rejected the request itself (a SOAP sender fault, or HTTP
+    /// not readable (a row without a valid REGON, or an answer with no rows and no error code, included), or rejected the request itself (a SOAP sender fault, or HTTP
     /// 400 or 415, usually a wrong <see cref="RegonClientOptions.BaseAddress"/>).
     /// </exception>
     /// <exception cref="QuotaExceededException">The local request limiter refuses the call (see <see cref="RegonClientOptions.RateLimit"/>).</exception>

@@ -365,6 +365,19 @@ public class RegonClientSummaryTests
         Assert.DoesNotContain("123456785", ex.ToString(), StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("<root/>")]
+    [InlineData("<root></root>")]
+    [InlineData("<root><item><regon>123456785</regon></item></root>")]
+    public async Task RowlessCodelessAnswer_Throws_NeverAnEmptyList(string inner)
+    {
+        var ex = await RowFailure(inner);
+
+        Assert.Null(ex.ResponseSnippet);
+        Assert.Contains("could not be read", ex.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("123456785", ex.ToString(), StringComparison.Ordinal);
+    }
+
     private static async Task<PolishOpenDataApiException> RowFailure(string inner)
     {
         var server = AnswerSummary(inner);
