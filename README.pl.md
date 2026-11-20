@@ -117,7 +117,7 @@ Ponawianie zapytań (retry) jest wyłączone także dla REGON, tak jak dla Biał
 
 ```csharp
 var summaries = provider.GetRequiredService<IRegonSummaryReports>();
-var yesterday = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Europe/Warsaw")).AddDays(-1); // GUS liczy dni według czasu polskiego (wymaga danych stref czasowych, których nie ma w minimalnych kontenerach)
+var yesterday = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Europe/Warsaw")).AddDays(-1); // GUS liczy dni według czasu polskiego; w .NET Framework użyj identyfikatora Windows "Central European Standard Time", a minimalne kontenery nie mają danych stref czasowych
 var changed = await summaries.GetSummaryReportAsync(yesterday, RegonSummaryReport.AktualizowanePodmiotyPrawneOrazDzialalnosciOsFizycznych);
 var mine = new HashSet<Regon>(myRegons);                           // numery REGON, które już masz
 foreach (var r in changed.Value.Where(mine.Contains))
@@ -126,7 +126,7 @@ foreach (var r in changed.Value.Where(mine.Contains))
 }
 ```
 
-GUS udostępnia tylko ostatnie 7 dni, więc po awarii sprawdź ponownie całą swoją listę. Lista jest pusta, gdy GUS nie ma danych za dany dzień, a wywołanie kosztuje jedno zapytanie (oraz logowanie, gdy nie ma sesji). Zanim z tego skorzystasz, przeczytaj „Odpowiedzialne korzystanie” niżej. Serwer MCP celowo nie ma narzędzia do raportów zbiorczych.
+GUS udostępnia tylko ostatnie 7 dni, więc po awarii sprawdź ponownie całą swoją listę. Nie pytaj o wczorajszy dzień tuż po północy: GUS mógł jeszcze nie przygotować raportu, a pusta lista lub błąd 102 mogą oznaczać „jeszcze niegotowe”; okno obejmuje 7 dni, więc zapytaj ponownie później rano albo zapytaj też jeszcze raz o dzień wcześniejszy. Lista jest pusta, gdy GUS nie ma danych za dany dzień, a wywołanie kosztuje jedno zapytanie (oraz logowanie, gdy nie ma sesji albo odpowiedź była pusta). Zanim z tego skorzystasz, przeczytaj „Odpowiedzialne korzystanie” niżej. Serwer MCP celowo nie ma narzędzia do raportów zbiorczych.
 
 ## Jednoosobowe działalności: rejestr CEIDG
 

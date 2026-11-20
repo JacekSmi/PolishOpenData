@@ -31,7 +31,9 @@ public interface IRegonSummaryReports
     /// GUS serves the last 7 days only (yesterday and six days before; today is refused locally). After a longer outage,
     /// re-check your whole list. A listed REGON may answer "not found" later, more so after the BIR changes of 17-18 December 2026.
     /// Older dates are not refused locally: GUS answers them with an error (ErrorCode 104) or, on the test environment, with
-    /// no data, and each costs one request.
+    /// no data, and each costs one request. Do not ask for yesterday right after midnight: GUS may not have built the report
+    /// yet, and an empty list or error 102 can mean "not ready yet"; the window is 7 days, so ask again later in the morning
+    /// or re-ask the previous day too.
     /// </para>
     /// <para>
     /// Do not run summary calls in parallel, and after a transient error wait minutes, not seconds. ErrorCode 101 ("too many

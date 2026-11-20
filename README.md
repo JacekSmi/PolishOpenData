@@ -132,7 +132,7 @@ Retries stay off for REGON, as for Biała Lista: a retry made by a resilience ha
 
 ```csharp
 var summaries = provider.GetRequiredService<IRegonSummaryReports>();
-var yesterday = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Europe/Warsaw")).AddDays(-1); // GUS counts days in Polish time (needs time zone data: not in minimal containers)
+var yesterday = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Europe/Warsaw")).AddDays(-1); // GUS counts days in Polish time; on .NET Framework use the Windows id "Central European Standard Time", and minimal containers lack time zone data
 var changed = await summaries.GetSummaryReportAsync(yesterday, RegonSummaryReport.AktualizowanePodmiotyPrawneOrazDzialalnosciOsFizycznych);
 var mine = new HashSet<Regon>(myRegons);                           // the REGON numbers you already hold
 foreach (var r in changed.Value.Where(mine.Contains))
@@ -141,7 +141,7 @@ foreach (var r in changed.Value.Where(mine.Contains))
 }
 ```
 
-GUS serves the last 7 days only, so after an outage re-check your whole list. The list is empty when GUS has no data for the day, and the call costs one request (plus a login when there is no session). Read "Responsible use" below before you use it. The MCP server has no summary-report tool, on purpose.
+GUS serves the last 7 days only, so after an outage re-check your whole list. Do not ask for yesterday right after midnight: GUS may not have built the report yet, and an empty list or error 102 can mean "not ready yet"; the window is 7 days, so ask again later in the morning or re-ask the previous day too. The list is empty when GUS has no data for the day, and the call costs one request (plus a login when there is no session or the answer was empty). Read "Responsible use" below before you use it. The MCP server has no summary-report tool, on purpose.
 
 ## Sole traders: the CEIDG register
 

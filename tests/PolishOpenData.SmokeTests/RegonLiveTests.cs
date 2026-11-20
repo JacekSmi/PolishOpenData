@@ -24,8 +24,9 @@ public sealed class RegonTestEnvironmentLiveTests
     public async Task Test_environment_search_report_and_data_date_match_the_model()
     {
         Live.SkipUnlessEnabled();
-        // 100 s, not Live.HttpTimeout: GUS answered a first summary report in 8.4 s and, once, hung for 35.3 s (Live.TestTimeout is 120 s).
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(100) };
+        // 60 s, not Live.HttpTimeout: GUS answered a first summary report in 8.4 s and, once, hung for 35.3 s. It stays well under
+        // Live.TestTimeout (120 s), so a hang ends as an HttpClient timeout (skipped) before the test timeout cancels the test.
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
         var client = new RegonClient(http, new RegonClientOptions { Environment = RegonEnvironment.Test });
         var ct = TestContext.Current.CancellationToken;
 
