@@ -117,7 +117,7 @@ Ponawianie zapytań (retry) jest wyłączone także dla REGON, tak jak dla Biał
 
 ```csharp
 var summaries = provider.GetRequiredService<IRegonSummaryReports>();
-var yesterday = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)); // GUS liczy dni według czasu polskiego
+var yesterday = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Europe/Warsaw")).AddDays(-1); // GUS liczy dni według czasu polskiego (wymaga danych stref czasowych, których nie ma w minimalnych kontenerach)
 var changed = await summaries.GetSummaryReportAsync(yesterday, RegonSummaryReport.AktualizowanePodmiotyPrawneOrazDzialalnosciOsFizycznych);
 var mine = new HashSet<Regon>(myRegons);                           // numery REGON, które już masz
 foreach (var r in changed.Value.Where(mine.Contains))

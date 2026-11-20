@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -63,7 +64,7 @@ public sealed class RegonTestEnvironmentLiveTests
             }
 
             Assert.Equal(RegonEnvironment.Test, summary.Environment);
-            Assert.All(summary.Value, r => Assert.Equal(14, r.Length));
+            Assert.True(summary.Value.All(r => r.Length == 14), "A local-unit summary report holds a REGON that does not have 14 digits."); // no REGON in the message
         }
         catch (QuotaExceededException ex)
         {

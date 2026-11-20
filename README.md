@@ -132,7 +132,7 @@ Retries stay off for REGON, as for Biała Lista: a retry made by a resilience ha
 
 ```csharp
 var summaries = provider.GetRequiredService<IRegonSummaryReports>();
-var yesterday = DateOnly.FromDateTime(DateTime.Today.AddDays(-1)); // GUS counts days in Polish time
+var yesterday = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeBySystemTimeZoneId(DateTime.UtcNow, "Europe/Warsaw")).AddDays(-1); // GUS counts days in Polish time (needs time zone data: not in minimal containers)
 var changed = await summaries.GetSummaryReportAsync(yesterday, RegonSummaryReport.AktualizowanePodmiotyPrawneOrazDzialalnosciOsFizycznych);
 var mine = new HashSet<Regon>(myRegons);                           // the REGON numbers you already hold
 foreach (var r in changed.Value.Where(mine.Contains))
