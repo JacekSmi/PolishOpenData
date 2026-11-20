@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Time.Testing;
@@ -139,6 +141,75 @@ public class RegonServiceCollectionExtensionsTests
         var exception = Assert.Throws<InvalidOperationException>(() => provider.GetRequiredService<IRegonClient>());
 
         Assert.Contains("RegonClientOptions.UserKey", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void AddRegonClient_ResolvesIRegonSummaryReports_AsTheRegonClient()
+    {
+        var services = new ServiceCollection();
+        services.AddRegonClient(UseTestEnvironment);
+        using var provider = services.BuildServiceProvider();
+
+        Assert.IsType<RegonClient>(provider.GetRequiredService<IRegonSummaryReports>());
+    }
+
+    [Fact]
+    public async Task AddRegonClient_SharesTheSessionWithIRegonClient()
+    {
+        var server = new FakeBirServer()
+            .Search("Nip", "5261040828", "search-regon-gus")
+            .Summary("2026-10-02", "BIR11NoweJednostkiLokalne", "synthetic-summary-local-units");
+        var services = new ServiceCollection();
+        services.AddSingleton<TimeProvider>(new FakeTimeProvider(new DateTimeOffset(2026, 10, 3, 8, 0, 0, TimeSpan.Zero)));
+        services.AddRegonClient(UseTestEnvironment).ConfigurePrimaryHttpMessageHandler(() => server.Handler);
+        using var provider = services.BuildServiceProvider();
+        var ct = TestContext.Current.CancellationToken;
+
+        await provider.GetRequiredService<IRegonClient>().FindByNipAsync(Nip.Parse("5261040828"), ct);
+        var summary = await provider.GetRequiredService<IRegonSummaryReports>().GetSummaryReportAsync(new DateOnly(2026, 10, 2), RegonSummaryReport.NoweJednostkiLokalne, ct);
+
+        Assert.Equal(3, summary.Value.Count);
+        Assert.Equal(1, server.Count("Zaloguj"));
+        Assert.Equal(1, server.Count("DanePobierzRaportZbiorczy"));
+    }
+
+    [Fact]
+    public void AddRegonClient_ReplacedIRegonClient_ThrowsInvalidOperation()
+    {
+        var services = new ServiceCollection();
+        services.AddRegonClient(UseTestEnvironment);
+        services.AddTransient<IRegonClient, OtherClient>();
+        using var provider = services.BuildServiceProvider();
+
+        var exception = Assert.Throws<InvalidOperationException>(() => provider.GetRequiredService<IRegonSummaryReports>());
+
+        Assert.Contains("register IRegonSummaryReports yourself", exception.Message, StringComparison.Ordinal);
+    }
+
+    // A replacement (or decorator) of IRegonClient that does not implement IRegonSummaryReports.
+    private sealed class OtherClient : IRegonClient
+    {
+        public Task<RegonResult<IReadOnlyList<RegonEntity>>> FindByNipAsync(Nip nip, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<RegonResult<IReadOnlyList<RegonEntity>>> FindByRegonAsync(Regon regon, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<RegonResult<IReadOnlyList<RegonEntity>>> FindByKrsAsync(KrsNumber krs, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<RegonResult<IReadOnlyList<RegonBatchEntry>>> FindByNipsAsync(IReadOnlyCollection<Nip> nips, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<RegonResult<IReadOnlyList<RegonBatchEntry>>> FindByRegonsAsync(IReadOnlyCollection<Regon> regons, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<RegonResult<IReadOnlyList<RegonBatchEntry>>> FindByKrsNumbersAsync(IReadOnlyCollection<KrsNumber> krsNumbers, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<RegonResult<IReadOnlyList<RegonDetails>>> GetDetailsAsync(Regon regon, RegonInclude include = RegonInclude.None, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<RegonResult<IReadOnlyList<RegonDetails>>> GetDetailsAsync(RegonEntity entity, RegonInclude include = RegonInclude.None, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<RegonResult<IReadOnlyList<RegonRecord>>> GetReportAsync(Regon regon, RegonReport report, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task<RegonResult<DateOnly?>> GetDataDateAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
+
+        public Task LogoutAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 
     [Fact]

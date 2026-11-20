@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using PolishOpenData.Bir.Wire;
+using PolishOpenData.Internal;
 
 namespace PolishOpenData.Bir;
 
@@ -22,7 +23,7 @@ namespace PolishOpenData.Bir;
 /// timeout of the <see cref="HttpClient"/> you pass in applies.
 /// </para>
 /// </remarks>
-public sealed class RegonClient : IRegonClient
+public sealed class RegonClient : IRegonClient, IRegonSummaryReports
 {
     // GUS BIR1.2 manual (search parameters): a batch search takes at most 20 identifiers.
     private const int MaxBatchSize = 20;
@@ -176,6 +177,20 @@ public sealed class RegonClient : IRegonClient
         }
 
         return Wrap<IReadOnlyList<RegonRecord>>(records);
+    }
+
+    /// <inheritdoc/>
+    public async Task<RegonResult<IReadOnlyList<Regon>>> GetSummaryReportAsync(DateOnly day, RegonSummaryReport report, CancellationToken cancellationToken = default)
+    {
+        var wireName = RegonReports.WireName(report);
+        // Only the upper bound is checked: the 7-day edge and GUS's clock are unverified, and today can never be served.
+        if (day >= WarsawTime.Today(_timeProvider))
+        {
+            throw new ArgumentOutOfRangeException(nameof(day), day, "A summary report exists only for days before today (Warsaw time).");
+        }
+
+        var list = await _service.SummaryReportAsync(day, wireName, cancellationToken).ConfigureAwait(false);
+        return Wrap(list);
     }
 
     /// <inheritdoc/>
