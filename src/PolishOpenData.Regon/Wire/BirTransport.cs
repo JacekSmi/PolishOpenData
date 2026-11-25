@@ -71,13 +71,15 @@ internal sealed class BirTransport
         }
 
         var body = await response.Content.ReadBytesAsync(MaxResponseBytes, cancellationToken).ConfigureAwait(false);
+        // A summary-report answer is a list of REGON numbers: its body is never quoted in an exception.
+        var quoteBody = request.Operation != BirOperation.DanePobierzRaportZbiorczy;
         if (body.Length > MaxResponseBytes)
         {
             throw new PolishOpenDataApiException(
                 "GUS REGON sent a response of more than " + MaxResponseBytes.ToString(CultureInfo.InvariantCulture) + " bytes, which the client does not accept.",
                 response.StatusCode,
                 null,
-                HttpHelpers.Snippet(body));
+                quoteBody ? HttpHelpers.Snippet(body) : null);
         }
 
         var contentType = response.Content.Headers.TryGetValues("Content-Type", out var values)
@@ -91,20 +93,21 @@ internal sealed class BirTransport
         }
         catch (SoapFaultException fault)
         {
-            throw BirErrors.ForFault(fault, response.StatusCode, HttpHelpers.Snippet(body));
+            throw BirErrors.ForFault(fault, response.StatusCode, quoteBody ? HttpHelpers.Snippet(body) : null);
         }
         catch (Exception exception) when (exception is FormatException or XmlException or NotSupportedException or ArgumentException)
         {
             // not a SOAP answer: an IIS error page, a broken multipart body, an xop:Include, a charset nobody knows
             if (!response.IsSuccessStatusCode)
             {
-                throw BirErrors.ForHttpFailure(response.StatusCode, contentType, body, HttpHelpers.GetRetryAfter(response));
+                throw BirErrors.ForHttpFailure(response.StatusCode, contentType, body, HttpHelpers.GetRetryAfter(response), attachSnippet: quoteBody);
             }
 
-            throw HttpHelpers.UnreadableResponse(
+            throw new PolishOpenDataApiException(
                 "GUS REGON returned a response that could not be read (HTTP " + ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture) + "): " + exception.Message,
-                response,
-                body,
+                response.StatusCode,
+                null,
+                quoteBody ? HttpHelpers.Snippet(body) : null,
                 exception);
         }
 
@@ -114,7 +117,11 @@ internal sealed class BirTransport
             throw BirErrors.ForHttpFailure(response.StatusCode, contentType, body, HttpHelpers.GetRetryAfter(response), attachSnippet: false);
         }
 
-        return result ?? throw HttpHelpers.UnreadableResponse("GUS REGON returned a response with no result element.", response, body);
+        return result ?? throw new PolishOpenDataApiException(
+            "GUS REGON returned a response with no result element.",
+            response.StatusCode,
+            null,
+            quoteBody ? HttpHelpers.Snippet(body) : null);
     }
 
     // Content-Type is built the way the live service was observed to accept it:

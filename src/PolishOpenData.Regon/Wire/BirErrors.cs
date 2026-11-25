@@ -75,7 +75,7 @@ internal static class BirErrors
     /// A SOAP fault. A sender fault is deterministic (the request or the configured address is wrong), so it is not transient and not an
     /// <see cref="HttpRequestException"/>; a receiver fault is the server's problem and is.
     /// </summary>
-    public static Exception ForFault(SoapFaultException fault, HttpStatusCode status, string snippet)
+    public static Exception ForFault(SoapFaultException fault, HttpStatusCode status, string? snippet)
     {
         ArgumentNullException.ThrowIfNull(fault);
         if (!fault.IsSender)
