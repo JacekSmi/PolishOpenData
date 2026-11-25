@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using PolishOpenData.Bir;
@@ -9,7 +11,7 @@ namespace PolishOpenData.SmokeTests;
 
 /// <summary>
 /// The REGON client against GUS's public BIR test environment (gated and budgeted by <see cref="Live"/>). It needs no secret:
-/// the client uses GUS's published test key. Five requests: login, search, one report, the data date, logout. This is the test
+/// the client uses GUS's published test key. Six requests: login, search, one report, the data date, one summary report, logout. This is the test
 /// that notices a change of the MTOM framing or of the envelope, so the weekly workflow runs it.
 /// </summary>
 public sealed class RegonTestEnvironmentLiveTests
@@ -22,7 +24,9 @@ public sealed class RegonTestEnvironmentLiveTests
     public async Task Test_environment_search_report_and_data_date_match_the_model()
     {
         Live.SkipUnlessEnabled();
-        using var http = Live.CreateHttpClient();
+        // 60 s, not Live.HttpTimeout: GUS answered a first summary report in 8.4 s and, once, hung for 35.3 s. It stays well under
+        // Live.TestTimeout (120 s), so a hang ends as an HttpClient timeout (skipped) before the test timeout cancels the test.
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
         var client = new RegonClient(http, new RegonClientOptions { Environment = RegonEnvironment.Test });
         var ct = TestContext.Current.CancellationToken;
 
@@ -46,6 +50,22 @@ public sealed class RegonTestEnvironmentLiveTests
             }
 
             Assert.Equal(date.Value, date.DataAsOf);
+
+            // Last, so that a slow or hung summary report skips the test after the other assertions passed. An empty list is fine
+            // (GUS may reload the test database). The values are never printed.
+            RegonResult<IReadOnlyList<Regon>> summary;
+            try
+            {
+                summary = await client.GetSummaryReportAsync(new DateOnly(2014, 11, 7), RegonSummaryReport.SkresloneJednostkiLokalne, ct);
+            }
+            catch (Exception ex) when (ex is PolishOpenDataApiException or TaskCanceledException)
+            {
+                Live.SkipOnTransient(ex, ct);
+                throw;
+            }
+
+            Assert.Equal(RegonEnvironment.Test, summary.Environment);
+            Assert.True(summary.Value.All(r => r.Length == 14), "A local-unit summary report holds a REGON that does not have 14 digits."); // no REGON in the message
         }
         catch (QuotaExceededException ex)
         {

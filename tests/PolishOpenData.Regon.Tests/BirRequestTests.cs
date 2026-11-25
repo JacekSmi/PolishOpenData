@@ -97,6 +97,7 @@ public class BirRequestTests
             (Operation: BirOperation.Wyloguj, Name: "Wyloguj", Result: "WylogujResult", Namespace: publ),
             (Operation: BirOperation.DaneSzukajPodmioty, Name: "DaneSzukajPodmioty", Result: "DaneSzukajPodmiotyResult", Namespace: publ),
             (Operation: BirOperation.DanePobierzPelnyRaport, Name: "DanePobierzPelnyRaport", Result: "DanePobierzPelnyRaportResult", Namespace: publ),
+            (Operation: BirOperation.DanePobierzRaportZbiorczy, Name: "DanePobierzRaportZbiorczy", Result: "DanePobierzRaportZbiorczyResult", Namespace: publ),
             (Operation: BirOperation.GetValue, Name: "GetValue", Result: "GetValueResult", Namespace: "http://CIS/BIR/2014/07"),
         };
         Assert.Equal(typeof(BirOperation).GetEnumNames().Length, cases.Length);
@@ -113,5 +114,18 @@ public class BirRequestTests
     public void Undefined_operation_is_rejected()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() => BirOperations.Name((BirOperation)99));
+    }
+
+    [Fact]
+    public void Request_SummaryReport_HasOperationAndAction()
+    {
+        var request = BirRequest.SummaryReport(TestEndpoint, new DateOnly(2014, 11, 7), "BIR11NoweJednostkiLokalne");
+
+        Assert.Equal(BirOperation.DanePobierzRaportZbiorczy, request.Operation);
+        Assert.Equal(PublAction + "DanePobierzRaportZbiorczy", request.Action);
+        Assert.Equal(TestEndpoint, request.Endpoint);
+        Assert.Contains("<ns:pDataRaportu>2014-11-07</ns:pDataRaportu>", Encoding.UTF8.GetString(request.Body), StringComparison.Ordinal);
+        Assert.Equal("DanePobierzRaportZbiorczy", BirOperations.Name(BirOperation.DanePobierzRaportZbiorczy));
+        Assert.Equal("DanePobierzRaportZbiorczyResult", BirOperations.ResultElement(BirOperation.DanePobierzRaportZbiorczy));
     }
 }

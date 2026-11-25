@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Xml;
@@ -42,6 +43,14 @@ internal static class BirEnvelope
         Write(endpoint, action = PublAction + "DanePobierzPelnyRaport", Publ, "DanePobierzPelnyRaport", w =>
         {
             w.WriteElementString("ns", "pRegon", Publ, regon);
+            w.WriteElementString("ns", "pNazwaRaportu", Publ, reportName);
+        });
+
+    public static byte[] SummaryReport(Uri endpoint, DateOnly day, string reportName, out string action) =>
+        Write(endpoint, action = PublAction + "DanePobierzRaportZbiorczy", Publ, "DanePobierzRaportZbiorczy", w =>
+        {
+            // invariant culture: a calendar such as ar-SA or th-TH would write another year
+            w.WriteElementString("ns", "pDataRaportu", Publ, day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
             w.WriteElementString("ns", "pNazwaRaportu", Publ, reportName);
         });
 

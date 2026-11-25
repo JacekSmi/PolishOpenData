@@ -42,7 +42,7 @@ One run costs, per IP address:
 | Biała Lista searches (each NIP or REGON counts, also inside a batch) | 4 | 1 | 1 | **6** (5 requests) |
 | Biała Lista checks | 1 | 1 | 0 | **2** |
 | KRS requests | 5 (up to 9) | 1 | 1 | **7** (up to 11) |
-| GUS BIR test environment requests (published test key, no secret) | 5 | 0 | 0 | **5** |
+| GUS BIR test environment requests (published test key, no secret) | 6 | 0 | 0 | **6** |
 | GUS BIR production requests (needs `POLISHOPENDATA_REGON_KEY`, owner-run, skipped otherwise) | 4 | 4 | 0 | **8** |
 | GUS BDL requests (`BdlLiveTests`, anonymous, no key) | 3 | 0 | 0 | **3** |
 | Sejm ELI requests (`EliLiveTests`, no key) | 8 | 0 | 0 | **8** |
@@ -61,7 +61,7 @@ Keep your own keys in a git-ignored `.env` at the repository root: copy `.env.ex
 
 The CEIDG test is owner-run: it needs your own CEIDG API token (a personal JWT from e-service 00_9999_00 on biznes.gov.pl, which asks for a Profil Zaufany login), kept only in `POLISHOPENDATA_CEIDG_TOKEN`; CI never sets it and it must not go into GitHub secrets or logs. It sends one request (the Ministry of Finance's NIP, which is not a sole trader, so the answer is empty and proves the token works) and, when `POLISHOPENDATA_CEIDG_NIP` holds your own NIP, a second one that checks the mapped entry. The repository holds no real person's NIP: the CEIDG fixtures are synthetic, shaped after the official documentation.
 
-The GUS test-environment test needs no secret. GUS publishes limits for the service in general (3 requests per second, 120 per minute); it does not state whether the test service applies them, and 5 requests are far inside them either way. The production test runs only when `POLISHOPENDATA_REGON_KEY` holds your own key and is never run by CI: the production key does not go into GitHub secrets, and GUS forbids several accounts for one entity. GUS logs the IP address, time and content of every request and forbids enumerating identifiers, so run the production test sparingly, never in a loop.
+The GUS test-environment test needs no secret. GUS publishes limits for the service in general (3 requests per second, 120 per minute); it does not state whether the test service applies them, and 6 requests are far inside them either way. The production test runs only when `POLISHOPENDATA_REGON_KEY` holds your own key and is never run by CI: the production key does not go into GitHub secrets, and GUS forbids several accounts for one entity. GUS logs the IP address, time and content of every request and forbids enumerating identifiers, so run the production test sparingly, never in a loop.
 
 GUGiK publishes no limit for ULDK, UUG and RCN (the RCN client sends one `count`-bounded request per page), but it blocks IP addresses that send massive numbers of requests: a few runs a day are fine, never run them in a loop. A `blocked` error (the firewall page) fails the test; wait before running again.
 

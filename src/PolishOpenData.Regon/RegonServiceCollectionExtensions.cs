@@ -4,11 +4,11 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace PolishOpenData.Bir;
 
-/// <summary>Dependency-injection registration for <see cref="IRegonClient"/>.</summary>
+/// <summary>Dependency-injection registration for <see cref="IRegonClient"/> and <see cref="IRegonSummaryReports"/>.</summary>
 public static class RegonServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers <see cref="IRegonClient"/> as a typed HttpClient, a singleton GUS session, a singleton request limiter and
+    /// Registers <see cref="IRegonClient"/> as a typed HttpClient (also resolvable as <see cref="IRegonSummaryReports"/>), a singleton GUS session, a singleton request limiter and
     /// <see cref="TimeProvider.System"/> (unless already registered). Returns the builder so callers can add a custom handler.
     /// </summary>
     /// <remarks>
@@ -27,6 +27,8 @@ public static class RegonServiceCollectionExtensions
     /// request limiter cannot count, and a SOAP fault, which means your request was wrong, arrives as HTTP 500 and would be
     /// retried too. If you add the standard resilience handler, disable retries explicitly:
     /// <code>services.AddRegonClient(...).AddStandardResilienceHandler(o =&gt; o.Retry.ShouldHandle = _ =&gt; new ValueTask&lt;bool&gt;(false));</code>
+    /// The standard handler's default timeouts (10 seconds per attempt, 30 in total) also cut a summary report short
+    /// (<see cref="IRegonSummaryReports"/>): answers of 8 seconds and a hang of 35 seconds were seen.
     /// </para>
     /// <para>
     /// The client never logs out by itself; call <see cref="IRegonClient.LogoutAsync"/> when the process stops.
@@ -44,7 +46,10 @@ public static class RegonServiceCollectionExtensions
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton(sp => new BirSession(sp.GetRequiredService<TimeProvider>(), options.SessionLifetime));
         services.TryAddSingleton(sp => new RegonRateLimiter(sp.GetRequiredService<TimeProvider>(), options.RateLimit, options.MaxRateLimitWait));
-        return services.AddHttpClient<IRegonClient, RegonClient>((httpClient, sp) =>
+        var builder = services.AddHttpClient<IRegonClient, RegonClient>((httpClient, sp) =>
             new RegonClient(httpClient, options, sp.GetRequiredService<TimeProvider>(), sp.GetRequiredService<BirSession>(), sp.GetRequiredService<RegonRateLimiter>()));
+        services.TryAddTransient<IRegonSummaryReports>(static sp => sp.GetRequiredService<IRegonClient>() as IRegonSummaryReports
+            ?? throw new InvalidOperationException("IRegonClient was replaced or decorated; register IRegonSummaryReports yourself."));
+        return builder;
     }
 }

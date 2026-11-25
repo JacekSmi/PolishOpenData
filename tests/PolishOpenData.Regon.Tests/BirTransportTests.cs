@@ -136,6 +136,23 @@ public class BirTransportTests
     }
 
     [Fact]
+    public async Task Summary_report_failures_never_quote_the_body()
+    {
+        var summary = BirRequest.SummaryReport(Endpoint, new DateOnly(2014, 11, 7), "BIR11NowePodmiotyPrawneOrazDzialalnosciOsFizycznych");
+        var ct = TestContext.Current.CancellationToken;
+
+        // not a SOAP answer (success and failure status) and a well-formed answer without the result element
+        var (plain, _) = Create(_ => new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("<regon>123456785</regon>", Encoding.UTF8, "text/plain") });
+        Assert.Null((await Assert.ThrowsAsync<PolishOpenDataApiException>(() => plain.SendAsync(summary, DummySid, ct))).ResponseSnippet);
+
+        var (bad, _) = Create(_ => new HttpResponseMessage(HttpStatusCode.BadRequest) { Content = new StringContent("<regon>123456785</regon>", Encoding.UTF8, "text/plain") });
+        Assert.Null((await Assert.ThrowsAsync<PolishOpenDataApiException>(() => bad.SendAsync(summary, DummySid, ct))).ResponseSnippet);
+
+        var (other, _) = Create(static _ => StubHttpMessageHandler.Mtom("wyloguj-true"));
+        Assert.Null((await Assert.ThrowsAsync<PolishOpenDataApiException>(() => other.SendAsync(summary, DummySid, ct))).ResponseSnippet);
+    }
+
+    [Fact]
     public async Task Oversized_content_length_is_refused()
     {
         var (transport, _) = Create(_ =>

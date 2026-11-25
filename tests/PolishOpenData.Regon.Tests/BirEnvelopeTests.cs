@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
@@ -186,5 +187,35 @@ public class BirEnvelopeTests
         Assert.StartsWith("<soap:Envelope", text, StringComparison.Ordinal);
         Assert.DoesNotContain("<?xml", text, StringComparison.Ordinal);
         Assert.Contains("zażółć", text, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("ar-SA")]
+    [InlineData("th-TH")]
+    public void Envelope_SummaryReport_Golden(string culture)
+    {
+        var saved = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = new CultureInfo(culture);
+            var bytes = BirEnvelope.SummaryReport(TestEndpoint, new DateOnly(2014, 11, 7), "BIR11NoweJednostkiLokalne", out var action);
+
+            Assert.Equal("http://CIS/BIR/PUBL/2014/07/IUslugaBIRzewnPubl/DanePobierzRaportZbiorczy", action);
+            var text = Encoding.UTF8.GetString(bytes);
+            Assert.DoesNotMatch(@">\s|\s<", text);
+            var document = Canonical(bytes);
+            Assert.Equal(TestEndpoint.AbsoluteUri, document.Descendants(Wsa + "To").Single().Value);
+            Assert.Equal(action, document.Descendants(Wsa + "Action").Single().Value);
+            var operation = Assert.Single(Body(bytes).Elements());
+            Assert.Equal(Publ + "DanePobierzRaportZbiorczy", operation.Name);
+            var children = operation.Elements().ToArray();
+            Assert.Equal(new[] { Publ + "pDataRaportu", Publ + "pNazwaRaportu" }, children.Select(c => c.Name).ToArray());
+            Assert.Equal("2014-11-07", children[0].Value);
+            Assert.Equal("BIR11NoweJednostkiLokalne", children[1].Value);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = saved;
+        }
     }
 }

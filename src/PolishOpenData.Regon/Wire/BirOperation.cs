@@ -2,13 +2,14 @@ using System;
 
 namespace PolishOpenData.Bir.Wire;
 
-/// <summary>The BIR operations the library calls. Summary reports (DanePobierzRaportZbiorczy) are deliberately absent: they are deferred.</summary>
+/// <summary>The BIR operations the library calls.</summary>
 internal enum BirOperation
 {
     Zaloguj,
     Wyloguj,
     DaneSzukajPodmioty,
     DanePobierzPelnyRaport,
+    DanePobierzRaportZbiorczy,
     GetValue,
 }
 
@@ -33,6 +34,7 @@ internal static class BirOperations
         BirOperation.Wyloguj => nameof(BirOperation.Wyloguj),
         BirOperation.DaneSzukajPodmioty => nameof(BirOperation.DaneSzukajPodmioty),
         BirOperation.DanePobierzPelnyRaport => nameof(BirOperation.DanePobierzPelnyRaport),
+        BirOperation.DanePobierzRaportZbiorczy => nameof(BirOperation.DanePobierzRaportZbiorczy),
         BirOperation.GetValue => nameof(BirOperation.GetValue),
         _ => throw new ArgumentOutOfRangeException(nameof(operation), operation, "Unknown BIR operation."),
     };

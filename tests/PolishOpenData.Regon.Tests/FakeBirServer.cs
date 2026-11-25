@@ -110,6 +110,9 @@ internal sealed class FakeBirServer
     /// <summary>Routes the full report with exactly this REGON and report wire name to a fixture (see <see cref="Search"/>).</summary>
     public FakeBirServer Report(string regon, string reportWireName, string fixture) => AddRoute(ReportKey(regon, reportWireName), "DanePobierzPelnyRaport", fixture);
 
+    /// <summary>Routes the summary report with exactly this date (<c>yyyy-MM-dd</c>) and report wire name to a fixture (see <see cref="Search"/>).</summary>
+    public FakeBirServer Summary(string date, string reportWireName, string fixture) => AddRoute(SummaryKey(date, reportWireName), "DanePobierzRaportZbiorczy", fixture);
+
     /// <summary>Makes <c>GetValue("StanDanych")</c> answer <paramref name="text"/> and <c>GetValue("KomunikatKod")</c> answer 0.</summary>
     public FakeBirServer StanDanych(string text)
     {
@@ -175,6 +178,8 @@ internal sealed class FakeBirServer
 
     private static string ReportKey(string regon, string report) => "report|" + regon + "|" + report;
 
+    private static string SummaryKey(string date, string report) => "summary|" + date + "|" + report;
+
     private static string GetValueKey(string name) => "getvalue|" + name;
 
     private static HttpResponseMessage Ok(string operation, string? result) =>
@@ -228,6 +233,7 @@ internal sealed class FakeBirServer
                 return Logout(call);
             case "DaneSzukajPodmioty":
             case "DanePobierzPelnyRaport":
+            case "DanePobierzRaportZbiorczy":
             case "GetValue":
                 return Data(call);
             default:
@@ -294,6 +300,10 @@ internal sealed class FakeBirServer
         else if (string.Equals(call.Operation, "DanePobierzPelnyRaport", StringComparison.Ordinal))
         {
             key = ReportKey(call.Arg("pRegon") ?? string.Empty, call.Arg("pNazwaRaportu") ?? string.Empty);
+        }
+        else if (string.Equals(call.Operation, "DanePobierzRaportZbiorczy", StringComparison.Ordinal))
+        {
+            key = SummaryKey(call.Arg("pDataRaportu") ?? string.Empty, call.Arg("pNazwaRaportu") ?? string.Empty);
         }
         else
         {

@@ -24,7 +24,7 @@ internal static class RegonTestResponses
     private static readonly UTF8Encoding Utf8 = new(false);
 
     /// <summary>
-    /// The MTOM answer of <paramref name="operation"/> (Zaloguj, Wyloguj, DaneSzukajPodmioty, DanePobierzPelnyRaport or GetValue).
+    /// The MTOM answer of <paramref name="operation"/> (Zaloguj, Wyloguj, DaneSzukajPodmioty, DanePobierzPelnyRaport, DanePobierzRaportZbiorczy or GetValue).
     /// <paramref name="result"/> null or empty gives a self-closed result element, as the service answers a dead session.
     /// </summary>
     public static byte[] Mtom(string operation, string? result)
@@ -35,6 +35,7 @@ internal static class RegonTestResponses
             case "Wyloguj":
             case "DaneSzukajPodmioty":
             case "DanePobierzPelnyRaport":
+            case "DanePobierzRaportZbiorczy":
             case "GetValue":
                 break;
             default:

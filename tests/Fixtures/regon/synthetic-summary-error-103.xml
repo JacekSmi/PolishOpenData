@@ -1,0 +1,7 @@
+<root>
+  <dane>
+    <ErrorCode>103</ErrorCode>
+    <ErrorMessagePl>Wprowadzono datę przyszłą</ErrorMessagePl>
+    <ErrorMessageEn>A future date has been entered</ErrorMessageEn>
+  </dane>
+</root>

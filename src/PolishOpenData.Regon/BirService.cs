@@ -15,7 +15,8 @@ namespace PolishOpenData.Bir;
 /// The BIR operations with session handling, the request limiter and the error rules. One
 /// instance per client; the session and the limiter are shared by every client of the process. A dead session answers
 /// with an empty result (observed behaviour of the GUS service): the service logs in again once and retries
-/// once, never in a loop and without a <c>GetValue</c> probe.
+/// once, never in a loop and without a <c>GetValue</c> probe. A summary report is the exception: after an empty answer the
+/// session is renewed but the request is not resent (an empty answer also follows a long hang of a live session).
 /// </summary>
 internal sealed class BirService
 {
@@ -97,6 +98,85 @@ internal sealed class BirService
     }
 
     /// <summary>
+    /// One summary report (the REGON numbers of one day), sent once with weight 1. An empty answer renews the session but is
+    /// not resent: it throws a transient exception. ErrorCode 4 is an empty list; any other code throws. A row without a valid
+    /// REGON throws (a skipped row would be a missed change). Order and duplicates are kept as GUS sends them.
+    /// </summary>
+    public async Task<IReadOnlyList<Regon>> SummaryReportAsync(DateOnly day, string reportWireName, CancellationToken cancellationToken)
+    {
+        var request = BirRequest.SummaryReport(_endpoint, day, reportWireName);
+        var sid = await _session.GetSidAsync(LoginAsync, cancellationToken).ConfigureAwait(false);
+        await _limiter.AcquireAsync(1, cancellationToken).ConfigureAwait(false);
+        var result = await _transport.SendAsync(request, sid, cancellationToken).ConfigureAwait(false);
+        if (IsEmpty(result))
+        {
+            // A dead session and a live one after a hang both answer empty; a resend could start a second long report.
+            await _session.RenewAsync(sid, LoginAsync, cancellationToken).ConfigureAwait(false);
+            throw new PolishOpenDataApiException(
+                "GUS REGON returned an empty answer for " + reportWireName + "; the session was renewed; try again in a few minutes.",
+                HttpStatusCode.OK,
+                null,
+                null,
+                isTransient: true);
+        }
+
+        var rows = ParseRows(result, quote: false);
+        var error = BirErrors.Find(rows);
+        if (error is not null)
+        {
+            // An error row next to other rows: returning [] would drop them and quoting the answer would quote their numbers.
+            if (rows.Count > 1)
+            {
+                throw new PolishOpenDataApiException(
+                    "GUS REGON returned a result that could not be read: " + reportWireName + " mixes an error row with other rows.",
+                    HttpStatusCode.OK,
+                    null,
+                    null);
+            }
+
+            if (error.Code == BirErrors.NotFound)
+            {
+                return [];
+            }
+
+            // an error answer holds only the error row, so it can be quoted
+            throw BirErrors.ToException(
+                error,
+                request.Operation,
+                HttpHelpers.Truncate(result),
+                error.Code == BirErrors.InvalidSummaryReportName ? "GUS no longer accepts this report name; update the library." : null);
+        }
+
+        // GUS says "no data" with code 4; no rows and no code is an unknown shape, not an empty change list.
+        if (rows.Count == 0)
+        {
+            throw new PolishOpenDataApiException(
+                "GUS REGON returned a result that could not be read: " + reportWireName + " has no rows and no error code.",
+                HttpStatusCode.OK,
+                null,
+                null);
+        }
+
+        // shortcut: one BirRow per number under the 64 MB response cap, switch to a streaming XmlReader if production lists prove large
+        var list = new List<Regon>(rows.Count);
+        foreach (var row in rows)
+        {
+            if (!Regon.TryParse(row["regon"], out var regon))
+            {
+                throw new PolishOpenDataApiException(
+                    "GUS REGON returned a result that could not be read: a row of " + reportWireName + " has no valid REGON.",
+                    HttpStatusCode.OK,
+                    null,
+                    null);
+            }
+
+            list.Add(regon);
+        }
+
+        return list;
+    }
+
+    /// <summary>
     /// Refuses a batch of <paramref name="identifiers"/> before its first request when it cannot fit into what is left of the
     /// per-minute or per-hour window (counting the login it would need), instead of failing part way and losing what it fetched.
     /// </summary>
@@ -151,7 +231,8 @@ internal sealed class BirService
     private static PolishOpenDataApiException EmptyTwice(string what) =>
         new("GUS REGON returned an empty answer for " + what + " twice, even after a new login.", HttpStatusCode.OK, null, null);
 
-    private static List<BirRow> ParseRows(string inner)
+    // quote is false for a summary report: its text is a list of REGON numbers, which never goes into an exception.
+    private static List<BirRow> ParseRows(string inner, bool quote = true)
     {
         try
         {
@@ -163,7 +244,7 @@ internal sealed class BirService
                 "GUS REGON returned a result that could not be read: " + exception.Message,
                 HttpStatusCode.OK,
                 null,
-                HttpHelpers.Truncate(inner),
+                quote ? HttpHelpers.Truncate(inner) : null,
                 exception);
         }
     }

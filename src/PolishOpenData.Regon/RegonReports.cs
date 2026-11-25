@@ -28,6 +28,18 @@ internal static class RegonReports
         _ => throw new ArgumentOutOfRangeException(nameof(report), report, "Unknown REGON report."),
     };
 
+    /// <summary>The report name GUS expects in <c>pNazwaRaportu</c> of a summary report.</summary>
+    public static string WireName(RegonSummaryReport report) => report switch
+    {
+        RegonSummaryReport.NowePodmiotyPrawneOrazDzialalnosciOsFizycznych => "BIR11" + nameof(RegonSummaryReport.NowePodmiotyPrawneOrazDzialalnosciOsFizycznych),
+        RegonSummaryReport.AktualizowanePodmiotyPrawneOrazDzialalnosciOsFizycznych => "BIR11" + nameof(RegonSummaryReport.AktualizowanePodmiotyPrawneOrazDzialalnosciOsFizycznych),
+        RegonSummaryReport.SkreslonePodmiotyPrawneOrazDzialalnosciOsFizycznych => "BIR11" + nameof(RegonSummaryReport.SkreslonePodmiotyPrawneOrazDzialalnosciOsFizycznych),
+        RegonSummaryReport.NoweJednostkiLokalne => "BIR11" + nameof(RegonSummaryReport.NoweJednostkiLokalne),
+        RegonSummaryReport.AktualizowaneJednostkiLokalne => "BIR11" + nameof(RegonSummaryReport.AktualizowaneJednostkiLokalne),
+        RegonSummaryReport.SkresloneJednostkiLokalne => "BIR11" + nameof(RegonSummaryReport.SkresloneJednostkiLokalne),
+        _ => throw new ArgumentOutOfRangeException(nameof(report), report, "Unknown REGON summary report."),
+    };
+
     /// <summary>9 for the reports of an entity, 14 for the reports of a local unit, 0 when either length is accepted.</summary>
     public static int RegonLength(RegonReport report) => report switch
     {
